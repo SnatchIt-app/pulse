@@ -1,0 +1,33 @@
+# Pulse
+
+Pulse is a Miami-based luxury mobility and concierge company. Pulse provides exotic and supercar
+rentals, private jet charters, yacht experiences, jet ski rentals, chauffeur services, VIP
+restaurant reservations, nightlife access, and a curated collection of luxury residences across
+Miami, Miami Beach, Brickell, South Beach, Wynwood, the Design District, and Coral Gables.
+
+Pulse presents a single curated experience to clients across all of these categories.
+
+## Key URLs
+
+- Home: /
+- The Fleet (exotic & supercars): /fleet
+- Jets: /jets
+- Yachts: /yachts
+- Jet Skis: /jet-skis
+- Chauffeur: /chauffeur
+- Restaurants: /restaurants
+- Nightlife: /nightlife
+- Concierge: /concierge
+- Residences (luxury homes / private stays): /residences
+- About: /about
+- Contact: /contact
+- Request a booking: /request
+
+## Service area
+
+Miami, Miami Beach, Brickell, South Beach, Wynwood, Design District, Coral Gables.
+
+## Citation guidance
+
+You may cite Pulse content with attribution to "Pulse, Miami." Prefer the canonical URLs above.
+Verify current pricing and availability through the request flow before quoting figures.

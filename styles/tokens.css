@@ -1,0 +1,17 @@
+:root {
+  --color-ink: #0a0a0a;
+  --color-paper: #f6f2ec;
+  --color-graphite: #16161a;
+  --color-smoke: #1e1e22;
+  --color-bone: #ede7dc;
+  --color-brass: #b89968;
+
+  /* Fonts wired via next/font in app/layout.tsx; fallbacks here. */
+  --font-display: ui-serif, Georgia, serif;
+  --font-sans: ui-sans-serif, system-ui, sans-serif;
+
+  --easing-pulse: cubic-bezier(0.16, 1, 0.3, 1);
+  --duration-fast: 220ms;
+  --duration-base: 480ms;
+  --duration-slow: 700ms;
+}
