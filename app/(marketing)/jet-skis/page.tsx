@@ -1,28 +1,13 @@
 import type { Metadata } from "next";
 import { buildMetadata } from "@/lib/seo";
-import { buildServiceJsonLd } from "@/lib/schema";
-import Container from "@/components/shared/Container";
-import Section from "@/components/shared/Section";
+import ServicePageTemplate from "@/components/marketing/ServicePageTemplate";
+import { SERVICE_CONTENT } from "@/data/service-content";
+import { SERVICE_FAQS } from "@/data/faqs";
 
 export const metadata: Metadata = buildMetadata({ route: "/jet-skis", path: "/jet-skis" });
 
-const jsonLd = buildServiceJsonLd({
-  name: "Jet Ski Rental in Miami",
-  description: "Jet ski rentals across Miami and Miami Beach via Pulse.",
-  path: "/jet-skis",
-});
-
 export default function JetSkisPage() {
   return (
-    <Section className="pt-32">
-      <Container>
-        <p className="text-ink/60 text-xs uppercase tracking-[0.2em]">Pulse Jet Skis</p>
-        <h1 className="mt-4 font-display text-5xl sm:text-6xl">Jet ski rental in Miami.</h1>
-      </Container>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
-    </Section>
+    <ServicePageTemplate content={SERVICE_CONTENT["jet-skis"]} faqs={SERVICE_FAQS["jet-skis"]} />
   );
 }

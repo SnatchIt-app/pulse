@@ -18,3 +18,22 @@ body {
   background: var(--color-brass);
   color: var(--color-ink);
 }
+
+/* ---------- Motion system ---------- */
+@keyframes pulse-marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+.pulse-marquee-track {
+  animation: pulse-marquee 60s linear infinite;
+  will-change: transform;
+}
+@media (prefers-reduced-motion: reduce) {
+  .pulse-marquee-track {
+    animation: none;
+  }
+}
