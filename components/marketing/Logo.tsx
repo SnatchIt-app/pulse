@@ -1,27 +1,27 @@
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 
-// Default ships the SVG placeholder. Drop the official PNG at /public/logo.png
-// and set `src="/logo.png"` (or update this default) to swap globally.
+// Official Pulse logo lives at /public/logo.png.
+// Intrinsic dimensions roughly match the artwork (square-ish composition).
+// Sizing is driven by the className — `h-* w-auto` preserves aspect ratio.
 export default function Logo({
   className,
-  src = "/logo.svg",
+  src = "/logo.png",
   alt = "Pulse",
-  size = 28,
 }: {
   className?: string;
   src?: string;
   alt?: string;
-  size?: number;
 }) {
   return (
     <Image
       src={src}
       alt={alt}
-      width={size}
-      height={size}
+      width={360}
+      height={400}
       priority
-      className={cn("h-7 w-auto", className)}
+      sizes="(min-width: 768px) 64px, 48px"
+      className={cn("h-auto w-auto", className)}
     />
   );
 }

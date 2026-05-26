@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Logo from "./Logo";
 
 const cols: ReadonlyArray<{
   heading: string;
@@ -38,7 +39,7 @@ export default function Footer() {
     <footer className="border-ink/10 mt-32 border-t bg-paper">
       <div className="mx-auto grid max-w-container grid-cols-1 gap-12 px-6 py-20 md:grid-cols-4 md:px-24">
         <div>
-          <p className="font-display text-2xl">Pulse</p>
+          <Logo className="h-12 w-auto" />
           <p className="text-ink/60 mt-4 text-sm">Luxury mobility &amp; concierge. Miami.</p>
         </div>
         {cols.map((c) => (

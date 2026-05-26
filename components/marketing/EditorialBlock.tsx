@@ -20,9 +20,9 @@ export default function EditorialBlock() {
       <Container className="relative -mt-32 pb-24 md:-mt-48 md:pb-32">
         <MotionFade>
           <p className="text-paper/60 text-[11px] uppercase tracking-[0.24em]">Pulse · Miami</p>
-          <p className="mt-6 max-w-3xl font-display text-3xl leading-[1.1] sm:text-5xl md:text-6xl">
+          <blockquote className="mt-6 max-w-3xl font-display text-3xl leading-[1.1] sm:text-5xl md:text-6xl">
             “Miami doesn&apos;t slow down. Neither do we.”
-          </p>
+          </blockquote>
         </MotionFade>
       </Container>
     </section>

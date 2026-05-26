@@ -8,6 +8,7 @@ export default function TrustPillars() {
     <Section className="bg-paper">
       <Container>
         <p className="text-ink/55 text-[11px] uppercase tracking-[0.24em]">The Pulse difference</p>
+        <h2 className="sr-only">The Pulse difference, in three lines.</h2>
         <MotionStagger className="mt-12 grid grid-cols-1 gap-12 md:grid-cols-3 md:gap-16">
           {TRUST_PILLARS.map((p) => (
             <MotionStaggerItem key={p.key}>

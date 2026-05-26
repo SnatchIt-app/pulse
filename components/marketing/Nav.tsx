@@ -15,7 +15,7 @@ export default function Nav() {
     <header className="border-ink/10 bg-paper/80 sticky top-0 z-50 border-b backdrop-blur">
       <nav className="mx-auto flex h-16 max-w-container items-center justify-between px-6 md:px-24">
         <Link href="/" className="flex items-center gap-3" aria-label="Pulse — home">
-          <Logo />
+          <Logo className="h-9 w-auto md:h-10" />
           <span className="sr-only">Pulse</span>
         </Link>
         <ul className="hidden gap-8 text-[11px] uppercase tracking-[0.22em] md:flex">
