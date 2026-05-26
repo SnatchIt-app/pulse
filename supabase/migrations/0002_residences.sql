@@ -25,7 +25,7 @@ do $$ begin
 exception when duplicate_object then null; end $$;
 
 create table if not exists public.residences (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   slug text not null unique,
   title text not null,
   -- INTERNAL-ONLY (vendor) — RLS-gated, never in public projection
@@ -59,7 +59,7 @@ create table if not exists public.residences (
 );
 
 create table if not exists public.residence_availability (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   residence_id uuid not null references public.residences(id) on delete cascade,
   date date not null,
   available boolean not null default true,
@@ -71,7 +71,7 @@ create table if not exists public.residence_availability (
 );
 
 create table if not exists public.residence_requests (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   lead_id uuid references public.leads(id) on delete set null,
   residence_id uuid references public.residences(id) on delete set null,
   start_date date,
@@ -85,7 +85,7 @@ create table if not exists public.residence_requests (
 );
 
 create table if not exists public.residence_bookings (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   client_id uuid,
   residence_id uuid not null references public.residences(id) on delete restrict,
   start_date date not null,

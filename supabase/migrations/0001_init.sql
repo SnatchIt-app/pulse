@@ -1,7 +1,10 @@
 -- Pulse core schema — Phase 1: users, vehicles, leads. RLS on.
 -- Idempotent-ish: guarded with "if not exists" where Postgres allows.
 
-create extension if not exists "uuid-ossp";
+-- Supabase ships pgcrypto preinstalled (in the `extensions` schema) which provides
+-- gen_random_uuid(). We declare it idempotently to be explicit; we do NOT depend on
+-- uuid-ossp / uuid_generate_v4 (not available in some Supabase projects).
+create extension if not exists pgcrypto with schema extensions;
 
 do $$ begin
   create type lead_status as enum ('new','contacted','qualified','quoted','booked','completed','lost');
@@ -37,7 +40,7 @@ create table if not exists public.users (
 );
 
 create table if not exists public.vehicles (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   slug text not null unique,
   make text not null,
   model text not null,
@@ -70,7 +73,7 @@ create table if not exists public.vehicles (
 );
 
 create table if not exists public.leads (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   full_name text not null,
   email text not null,
   phone text,
