@@ -1,10 +1,6 @@
 import type { Metadata } from "next";
 import { buildMetadata } from "@/lib/seo";
-import {
-  buildFaqPageJsonLd,
-  buildLodgingBusinessJsonLd,
-  buildServiceJsonLd,
-} from "@/lib/schema";
+import { buildFaqPageJsonLd, buildLodgingBusinessJsonLd, buildServiceJsonLd } from "@/lib/schema";
 import Container from "@/components/shared/Container";
 import Section from "@/components/shared/Section";
 
@@ -40,12 +36,13 @@ export default function ResidencesPage() {
   return (
     <Section className="pt-32">
       <Container>
-        <p className="text-xs uppercase tracking-[0.2em] text-ink/60">Pulse Residences</p>
+        <p className="text-ink/60 text-xs uppercase tracking-[0.2em]">Pulse Residences</p>
         <h1 className="mt-4 font-display text-5xl sm:text-6xl">Curated luxury homes in Miami.</h1>
-        <p className="mt-8 max-w-xl text-lg text-ink/70">
-          A curated collection of private residences across Miami&apos;s most desirable neighborhoods.
+        <p className="text-ink/70 mt-8 max-w-xl text-lg">
+          A curated collection of private residences across Miami&apos;s most desirable
+          neighborhoods.
         </p>
-        <p className="mt-6 max-w-xl text-ink/60">Residence grid lands in Phase 3.5.</p>
+        <p className="text-ink/60 mt-6 max-w-xl">Residence grid lands in Phase 3.5.</p>
       </Container>
       <script
         type="application/ld+json"

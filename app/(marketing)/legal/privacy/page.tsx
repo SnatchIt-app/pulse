@@ -14,7 +14,7 @@ export default function PrivacyPage() {
     <Section className="pt-32">
       <Container>
         <h1 className="font-display text-4xl">Privacy</h1>
-        <p className="mt-6 text-ink/60">Final legal copy to be provided.</p>
+        <p className="text-ink/60 mt-6">Final legal copy to be provided.</p>
       </Container>
     </Section>
   );

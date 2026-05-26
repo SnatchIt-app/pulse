@@ -16,7 +16,7 @@ export default function ConciergePage() {
   return (
     <Section className="pt-32">
       <Container>
-        <p className="text-xs uppercase tracking-[0.2em] text-ink/60">Pulse Concierge</p>
+        <p className="text-ink/60 text-xs uppercase tracking-[0.2em]">Pulse Concierge</p>
         <h1 className="mt-4 font-display text-5xl sm:text-6xl">Tell us what you want.</h1>
       </Container>
       <script

@@ -9,7 +9,7 @@ export default function AboutPage() {
   return (
     <Section className="pt-32">
       <Container>
-        <p className="text-xs uppercase tracking-[0.2em] text-ink/60">About</p>
+        <p className="text-ink/60 text-xs uppercase tracking-[0.2em]">About</p>
         <h1 className="mt-4 font-display text-5xl sm:text-6xl">Pulse.</h1>
       </Container>
     </Section>

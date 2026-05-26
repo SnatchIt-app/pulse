@@ -8,7 +8,7 @@ export default function Textarea({
   return (
     <textarea
       className={cn(
-        "block w-full border border-ink/20 bg-transparent p-3 text-base outline-none transition-colors focus:border-ink",
+        "border-ink/20 block w-full border bg-transparent p-3 text-base outline-none transition-colors focus:border-ink",
         className,
       )}
       {...props}

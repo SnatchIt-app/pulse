@@ -7,5 +7,5 @@ export default function Card({
   className?: string;
   children: React.ReactNode;
 }) {
-  return <div className={cn("border border-ink/10 bg-paper p-6", className)}>{children}</div>;
+  return <div className={cn("border-ink/10 border bg-paper p-6", className)}>{children}</div>;
 }

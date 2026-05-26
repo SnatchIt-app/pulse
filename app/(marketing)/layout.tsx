@@ -7,11 +7,7 @@ import {
 } from "@/lib/schema";
 
 export default function MarketingLayout({ children }: { children: React.ReactNode }) {
-  const jsonLd = [
-    buildOrganizationJsonLd(),
-    buildWebSiteJsonLd(),
-    buildLocalBusinessJsonLd(),
-  ];
+  const jsonLd = [buildOrganizationJsonLd(), buildWebSiteJsonLd(), buildLocalBusinessJsonLd()];
   return (
     <>
       <Nav />

@@ -11,7 +11,7 @@ const links: ReadonlyArray<{ label: string; href: string }> = [
 
 export default function Nav() {
   return (
-    <header className="sticky top-0 z-50 border-b border-ink/10 bg-paper/80 backdrop-blur">
+    <header className="border-ink/10 bg-paper/80 sticky top-0 z-50 border-b backdrop-blur">
       <nav className="mx-auto flex h-16 max-w-container items-center justify-between px-6 md:px-24">
         <Link href="/" className="font-display text-xl tracking-wide">
           Pulse

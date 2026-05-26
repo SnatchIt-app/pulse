@@ -6,11 +6,7 @@ import Section from "@/components/shared/Section";
 
 type Params = { slug: string };
 
-export async function generateMetadata({
-  params,
-}: {
-  params: Promise<Params>;
-}): Promise<Metadata> {
+export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
   const { slug } = await params;
   const label = slug.replace(/-/g, " ");
   return buildMetadata({
@@ -42,9 +38,9 @@ export default async function ResidencePage({ params }: { params: Promise<Params
   return (
     <Section className="pt-32">
       <Container>
-        <p className="text-xs uppercase tracking-[0.2em] text-ink/60">Pulse Residences</p>
+        <p className="text-ink/60 text-xs uppercase tracking-[0.2em]">Pulse Residences</p>
         <h1 className="mt-4 font-display text-4xl capitalize">{label}</h1>
-        <p className="mt-6 text-ink/60">Residence detail page lands in Phase 3.5.</p>
+        <p className="text-ink/60 mt-6">Residence detail page lands in Phase 3.5.</p>
       </Container>
       <script
         type="application/ld+json"

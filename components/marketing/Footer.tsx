@@ -35,15 +35,15 @@ const cols: ReadonlyArray<{
 
 export default function Footer() {
   return (
-    <footer className="mt-32 border-t border-ink/10 bg-paper">
+    <footer className="border-ink/10 mt-32 border-t bg-paper">
       <div className="mx-auto grid max-w-container grid-cols-1 gap-12 px-6 py-20 md:grid-cols-4 md:px-24">
         <div>
           <p className="font-display text-2xl">Pulse</p>
-          <p className="mt-4 text-sm text-ink/60">Luxury mobility &amp; concierge. Miami.</p>
+          <p className="text-ink/60 mt-4 text-sm">Luxury mobility &amp; concierge. Miami.</p>
         </div>
         {cols.map((c) => (
           <div key={c.heading}>
-            <p className="text-xs uppercase tracking-[0.2em] text-ink/60">{c.heading}</p>
+            <p className="text-ink/60 text-xs uppercase tracking-[0.2em]">{c.heading}</p>
             <ul className="mt-4 space-y-2 text-sm">
               {c.links.map((l) => (
                 <li key={l.href}>
@@ -56,7 +56,7 @@ export default function Footer() {
           </div>
         ))}
       </div>
-      <div className="border-t border-ink/10 px-6 py-6 text-center text-xs text-ink/50">
+      <div className="border-ink/10 text-ink/50 border-t px-6 py-6 text-center text-xs">
         © {new Date().getFullYear()} Pulse
       </div>
     </footer>

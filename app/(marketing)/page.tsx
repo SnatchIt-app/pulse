@@ -25,11 +25,11 @@ export default function HomePage() {
     <>
       <Section className="pt-32">
         <Container>
-          <p className="text-xs uppercase tracking-[0.2em] text-ink/60">Pulse — Miami</p>
+          <p className="text-ink/60 text-xs uppercase tracking-[0.2em]">Pulse — Miami</p>
           <h1 className="mt-4 max-w-4xl font-display text-6xl leading-[0.95] sm:text-7xl md:text-8xl">
             Luxury mobility, on call.
           </h1>
-          <p className="mt-8 max-w-xl text-lg text-ink/70">
+          <p className="text-ink/70 mt-8 max-w-xl text-lg">
             Exotic cars first. Then jets, yachts, residences, and concierge access — Pulse runs the
             whole stay.
           </p>
@@ -52,13 +52,13 @@ export default function HomePage() {
 
       <Section className="py-16">
         <Container>
-          <p className="text-xs uppercase tracking-[0.2em] text-ink/60">Services</p>
+          <p className="text-ink/60 text-xs uppercase tracking-[0.2em]">Services</p>
           <ul className="mt-8 grid grid-cols-2 gap-x-6 gap-y-4 md:grid-cols-3">
             {services.map((s) => (
               <li key={s.href}>
                 <Link
                   href={s.href}
-                  className="block border-b border-ink/10 py-4 font-display text-2xl transition-opacity hover:opacity-60"
+                  className="border-ink/10 block border-b py-4 font-display text-2xl transition-opacity hover:opacity-60"
                 >
                   {s.label}
                 </Link>

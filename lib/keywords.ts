@@ -43,13 +43,15 @@ export const KEYWORDS: Record<RouteKey, KeywordEntry> = {
     primary: "private jet charter Miami",
     secondary: ["private jet rental Miami"],
     title: "Private Jet Charter from Miami",
-    description: "Private jet charter from Miami via Pulse. Citation, Phenom, Global, with on-call concierge.",
+    description:
+      "Private jet charter from Miami via Pulse. Citation, Phenom, Global, with on-call concierge.",
   },
   "/yachts": {
     primary: "yacht charter Miami",
     secondary: ["yacht rental Miami Beach", "luxury yacht Miami"],
     title: "Yacht Charter in Miami",
-    description: "Yacht charter and day experiences in Miami. Curated fleet, captain and crew, on-water concierge.",
+    description:
+      "Yacht charter and day experiences in Miami. Curated fleet, captain and crew, on-water concierge.",
   },
   "/jet-skis": {
     primary: "jet ski rental Miami",
@@ -67,7 +69,8 @@ export const KEYWORDS: Record<RouteKey, KeywordEntry> = {
     primary: "VIP restaurant reservations Miami",
     secondary: ["hard-to-book restaurants Miami"],
     title: "VIP Restaurant Reservations in Miami",
-    description: "Last-minute and hard-to-book tables at Miami's top restaurants, via Pulse's concierge network.",
+    description:
+      "Last-minute and hard-to-book tables at Miami's top restaurants, via Pulse's concierge network.",
   },
   "/nightlife": {
     primary: "VIP nightlife Miami",

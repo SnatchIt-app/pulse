@@ -9,9 +9,9 @@ export default function FleetPage() {
   return (
     <Section className="pt-32">
       <Container>
-        <p className="text-xs uppercase tracking-[0.2em] text-ink/60">The Fleet</p>
+        <p className="text-ink/60 text-xs uppercase tracking-[0.2em]">The Fleet</p>
         <h1 className="mt-4 font-display text-5xl sm:text-6xl">Exotic &amp; supercars in Miami.</h1>
-        <p className="mt-6 max-w-xl text-ink/60">Fleet grid lands in Phase 3.</p>
+        <p className="text-ink/60 mt-6 max-w-xl">Fleet grid lands in Phase 3.</p>
       </Container>
     </Section>
   );
