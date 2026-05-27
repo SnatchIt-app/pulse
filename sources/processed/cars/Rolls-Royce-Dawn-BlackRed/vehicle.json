@@ -8,5 +8,6 @@
   "quote_only": true,
   "exterior_color": "Black",
   "interior_color": "Red",
-  "color_label": "Black / Red"
+  "color_label": "Black / Red",
+  "body_style": "Convertible"
 }

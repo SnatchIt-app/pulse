@@ -2,17 +2,39 @@ import type { Metadata } from "next";
 import { buildMetadata } from "@/lib/seo";
 import Container from "@/components/shared/Container";
 import Section from "@/components/shared/Section";
+import MotionFade from "@/components/shared/MotionFade";
+import EntityOpener from "@/components/marketing/EntityOpener";
+import CarCard from "@/components/marketing/CarCard";
+import { MotionStagger, MotionStaggerItem } from "@/components/shared/MotionStagger";
+import { cars } from "@/data/inventory/cars";
 
 export const metadata: Metadata = buildMetadata({ route: "/fleet", path: "/fleet" });
 
 export default function FleetPage() {
   return (
-    <Section className="pt-32">
-      <Container>
-        <p className="text-ink/60 text-xs uppercase tracking-[0.2em]">The Fleet</p>
-        <h1 className="mt-4 font-display text-5xl sm:text-6xl">Exotic &amp; supercars in Miami.</h1>
-        <p className="text-ink/60 mt-6 max-w-xl">Fleet grid lands in Phase 3.</p>
-      </Container>
-    </Section>
+    <>
+      <Section className="bg-paper pt-32">
+        <Container>
+          <MotionFade>
+            <p className="text-ink/55 text-[11px] uppercase tracking-[0.24em]">The Fleet</p>
+            <h1 className="mt-6 max-w-4xl font-display text-5xl leading-[0.98] sm:text-6xl md:text-7xl">
+              Exotic &amp; supercars in Miami.
+            </h1>
+          </MotionFade>
+        </Container>
+      </Section>
+      <EntityOpener body="Pulse curates Miami's most sought-after exotic and luxury vehicles — Lamborghini, Rolls-Royce, McLaren, and Bentley. Every booking is by request. Contact a specialist to arrange." />
+      <Section className="bg-paper">
+        <Container>
+          <MotionStagger className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 lg:gap-10">
+            {cars.map((car) => (
+              <MotionStaggerItem key={car.slug}>
+                <CarCard car={car} />
+              </MotionStaggerItem>
+            ))}
+          </MotionStagger>
+        </Container>
+      </Section>
+    </>
   );
 }
