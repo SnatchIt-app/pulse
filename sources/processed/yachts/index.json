@@ -1,0 +1,38 @@
+{
+  "generated": "2026-05-27",
+  "count": 4,
+  "yachts": [
+    {
+      "slug": "ferretti-780-hsy",
+      "make": "Ferretti",
+      "model": "780",
+      "source_tag": "HSY",
+      "asset_count": 3,
+      "quote_only": true
+    },
+    {
+      "slug": "azimut-72-mancusa",
+      "make": "Azimut",
+      "length_ft": 72,
+      "name": "Mancusa",
+      "asset_count": 4,
+      "quote_only": true
+    },
+    {
+      "slug": "princess-88-praying-for-overtime",
+      "make": "Princess",
+      "length_ft": 88,
+      "name": "Praying For Overtime",
+      "asset_count": 3,
+      "quote_only": true
+    },
+    {
+      "slug": "sunseeker-92-rmm-job",
+      "make": "Sunseeker",
+      "length_ft": 92,
+      "name": "RMM JOB",
+      "asset_count": 5,
+      "quote_only": true
+    }
+  ]
+}

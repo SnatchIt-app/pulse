@@ -1,0 +1,179 @@
+{
+  "generated": "2026-05-27",
+  "count": 15,
+  "vehicles": [
+    {
+      "slug": "Rolls-Royce-Cullinan-BlackBlack-Teal",
+      "make": "Rolls-Royce",
+      "model": "Cullinan",
+      "luxury_tier": "ultra-luxury",
+      "homepage_worthy": true,
+      "quote_only": true,
+      "body_style": "SUV",
+      "exterior_color": "Black",
+      "interior_color": "Black-Teal",
+      "color_label": "Black / Black-Teal"
+    },
+    {
+      "slug": "Lamborghini-Huracan-Spyder-BlackBlack",
+      "make": "Lamborghini",
+      "model": "Huracan",
+      "luxury_tier": "ultra-luxury",
+      "homepage_worthy": true,
+      "quote_only": true,
+      "body_style": "Convertible/Spyder",
+      "exterior_color": "Black",
+      "interior_color": "Black",
+      "color_label": "Black"
+    },
+    {
+      "slug": "Rolls-Royce-Cullinan-BlackBlack",
+      "make": "Rolls-Royce",
+      "model": "Cullinan",
+      "luxury_tier": "ultra-luxury",
+      "homepage_worthy": true,
+      "quote_only": true,
+      "body_style": "SUV",
+      "exterior_color": "Black",
+      "interior_color": "Black",
+      "color_label": "Black"
+    },
+    {
+      "slug": "Lamborghini-Huracan-Spyder-Balloon-WhiteRed",
+      "make": "Lamborghini",
+      "model": "Huracan",
+      "luxury_tier": "ultra-luxury",
+      "homepage_worthy": true,
+      "quote_only": true,
+      "body_style": "Convertible/Spyder",
+      "exterior_color": "Balloon White",
+      "interior_color": "Red",
+      "color_label": "Balloon White / Red"
+    },
+    {
+      "slug": "Bentley-Bentayga-W12-Speed-BlackBlack-Orange",
+      "make": "Bentley",
+      "model": "Bentayga",
+      "luxury_tier": "ultra-luxury",
+      "homepage_worthy": true,
+      "quote_only": true,
+      "body_style": "SUV",
+      "exterior_color": "Black",
+      "interior_color": "Black-Orange",
+      "color_label": "Black / Black-Orange"
+    },
+    {
+      "slug": "Bentley-Continental-Convertible-W12-Speed-BlackBlack-Orange",
+      "make": "Bentley",
+      "model": "Continental",
+      "luxury_tier": "ultra-luxury",
+      "homepage_worthy": true,
+      "quote_only": true,
+      "body_style": "Convertible",
+      "exterior_color": "Black",
+      "interior_color": "Black-Orange",
+      "color_label": "Black / Black-Orange"
+    },
+    {
+      "slug": "Lamborghini-Urus-GreyBrown",
+      "make": "Lamborghini",
+      "model": "Urus",
+      "luxury_tier": "ultra-luxury",
+      "homepage_worthy": true,
+      "quote_only": true,
+      "body_style": "SUV",
+      "exterior_color": "Grey",
+      "interior_color": "Brown",
+      "color_label": "Grey / Brown"
+    },
+    {
+      "slug": "Lamborghini-Huracan-EVO-Spyder-Blu-Glauco-Black",
+      "make": "Lamborghini",
+      "model": "Huracan",
+      "luxury_tier": "ultra-luxury",
+      "homepage_worthy": true,
+      "quote_only": true,
+      "body_style": "Convertible/Spyder",
+      "exterior_color": "Blu Glauco",
+      "interior_color": "Black",
+      "color_label": "Blu Glauco / Black"
+    },
+    {
+      "slug": "Lamborghini-Huracan-EVO-GreenBlack",
+      "make": "Lamborghini",
+      "model": "Huracan",
+      "luxury_tier": "ultra-luxury",
+      "homepage_worthy": true,
+      "quote_only": true,
+      "exterior_color": "Green",
+      "interior_color": "Black",
+      "color_label": "Green / Black"
+    },
+    {
+      "slug": "Lamborghini-Huracan-YellowBlack",
+      "make": "Lamborghini",
+      "model": "Huracan",
+      "luxury_tier": "ultra-luxury",
+      "homepage_worthy": true,
+      "quote_only": true,
+      "exterior_color": "Yellow",
+      "interior_color": "Black",
+      "color_label": "Yellow / Black"
+    },
+    {
+      "slug": "Rolls-Royce-Dawn-BlackBlack",
+      "make": "Rolls-Royce",
+      "model": "Dawn",
+      "luxury_tier": "ultra-luxury",
+      "homepage_worthy": true,
+      "quote_only": true,
+      "exterior_color": "Black",
+      "interior_color": "Black",
+      "color_label": "Black"
+    },
+    {
+      "slug": "McLaren-GT-GreenBlack",
+      "make": "McLaren",
+      "model": "GT",
+      "luxury_tier": "ultra-luxury",
+      "homepage_worthy": true,
+      "quote_only": true,
+      "exterior_color": "Green",
+      "interior_color": "Black",
+      "color_label": "Green / Black"
+    },
+    {
+      "slug": "McLaren-GT-OrangeBlack",
+      "make": "McLaren",
+      "model": "GT",
+      "luxury_tier": "ultra-luxury",
+      "homepage_worthy": true,
+      "quote_only": true,
+      "exterior_color": "Orange",
+      "interior_color": "Black",
+      "color_label": "Orange / Black"
+    },
+    {
+      "slug": "McLaren-GT-BlackBlack",
+      "make": "McLaren",
+      "model": "GT",
+      "luxury_tier": "ultra-luxury",
+      "homepage_worthy": true,
+      "quote_only": true,
+      "exterior_color": "Black",
+      "interior_color": "Black",
+      "color_label": "Black"
+    },
+    {
+      "slug": "Rolls-Royce-Dawn-BlackRed",
+      "make": "Rolls-Royce",
+      "model": "Dawn",
+      "luxury_tier": "ultra-luxury",
+      "homepage_worthy": true,
+      "quote_only": true,
+      "exterior_color": "Black",
+      "interior_color": "Red",
+      "color_label": "Black / Red"
+    }
+  ]
+}
