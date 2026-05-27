@@ -1,4 +1,4 @@
-export type LuxuryTier = 'ultra-luxury';
+export type LuxuryTier = "ultra-luxury";
 
 export interface Car {
   slug: string;
