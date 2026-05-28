@@ -39,11 +39,21 @@ export default async function VehiclePage({ params }: { params: Promise<Params> 
 
   const subtitle = car.body_style ? `${car.color_label} · ${car.body_style}` : car.color_label;
   const heroImage = car.images?.[0] ?? null;
+  const requestHref = `/request?vehicle=${slug}&title=${encodeURIComponent(`${car.make} ${car.model}`)}`;
+
+  // Build spec rows — only fields we have verified data for
+  const specs: { label: string; value: string }[] = [
+    { label: "Exterior", value: car.exterior_color },
+    ...(car.interior_color && car.interior_color !== car.exterior_color
+      ? [{ label: "Interior", value: car.interior_color }]
+      : []),
+    ...(car.body_style ? [{ label: "Body", value: car.body_style }] : []),
+    { label: "Tier", value: "Ultra-Luxury" },
+  ];
 
   return (
     <>
-      {/* Hero — image drives its own height via h-auto; no fixed container, no dark frame.
-          Placeholder retains the graphite field only when no image is available. */}
+      {/* Hero */}
       <div className="w-full pt-20">
         {heroImage ? (
           <Image
@@ -66,62 +76,86 @@ export default async function VehiclePage({ params }: { params: Promise<Params> 
         )}
       </div>
 
-      <Section className="bg-paper pt-16">
+      {/* Identity + specs */}
+      <Section className="bg-paper pb-0 pt-12 md:pb-0 md:pt-16">
         <Container>
           <MotionFade>
-            <p className="text-ink/55 text-[10px] uppercase tracking-[0.24em]">
-              <Link href="/fleet" className="hover:text-ink">
+            {/* Breadcrumb */}
+            <p className="text-ink/45 text-[10px] uppercase tracking-[0.24em]">
+              <Link href="/fleet" className="transition-colors hover:text-ink">
                 Fleet
               </Link>
-              {" / "}
+              <span className="mx-2">·</span>
               {car.make}
             </p>
-            <h1 className="mt-6 font-display text-5xl leading-[0.96] sm:text-6xl md:text-7xl">
+
+            {/* Headline */}
+            <h1 className="mt-5 font-display text-5xl leading-[0.96] sm:text-6xl md:text-7xl">
               {car.make}
               <br />
               {car.model}
             </h1>
-            <p className="text-ink/55 mt-4 text-[11px] uppercase tracking-[0.24em]">{subtitle}</p>
+            <p className="text-ink/50 mt-3 text-[11px] uppercase tracking-[0.26em]">{subtitle}</p>
 
-            <div className="border-ink/10 mt-12 border-t pt-10">
-              <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-4">
-                <div>
-                  <p className="text-ink/40 text-[9px] uppercase tracking-[0.2em]">Make</p>
-                  <p className="mt-1 font-display text-lg">{car.make}</p>
+            {/* Specs grid */}
+            <dl className="border-ink/10 mt-10 grid grid-cols-2 gap-x-8 gap-y-6 border-t pt-8 sm:grid-cols-3 lg:grid-cols-4">
+              {specs.map((s) => (
+                <div key={s.label}>
+                  <dt className="text-ink/40 text-[9px] uppercase tracking-[0.22em]">{s.label}</dt>
+                  <dd className="mt-1 font-display text-lg leading-tight">{s.value}</dd>
                 </div>
-                <div>
-                  <p className="text-ink/40 text-[9px] uppercase tracking-[0.2em]">Model</p>
-                  <p className="mt-1 font-display text-lg">{car.model}</p>
-                </div>
-                <div>
-                  <p className="text-ink/40 text-[9px] uppercase tracking-[0.2em]">Exterior</p>
-                  <p className="mt-1 font-display text-lg">{car.exterior_color}</p>
-                </div>
-                {car.interior_color && car.interior_color !== car.exterior_color && (
-                  <div>
-                    <p className="text-ink/40 text-[9px] uppercase tracking-[0.2em]">Interior</p>
-                    <p className="mt-1 font-display text-lg">{car.interior_color}</p>
-                  </div>
-                )}
-                {car.body_style && (
-                  <div>
-                    <p className="text-ink/40 text-[9px] uppercase tracking-[0.2em]">Body</p>
-                    <p className="mt-1 font-display text-lg">{car.body_style}</p>
-                  </div>
-                )}
-              </div>
-            </div>
+              ))}
+            </dl>
 
-            <div className="mt-14">
-              <p className="text-ink/55 mb-6 max-w-md text-sm leading-relaxed">
-                Pricing is by quote. A Pulse specialist responds within 15 minutes with availability
-                and a tailored rate.
-              </p>
+            {/* Inline quote note */}
+            <p className="text-ink/45 mt-10 max-w-lg text-sm leading-relaxed">
+              All vehicles are available by quote only. A Pulse specialist responds within 15
+              minutes with availability and a tailored rate.
+            </p>
+
+            {/* Primary CTA — inline for above-fold access */}
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
               <Link
-                href="/request"
+                href={requestHref}
                 className="inline-flex items-center justify-center bg-ink px-8 py-4 text-[11px] uppercase tracking-[0.22em] text-paper transition-colors duration-[480ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-graphite"
               >
                 Request a Quote
+              </Link>
+              <Link
+                href="/fleet"
+                className="text-ink/50 text-[11px] uppercase tracking-[0.22em] transition-colors duration-[480ms] hover:text-ink"
+              >
+                ← Back to Fleet
+              </Link>
+            </div>
+          </MotionFade>
+        </Container>
+      </Section>
+
+      {/* Dark CTA band */}
+      <Section className="mt-20 bg-ink text-paper">
+        <Container>
+          <MotionFade>
+            <p className="text-paper/50 text-[11px] uppercase tracking-[0.24em]">Pulse Concierge</p>
+            <h2 className="mt-5 max-w-2xl font-display text-4xl leading-[1.0] sm:text-5xl">
+              Reserve the {car.make} {car.model}.
+            </h2>
+            <p className="text-paper/60 mt-5 max-w-md text-sm leading-relaxed">
+              Quote-only. No booking fees, no surprises. A Pulse specialist builds your rate based
+              on dates, duration, and any add-ons you need.
+            </p>
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:gap-4">
+              <Link
+                href={requestHref}
+                className="inline-flex items-center justify-center bg-paper px-8 py-4 text-[11px] uppercase tracking-[0.22em] text-ink transition-colors duration-[480ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-bone"
+              >
+                Request a Quote
+              </Link>
+              <Link
+                href="/concierge"
+                className="border-paper/30 inline-flex items-center justify-center border px-8 py-4 text-[11px] uppercase tracking-[0.22em] text-paper transition-colors duration-[480ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-paper hover:text-ink"
+              >
+                How Pulse works
               </Link>
             </div>
           </MotionFade>
