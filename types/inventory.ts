@@ -31,6 +31,8 @@ export interface Yacht {
   source_tag?: string;
   quote_only: true;
   asset_count: number;
+  /** Verified local paths under /public/yachts/[slug]/. Absent = placeholder shown. */
+  images?: string[];
 }
 
 export interface YachtIndex {

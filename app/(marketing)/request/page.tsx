@@ -9,35 +9,44 @@ export const metadata: Metadata = buildMetadata({ route: "/request", path: "/req
 
 type SearchParams = Promise<{
   vehicle?: string;
+  yacht?: string;
   title?: string;
   [key: string]: string | undefined;
 }>;
 
 export default async function RequestPage({ searchParams }: { searchParams: SearchParams }) {
-  const { vehicle, title } = await searchParams;
+  const { vehicle, yacht, title } = await searchParams;
 
-  const vehicleTitle = title ? decodeURIComponent(title) : null;
-  const hasVehicle = Boolean(vehicle && vehicleTitle);
+  const assetTitle = title ? decodeURIComponent(title) : null;
+  const hasVehicle = Boolean(vehicle && assetTitle);
+  const hasYacht = Boolean(yacht && assetTitle);
+  const hasAsset = hasVehicle || hasYacht;
+
+  const assetSlug = hasVehicle ? vehicle : hasYacht ? yacht : null;
+  const assetHref = hasVehicle ? `/fleet/${assetSlug}` : hasYacht ? `/yachts/${assetSlug}` : null;
+  const assetTypeLabel = hasVehicle ? "Vehicle" : hasYacht ? "Yacht" : null;
 
   return (
     <Section className="bg-paper pt-32">
       <Container>
         <MotionFade>
           <p className="text-ink/55 text-[11px] uppercase tracking-[0.24em]">
-            {hasVehicle ? "Vehicle Request" : "Request"}
+            {hasAsset ? `${assetTypeLabel} Request` : "Request"}
           </p>
 
           <h1 className="mt-5 max-w-3xl font-display text-5xl leading-[0.98] sm:text-6xl md:text-7xl">
             Tell us what you need.
           </h1>
 
-          {/* Vehicle context chip — shown when arriving from a fleet detail page */}
-          {hasVehicle && (
+          {/* Asset context chip — shown when arriving from a fleet or yacht detail page */}
+          {hasAsset && assetTitle && assetHref && assetTypeLabel && (
             <div className="border-ink/10 mt-8 inline-flex items-center gap-3 border bg-bone px-5 py-3">
-              <span className="text-ink/40 text-[9px] uppercase tracking-[0.2em]">Vehicle</span>
-              <span className="font-display text-base">{vehicleTitle}</span>
+              <span className="text-ink/40 text-[9px] uppercase tracking-[0.2em]">
+                {assetTypeLabel}
+              </span>
+              <span className="font-display text-base">{assetTitle}</span>
               <Link
-                href={`/fleet/${vehicle}`}
+                href={assetHref}
                 className="text-ink/35 ml-2 text-[9px] uppercase tracking-[0.18em] transition-colors hover:text-ink"
               >
                 ← Change
@@ -47,8 +56,10 @@ export default async function RequestPage({ searchParams }: { searchParams: Sear
 
           <p className="text-ink/55 mt-8 max-w-xl text-sm leading-relaxed sm:text-base">
             {hasVehicle
-              ? `A Pulse specialist will confirm availability for the ${vehicleTitle} and send a tailored quote within 15 minutes.`
-              : "A Pulse specialist responds within 15 minutes. Exotic cars, yachts, jets, residences — anything inside a Miami stay."}
+              ? `A Pulse specialist will confirm availability for the ${assetTitle} and send a tailored quote within 15 minutes.`
+              : hasYacht
+                ? `A Pulse specialist will confirm availability for the ${assetTitle} and send a tailored charter quote within 15 minutes.`
+                : "A Pulse specialist responds within 15 minutes. Exotic cars, yachts, jets, residences — anything inside a Miami stay."}
           </p>
 
           {/* Phase 4 form placeholder */}

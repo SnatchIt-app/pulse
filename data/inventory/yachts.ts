@@ -8,6 +8,7 @@ export const yachts: Yacht[] = [
     source_tag: "HSY",
     quote_only: true,
     asset_count: 3,
+    images: ["/yachts/ferretti-780-hsy/cover.jpg"],
   },
   {
     slug: "azimut-72-mancusa",
@@ -16,6 +17,7 @@ export const yachts: Yacht[] = [
     name: "Mancusa",
     quote_only: true,
     asset_count: 4,
+    images: ["/yachts/azimut-72-mancusa/cover.jpg"],
   },
   {
     slug: "princess-88-praying-for-overtime",
@@ -24,6 +26,7 @@ export const yachts: Yacht[] = [
     name: "Praying For Overtime",
     quote_only: true,
     asset_count: 3,
+    images: ["/yachts/princess-88-praying-for-overtime/cover.jpg"],
   },
   {
     slug: "sunseeker-92-rmm-job",
@@ -32,5 +35,6 @@ export const yachts: Yacht[] = [
     name: "RMM JOB",
     quote_only: true,
     asset_count: 5,
+    images: ["/yachts/sunseeker-92-rmm-job/cover.jpg"],
   },
 ];
