@@ -1,17 +1,11 @@
 import type { Metadata } from "next";
+import LoginForm from "./LoginForm";
 
 export const metadata: Metadata = {
-  title: "Sign in",
+  title: "Sign in — Pulse",
   robots: { index: false, follow: false },
 };
 
-export default function LoginPlaceholder() {
-  return (
-    <main className="flex min-h-screen items-center justify-center px-6 text-center">
-      <div>
-        <p className="text-ink/60 text-xs uppercase tracking-[0.2em]">Pulse Staff Sign-in</p>
-        <h1 className="mt-4 font-display text-4xl">Phase 5.</h1>
-      </div>
-    </main>
-  );
+export default function LoginPage() {
+  return <LoginForm />;
 }
