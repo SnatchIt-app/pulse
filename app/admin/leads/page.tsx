@@ -44,13 +44,9 @@ export default async function LeadsPage() {
         </Link>
       </div>
 
-      {error && (
-        <p className="mt-8 text-sm text-red-400">Database error: {error.message}</p>
-      )}
+      {error && <p className="mt-8 text-sm text-red-400">Database error: {error.message}</p>}
 
-      {!error && (
-        <LeadsClient initialLeads={leads ?? []} />
-      )}
+      {!error && <LeadsClient initialLeads={leads ?? []} />}
     </main>
   );
 }

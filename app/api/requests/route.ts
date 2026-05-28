@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
+import { sendLeadNotification } from "@/lib/email";
 
 const SERVICE_TYPE = z.enum([
   "car",
@@ -93,6 +94,15 @@ export async function POST(req: Request) {
     }
 
     console.log("[requests] Lead inserted successfully");
+
+    // Fire notification email — never blocks response, never fails the request
+    await sendLeadNotification({
+      fullName: parsed.fullName,
+      phone: parsed.phone,
+      email: parsed.email,
+      serviceType: parsed.serviceType ?? "other",
+      message: messageParts || null,
+    });
   } catch (err) {
     console.error("[requests] Unexpected error during insert:", err);
     return NextResponse.json({ ok: false, error: "server_error" }, { status: 500 });

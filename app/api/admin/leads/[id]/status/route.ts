@@ -32,10 +32,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   }
 
   const supabase = getSupabaseAdmin();
-  const { error } = await supabase
-    .from("leads")
-    .update({ status: parsed.status })
-    .eq("id", id);
+  const { error } = await supabase.from("leads").update({ status: parsed.status }).eq("id", id);
 
   if (error) {
     console.error("[leads/status] Update error:", error.message);

@@ -15,14 +15,7 @@ export type Lead = {
   status: string;
 };
 
-type FilterValue =
-  | "all"
-  | "new"
-  | "contacted"
-  | "quoted"
-  | "booked"
-  | "closed"
-  | "archived";
+type FilterValue = "all" | "new" | "contacted" | "quoted" | "booked" | "closed" | "archived";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -201,17 +194,15 @@ export default function LeadsClient({ initialLeads }: { initialLeads: Lead[] }) 
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search name, email, or phone…"
-          className="placeholder:text-paper/25 w-full border-b border-paper/20 bg-transparent py-2 text-sm text-paper outline-none transition-colors focus:border-paper/50 sm:max-w-sm"
+          className="placeholder:text-paper/25 border-paper/20 focus:border-paper/50 w-full border-b bg-transparent py-2 text-sm text-paper outline-none transition-colors sm:max-w-sm"
         />
       </div>
 
       {/* Filter tabs */}
-      <div className="mt-6 flex flex-wrap gap-x-6 gap-y-2 border-b border-paper/10 pb-4">
+      <div className="border-paper/10 mt-6 flex flex-wrap gap-x-6 gap-y-2 border-b pb-4">
         {FILTER_OPTIONS.map((f) => {
           const count =
-            f.value === "all"
-              ? leads.length
-              : leads.filter((l) => l.status === f.value).length;
+            f.value === "all" ? leads.length : leads.filter((l) => l.status === f.value).length;
           return (
             <button
               key={f.value}
@@ -219,22 +210,18 @@ export default function LeadsClient({ initialLeads }: { initialLeads: Lead[] }) 
               className={`transition-colors ${
                 filter === f.value
                   ? "border-b border-paper pb-1 text-[10px] uppercase tracking-[0.2em] text-paper"
-                  : "text-[10px] uppercase tracking-[0.2em] text-paper/35 hover:text-paper/60"
+                  : "text-paper/35 hover:text-paper/60 text-[10px] uppercase tracking-[0.2em]"
               }`}
             >
               {f.label}
-              {count > 0 && (
-                <span className="ml-1.5 text-[9px] opacity-50">({count})</span>
-              )}
+              {count > 0 && <span className="ml-1.5 text-[9px] opacity-50">({count})</span>}
             </button>
           );
         })}
       </div>
 
       {/* Optimistic update error */}
-      {updateError && (
-        <p className="mt-4 text-[11px] text-red-400">{updateError}</p>
-      )}
+      {updateError && <p className="mt-4 text-[11px] text-red-400">{updateError}</p>}
 
       {/* Table */}
       {visible.length > 0 ? (
@@ -292,7 +279,7 @@ export default function LeadsClient({ initialLeads }: { initialLeads: Lead[] }) 
                           <option
                             key={s}
                             value={s}
-                            className="bg-graphite normal-case tracking-normal text-sm text-paper"
+                            className="bg-graphite text-sm normal-case tracking-normal text-paper"
                           >
                             {STATUS_LABELS[s]}
                           </option>
