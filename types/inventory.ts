@@ -40,3 +40,13 @@ export interface YachtIndex {
   count: number;
   yachts: Yacht[];
 }
+
+export interface Jet {
+  slug: string;
+  name: string;
+  category: string;
+  capacity: number;
+  quote_only: true;
+  /** Verified local paths under /public/jets/[slug]/. Absent = placeholder shown. */
+  images?: string[];
+}
