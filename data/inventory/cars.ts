@@ -12,6 +12,7 @@ export const cars: Car[] = [
     luxury_tier: "ultra-luxury",
     homepage_worthy: true,
     quote_only: true,
+    images: ["/fleet/Rolls-Royce-Cullinan-BlackBlack-Teal/cover.jpg"],
   },
   {
     slug: "Lamborghini-Huracan-Spyder-BlackBlack",
@@ -24,6 +25,7 @@ export const cars: Car[] = [
     luxury_tier: "ultra-luxury",
     homepage_worthy: true,
     quote_only: true,
+    images: ["/fleet/Lamborghini-Huracan-Spyder-BlackBlack/cover.jpg"],
   },
   {
     slug: "Rolls-Royce-Cullinan-BlackBlack",
@@ -36,6 +38,7 @@ export const cars: Car[] = [
     luxury_tier: "ultra-luxury",
     homepage_worthy: true,
     quote_only: true,
+    images: ["/fleet/Rolls-Royce-Cullinan-BlackBlack/cover.jpg"],
   },
   {
     slug: "Lamborghini-Huracan-Spyder-Balloon-WhiteRed",
@@ -48,6 +51,7 @@ export const cars: Car[] = [
     luxury_tier: "ultra-luxury",
     homepage_worthy: true,
     quote_only: true,
+    images: ["/fleet/Lamborghini-Huracan-Spyder-Balloon-WhiteRed/cover.jpg"],
   },
   {
     slug: "Bentley-Bentayga-W12-Speed-BlackBlack-Orange",
@@ -60,6 +64,7 @@ export const cars: Car[] = [
     luxury_tier: "ultra-luxury",
     homepage_worthy: true,
     quote_only: true,
+    images: ["/fleet/Bentley-Bentayga-W12-Speed-BlackBlack-Orange/cover.jpg"],
   },
   {
     slug: "Bentley-Continental-Convertible-W12-Speed-BlackBlack-Orange",
@@ -72,6 +77,7 @@ export const cars: Car[] = [
     luxury_tier: "ultra-luxury",
     homepage_worthy: true,
     quote_only: true,
+    images: ["/fleet/Bentley-Continental-Convertible-W12-Speed-BlackBlack-Orange/cover.jpg"],
   },
   {
     slug: "Lamborghini-Urus-GreyBrown",
@@ -84,6 +90,7 @@ export const cars: Car[] = [
     luxury_tier: "ultra-luxury",
     homepage_worthy: true,
     quote_only: true,
+    images: ["/fleet/Lamborghini-Urus-GreyBrown/cover.jpg"],
   },
   {
     slug: "Lamborghini-Huracan-EVO-Spyder-Blu-Glauco-Black",
@@ -96,6 +103,7 @@ export const cars: Car[] = [
     luxury_tier: "ultra-luxury",
     homepage_worthy: true,
     quote_only: true,
+    images: ["/fleet/Lamborghini-Huracan-EVO-Spyder-Blu-Glauco-Black/cover.jpg"],
   },
   {
     slug: "Lamborghini-Huracan-EVO-GreenBlack",
@@ -108,6 +116,7 @@ export const cars: Car[] = [
     luxury_tier: "ultra-luxury",
     homepage_worthy: true,
     quote_only: true,
+    images: ["/fleet/Lamborghini-Huracan-EVO-GreenBlack/cover.jpg"],
   },
   {
     slug: "Lamborghini-Huracan-YellowBlack",
@@ -120,6 +129,7 @@ export const cars: Car[] = [
     luxury_tier: "ultra-luxury",
     homepage_worthy: true,
     quote_only: true,
+    images: ["/fleet/Lamborghini-Huracan-YellowBlack/cover.jpg"],
   },
   {
     slug: "Rolls-Royce-Dawn-BlackBlack",
@@ -132,6 +142,7 @@ export const cars: Car[] = [
     luxury_tier: "ultra-luxury",
     homepage_worthy: true,
     quote_only: true,
+    images: ["/fleet/Rolls-Royce-Dawn-BlackBlack/cover.jpg"],
   },
   {
     slug: "McLaren-GT-GreenBlack",
@@ -144,6 +155,7 @@ export const cars: Car[] = [
     luxury_tier: "ultra-luxury",
     homepage_worthy: true,
     quote_only: true,
+    images: ["/fleet/McLaren-GT-GreenBlack/cover.jpg"],
   },
   {
     slug: "McLaren-GT-OrangeBlack",
@@ -156,6 +168,7 @@ export const cars: Car[] = [
     luxury_tier: "ultra-luxury",
     homepage_worthy: true,
     quote_only: true,
+    images: ["/fleet/McLaren-GT-OrangeBlack/cover.jpg"],
   },
   {
     slug: "McLaren-GT-BlackBlack",
@@ -168,6 +181,7 @@ export const cars: Car[] = [
     luxury_tier: "ultra-luxury",
     homepage_worthy: true,
     quote_only: true,
+    images: ["/fleet/McLaren-GT-BlackBlack/cover.jpg"],
   },
   {
     slug: "Rolls-Royce-Dawn-BlackRed",
@@ -180,5 +194,6 @@ export const cars: Car[] = [
     luxury_tier: "ultra-luxury",
     homepage_worthy: true,
     quote_only: true,
+    images: ["/fleet/Rolls-Royce-Dawn-BlackRed/cover.jpg"],
   },
 ];

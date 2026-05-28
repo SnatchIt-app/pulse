@@ -12,6 +12,8 @@ export interface Car {
   homepage_worthy: boolean;
   needs_review?: boolean;
   quote_only: true;
+  /** Verified local paths under /public/fleet/[slug]/. Absent = placeholder shown. */
+  images?: string[];
 }
 
 export interface CarIndex {

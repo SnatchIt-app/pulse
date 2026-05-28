@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -37,16 +38,32 @@ export default async function VehiclePage({ params }: { params: Promise<Params> 
   ]);
 
   const subtitle = car.body_style ? `${car.color_label} · ${car.body_style}` : car.color_label;
+  const heroImage = car.images?.[0] ?? null;
 
   return (
     <>
-      <div className="w-full bg-graphite pt-20">
-        <div className="relative mx-auto flex aspect-[16/9] max-h-[600px] w-full max-w-screen-xl items-end overflow-hidden px-6 pb-10 md:px-24 md:pb-16">
-          <span className="select-none font-display text-[clamp(2rem,20vw,5rem)] leading-none text-white/[0.04] sm:text-[clamp(3rem,16vw,10rem)]">
-            {car.make.split("-")[0]}
-          </span>
-          <div className="from-graphite/80 absolute inset-0 bg-gradient-to-t via-transparent to-transparent" />
-        </div>
+      {/* Hero — image drives its own height via h-auto; no fixed container, no dark frame.
+          Placeholder retains the graphite field only when no image is available. */}
+      <div className="w-full pt-20">
+        {heroImage ? (
+          <Image
+            src={heroImage}
+            alt={`${car.make} ${car.model} — ${car.color_label}`}
+            width={1600}
+            height={1067}
+            priority
+            sizes="100vw"
+            className="block h-auto w-full"
+          />
+        ) : (
+          <div className="bg-graphite px-6 md:px-16">
+            <div className="mx-auto flex aspect-[16/9] max-h-[560px] max-w-5xl items-end pb-10">
+              <span className="select-none font-display text-[clamp(2rem,20vw,5rem)] leading-none text-white/[0.04] sm:text-[clamp(3rem,16vw,10rem)]">
+                {car.make.split("-")[0]}
+              </span>
+            </div>
+          </div>
+        )}
       </div>
 
       <Section className="bg-paper pt-16">
