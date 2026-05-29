@@ -7,6 +7,7 @@ import { buildBreadcrumbJsonLd } from "@/lib/schema";
 import Container from "@/components/shared/Container";
 import Section from "@/components/shared/Section";
 import MotionFade from "@/components/shared/MotionFade";
+import { TrackView, TrackLink } from "@/components/shared/Analytics";
 import { yachts } from "@/data/inventory/yachts";
 import type { Yacht } from "@/types/inventory";
 
@@ -61,6 +62,8 @@ export default async function YachtPage({ params }: { params: Promise<Params> })
 
   return (
     <>
+      <TrackView event="yacht_view" params={{ slug }} />
+
       {/* Hero */}
       <div className="w-full pt-20">
         {heroImage ? (
@@ -125,12 +128,14 @@ export default async function YachtPage({ params }: { params: Promise<Params> })
 
             {/* Primary CTA */}
             <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
-              <Link
+              <TrackLink
                 href={requestHref}
+                trackEvent="yacht_request_click"
+                trackParams={{ slug }}
                 className="inline-flex items-center justify-center bg-ink px-8 py-4 text-[11px] uppercase tracking-[0.22em] text-paper transition-colors duration-[480ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-graphite"
               >
                 Request a Quote
-              </Link>
+              </TrackLink>
               <Link
                 href="/yachts"
                 className="text-ink/50 text-[11px] uppercase tracking-[0.22em] transition-colors duration-[480ms] hover:text-ink"
@@ -155,12 +160,14 @@ export default async function YachtPage({ params }: { params: Promise<Params> })
               on dates, duration, crew, and any add-ons you need.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:gap-4">
-              <Link
+              <TrackLink
                 href={requestHref}
+                trackEvent="yacht_request_click"
+                trackParams={{ slug }}
                 className="inline-flex items-center justify-center bg-paper px-8 py-4 text-[11px] uppercase tracking-[0.22em] text-ink transition-colors duration-[480ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-bone"
               >
                 Request a Quote
-              </Link>
+              </TrackLink>
               <Link
                 href="/concierge"
                 className="border-paper/30 inline-flex items-center justify-center border px-8 py-4 text-[11px] uppercase tracking-[0.22em] text-paper transition-colors duration-[480ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-paper hover:text-ink"

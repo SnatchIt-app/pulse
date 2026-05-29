@@ -2,8 +2,21 @@ import Link from "next/link";
 import Container from "@/components/shared/Container";
 import Section from "@/components/shared/Section";
 import { MotionStagger, MotionStaggerItem } from "@/components/shared/MotionStagger";
-import VehicleCard from "./VehicleCard";
-import { FLEET_PREVIEW } from "@/data/fleet-preview";
+import CarCard from "./CarCard";
+import { cars } from "@/data/inventory/cars";
+
+// Slugs pinned for the homepage preview — must exist in data/inventory/cars.ts.
+const FEATURED_SLUGS = [
+  "Lamborghini-Urus-GreyBrown",
+  "Lamborghini-Huracan-Spyder-BlackBlack",
+  "McLaren-GT-GreenBlack",
+] as const;
+
+const featured = FEATURED_SLUGS.map((slug) => {
+  const car = cars.find((c) => c.slug === slug);
+  if (!car) throw new Error(`[FeaturedFleet] slug not found in inventory: ${slug}`);
+  return car;
+});
 
 export default function FeaturedFleet() {
   return (
@@ -23,10 +36,10 @@ export default function FeaturedFleet() {
             View the full fleet →
           </Link>
         </div>
-        <MotionStagger className="mt-14 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4 lg:gap-10">
-          {FLEET_PREVIEW.map((v) => (
-            <MotionStaggerItem key={v.slug}>
-              <VehicleCard vehicle={v} />
+        <MotionStagger className="mt-14 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 lg:gap-10">
+          {featured.map((car) => (
+            <MotionStaggerItem key={car.slug}>
+              <CarCard car={car} />
             </MotionStaggerItem>
           ))}
         </MotionStagger>

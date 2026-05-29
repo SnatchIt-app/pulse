@@ -50,3 +50,19 @@ export interface Jet {
   /** Verified local paths under /public/jets/[slug]/. Absent = placeholder shown. */
   images?: string[];
 }
+
+export interface Residence {
+  slug: string;
+  /** Pulse editorial title — no source/vendor branding. */
+  title: string;
+  /** Public-safe neighborhood label. No source name or partner language. */
+  neighborhood: string;
+  bedrooms: number;
+  bathrooms: number;
+  maxGuests: number;
+  sqft?: number;
+  amenities: string[];
+  quote_only: true;
+  /** Verified local paths under /public/residences/[slug]/. */
+  images?: string[];
+}

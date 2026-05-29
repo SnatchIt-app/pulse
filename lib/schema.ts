@@ -137,18 +137,16 @@ export function buildVehicleJsonLd(v: PublicVehicle) {
   };
 }
 
-// Residences — PUBLIC PROJECTION ONLY. Never pass internal_source_*, address_private, etc.
+// Residences — PUBLIC PROJECTION ONLY. Never pass _source, address_private, or price fields.
+// All residences are quote_only — no price is stored or exposed publicly.
 export type PublicResidence = {
   slug: string;
   title: string;
-  publicLocationLabel: string;
+  neighborhood: string;
   bedrooms: number;
   bathrooms: number;
   maxGuests: number;
-  nightlyRateFrom: number;
-  minStay: number | null;
   amenities: ReadonlyArray<string>;
-  description: string;
 };
 
 export function buildLodgingBusinessJsonLd() {
@@ -167,7 +165,6 @@ export function buildAccommodationJsonLd(r: PublicResidence) {
     "@context": "https://schema.org",
     "@type": "Accommodation",
     name: r.title,
-    description: r.description,
     url: `${PULSE.url}/residences/${r.slug}`,
     numberOfBedrooms: r.bedrooms,
     numberOfBathroomsTotal: r.bathrooms,
@@ -178,20 +175,9 @@ export function buildAccommodationJsonLd(r: PublicResidence) {
     })),
     address: {
       "@type": "PostalAddress",
-      addressLocality: r.publicLocationLabel,
+      addressLocality: r.neighborhood,
       addressRegion: "FL",
       addressCountry: "US",
-    },
-    offers: {
-      "@type": "Offer",
-      priceCurrency: "USD",
-      price: r.nightlyRateFrom,
-      priceSpecification: {
-        "@type": "UnitPriceSpecification",
-        price: r.nightlyRateFrom,
-        priceCurrency: "USD",
-        unitText: "NIGHT",
-      },
     },
   };
 }

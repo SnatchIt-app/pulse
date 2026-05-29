@@ -4,11 +4,10 @@ import { buildFaqPageJsonLd, buildLodgingBusinessJsonLd, buildServiceJsonLd } fr
 import Container from "@/components/shared/Container";
 import Section from "@/components/shared/Section";
 import MotionFade from "@/components/shared/MotionFade";
-import EntityOpener from "@/components/marketing/EntityOpener";
 import ResidenceCard from "@/components/marketing/ResidenceCard";
 import { MotionStagger, MotionStaggerItem } from "@/components/shared/MotionStagger";
 import FaqBlock from "@/components/marketing/FaqBlock";
-import { RESIDENCES_PREVIEW } from "@/data/residences-preview";
+import { residences } from "@/data/inventory/residences";
 import { SERVICE_FAQS } from "@/data/faqs";
 
 export const metadata: Metadata = buildMetadata({ route: "/residences", path: "/residences" });
@@ -23,26 +22,31 @@ const jsonLd = [
   buildFaqPageJsonLd(SERVICE_FAQS.residences),
 ];
 
-// Real Supabase-backed grid lands in Phase 3.5; Phase 2 uses the homepage preview
-// dataset so the page reads as real. Vendor/source fields are never present here.
 export default function ResidencesPage() {
   return (
     <>
-      <Section className="bg-paper pt-32">
+      <Section className="bg-paper pb-4 pt-28 md:pb-6 md:pt-32">
         <Container>
           <MotionFade>
             <p className="text-ink/55 text-[11px] uppercase tracking-[0.24em]">Pulse Residences</p>
-            <h1 className="mt-6 max-w-4xl font-display text-5xl leading-[0.98] sm:text-6xl md:text-7xl">
-              Curated luxury homes in Miami.
+            <h1 className="mt-4 max-w-4xl font-display text-5xl leading-[0.98] sm:text-6xl md:text-7xl">
+              Luxury homes in Miami.
             </h1>
+          </MotionFade>
+          <MotionFade delay={0.08}>
+            <p className="text-ink/65 mt-5 max-w-3xl text-sm leading-relaxed sm:text-base">
+              Pulse curates a private selection of luxury homes across Miami — South Beach, the
+              Design District, Buena Vista, and beyond. Every booking is by request. Contact a
+              specialist to arrange.
+            </p>
           </MotionFade>
         </Container>
       </Section>
-      <EntityOpener body="Pulse Residences is a curated selection of luxury homes and private stays across Miami, Miami Beach, Brickell, South Beach, Wynwood, the Design District, and Coral Gables." />
-      <Section className="bg-paper">
+
+      <Section className="bg-paper pb-24 pt-6 md:pb-32 md:pt-8">
         <Container>
           <MotionStagger className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 lg:gap-10">
-            {RESIDENCES_PREVIEW.map((r) => (
+            {residences.map((r) => (
               <MotionStaggerItem key={r.slug}>
                 <ResidenceCard residence={r} />
               </MotionStaggerItem>
@@ -50,7 +54,9 @@ export default function ResidencesPage() {
           </MotionStagger>
         </Container>
       </Section>
+
       <FaqBlock items={SERVICE_FAQS.residences} />
+
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}

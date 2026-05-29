@@ -1,13 +1,26 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import Input from "@/components/ui/Input";
 import Textarea from "@/components/ui/Textarea";
+import {
+  trackVehicleRequest,
+  trackVehicleLead,
+  trackYachtRequest,
+  trackYachtLead,
+  trackJetRequest,
+  trackJetLead,
+  trackResidenceRequest,
+  trackResidenceLead,
+  trackConciergeLead,
+  trackFormSubmit,
+  trackFormSuccess,
+} from "@/lib/analytics";
 
-// ─── Service options ─────────────────────────────────────────────────────────
+// ─── Service options ──────────────────────────────────────────────────────────
 
 const SERVICE_OPTIONS = [
   { value: "car", label: "Exotic Car" },
@@ -17,25 +30,161 @@ const SERVICE_OPTIONS = [
   { value: "chauffeur", label: "Chauffeur" },
   { value: "restaurant", label: "Dining & Reservations" },
   { value: "nightlife", label: "Nightlife" },
+  { value: "residence", label: "Residence" },
   { value: "concierge", label: "Concierge / Other" },
 ] as const;
 
 type ServiceValue = (typeof SERVICE_OPTIONS)[number]["value"];
 
 // ─── Zod schema ───────────────────────────────────────────────────────────────
+// All service-specific fields are optional; they are serialised into the
+// lead's message field on submit — no DB schema changes required.
 
 const FormSchema = z.object({
   fullName: z.string().min(2, "Full name required"),
   email: z.string().email("Valid email required"),
   phone: z.string().optional(),
   serviceType: z.enum(SERVICE_OPTIONS.map((o) => o.value) as [ServiceValue, ...ServiceValue[]]),
-  preferredDate: z.string().optional(),
-  preferredTime: z.string().optional(),
-  location: z.string().optional(),
+
+  // Car
+  pickupLocation: z.string().optional(),
+  deliveryLocation: z.string().optional(),
+  startDate: z.string().optional(),
+  endDate: z.string().optional(),
+  driverAge: z.string().optional(),
+
+  // Jet
+  departureCity: z.string().optional(),
+  arrivalCity: z.string().optional(),
+  departureDate: z.string().optional(),
+  returnDate: z.string().optional(),
+  passengerCount: z.string().optional(),
+
+  // Yacht
+  charterDate: z.string().optional(),
+  charterDuration: z.string().optional(),
+  yachtGuestCount: z.string().optional(),
+  preferredMarina: z.string().optional(),
+
+  // Residence
+  checkIn: z.string().optional(),
+  checkOut: z.string().optional(),
+  residenceGuestCount: z.string().optional(),
+  bedroomsNeeded: z.string().optional(),
+
+  // Concierge / generic
+  requestType: z.string().optional(),
+  conciergeLocation: z.string().optional(),
+  conciergeDate: z.string().optional(),
+
+  // Always present
   notes: z.string().max(2000, "Max 2,000 characters").optional(),
 });
 
 type FormValues = z.infer<typeof FormSchema>;
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function deriveServiceType(
+  vehicleSlug?: string,
+  yachtSlug?: string,
+  jetSlug?: string,
+  residenceSlug?: string,
+): ServiceValue {
+  if (vehicleSlug) return "car";
+  if (yachtSlug) return "yacht";
+  if (jetSlug) return "jet";
+  if (residenceSlug) return "residence";
+  return "car";
+}
+
+/** Serialises service-specific fields into a structured message string. */
+function buildServiceDetails(data: FormValues): string {
+  const lines: string[] = [];
+  const add = (label: string, value?: string) => {
+    if (value?.trim()) lines.push(`${label}: ${value.trim()}`);
+  };
+
+  switch (data.serviceType) {
+    case "car":
+    case "chauffeur":
+      add("Pickup", data.pickupLocation);
+      add("Delivery", data.deliveryLocation);
+      add("Start date", data.startDate);
+      add("End date", data.endDate);
+      add("Driver age", data.driverAge);
+      break;
+    case "jet":
+      add("Departure city", data.departureCity);
+      add("Arrival city", data.arrivalCity);
+      add("Departure date", data.departureDate);
+      add("Return date", data.returnDate);
+      add("Passengers", data.passengerCount);
+      break;
+    case "yacht":
+    case "jet_ski":
+      add("Charter date", data.charterDate);
+      add("Duration", data.charterDuration);
+      add("Guests", data.yachtGuestCount);
+      add("Preferred marina", data.preferredMarina);
+      break;
+    case "residence":
+      add("Check-in", data.checkIn);
+      add("Check-out", data.checkOut);
+      add("Guests", data.residenceGuestCount);
+      add("Bedrooms needed", data.bedroomsNeeded);
+      break;
+    case "restaurant":
+    case "nightlife":
+    case "concierge":
+      add("Request type", data.requestType);
+      add("Location", data.conciergeLocation);
+      add("Date", data.conciergeDate);
+      break;
+  }
+
+  return lines.join("\n");
+}
+
+/** Returns the canonical primary date for the lead's start_date field. */
+function getPrimaryDate(data: FormValues): string | undefined {
+  switch (data.serviceType) {
+    case "car":
+    case "chauffeur":
+      return data.startDate;
+    case "jet":
+      return data.departureDate;
+    case "yacht":
+    case "jet_ski":
+      return data.charterDate;
+    case "residence":
+      return data.checkIn;
+    case "restaurant":
+    case "nightlife":
+    case "concierge":
+      return data.conciergeDate;
+  }
+}
+
+/** Returns the canonical primary location for the lead record. */
+function getPrimaryLocation(data: FormValues): string | undefined {
+  switch (data.serviceType) {
+    case "car":
+    case "chauffeur":
+      return data.pickupLocation;
+    case "jet":
+      return data.departureCity;
+    case "yacht":
+    case "jet_ski":
+      return data.preferredMarina;
+    case "restaurant":
+    case "nightlife":
+    case "concierge":
+      return data.conciergeLocation;
+    default:
+      return undefined;
+  }
+}
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 
@@ -43,19 +192,9 @@ type Props = {
   vehicleSlug?: string;
   yachtSlug?: string;
   jetSlug?: string;
+  residenceSlug?: string;
   assetTitle?: string;
 };
-
-function deriveServiceType(
-  vehicleSlug?: string,
-  yachtSlug?: string,
-  jetSlug?: string,
-): ServiceValue {
-  if (vehicleSlug) return "car";
-  if (yachtSlug) return "yacht";
-  if (jetSlug) return "jet";
-  return "car";
-}
 
 // ─── Field wrapper ────────────────────────────────────────────────────────────
 
@@ -63,15 +202,17 @@ function Field({
   label,
   error,
   required,
+  full,
   children,
 }: {
   label: string;
   error?: string;
   required?: boolean;
+  full?: boolean;
   children: React.ReactNode;
 }) {
   return (
-    <div>
+    <div className={full ? "sm:col-span-2" : undefined}>
       <p className="text-ink/40 mb-2 text-[9px] uppercase tracking-[0.22em]">
         {label}
         {required && <span className="text-ink/25 ml-1">*</span>}
@@ -82,35 +223,241 @@ function Field({
   );
 }
 
+function SelectField({
+  label,
+  error,
+  children,
+  ...props
+}: React.SelectHTMLAttributes<HTMLSelectElement> & { label: string; error?: string }) {
+  return (
+    <Field label={label} error={error}>
+      <div className="relative">
+        <select
+          className="border-ink/30 w-full appearance-none border-b bg-transparent py-2 text-base outline-none transition-colors focus:border-ink"
+          {...props}
+        >
+          {children}
+        </select>
+        <span
+          aria-hidden
+          className="text-ink/35 pointer-events-none absolute inset-y-0 right-0 flex items-center text-[10px]"
+        >
+          ↓
+        </span>
+      </div>
+    </Field>
+  );
+}
+
+// ─── Service-specific field blocks ───────────────────────────────────────────
+
+function CarFields({ register }: { register: ReturnType<typeof useForm<FormValues>>["register"] }) {
+  return (
+    <>
+      <Field label="Pickup Location">
+        <Input {...register("pickupLocation")} placeholder="Hotel name or address" />
+      </Field>
+      <Field label="Delivery Location">
+        <Input {...register("deliveryLocation")} placeholder="Delivery address (if different)" />
+      </Field>
+      <Field label="Start Date">
+        <Input {...register("startDate")} type="date" />
+      </Field>
+      <Field label="End Date">
+        <Input {...register("endDate")} type="date" />
+      </Field>
+      <Field label="Driver Age">
+        <Input {...register("driverAge")} placeholder="e.g. 28" />
+      </Field>
+    </>
+  );
+}
+
+function JetFields({ register }: { register: ReturnType<typeof useForm<FormValues>>["register"] }) {
+  return (
+    <>
+      <Field label="Departure City">
+        <Input {...register("departureCity")} placeholder="e.g. Miami" />
+      </Field>
+      <Field label="Arrival City">
+        <Input {...register("arrivalCity")} placeholder="e.g. New York" />
+      </Field>
+      <Field label="Departure Date">
+        <Input {...register("departureDate")} type="date" />
+      </Field>
+      <Field label="Return Date">
+        <Input {...register("returnDate")} type="date" />
+      </Field>
+      <Field label="Passenger Count">
+        <Input {...register("passengerCount")} placeholder="e.g. 6" />
+      </Field>
+    </>
+  );
+}
+
+function YachtFields({
+  register,
+}: {
+  register: ReturnType<typeof useForm<FormValues>>["register"];
+}) {
+  return (
+    <>
+      <Field label="Charter Date">
+        <Input {...register("charterDate")} type="date" />
+      </Field>
+      <Field label="Duration">
+        <Input {...register("charterDuration")} placeholder="e.g. Half day, Full day, 3 days" />
+      </Field>
+      <Field label="Guest Count">
+        <Input {...register("yachtGuestCount")} placeholder="e.g. 8" />
+      </Field>
+      <Field label="Preferred Marina">
+        <Input {...register("preferredMarina")} placeholder="e.g. Bayside Marina" />
+      </Field>
+    </>
+  );
+}
+
+function ResidenceFields({
+  register,
+}: {
+  register: ReturnType<typeof useForm<FormValues>>["register"];
+}) {
+  return (
+    <>
+      <Field label="Check-In">
+        <Input {...register("checkIn")} type="date" />
+      </Field>
+      <Field label="Check-Out">
+        <Input {...register("checkOut")} type="date" />
+      </Field>
+      <Field label="Guest Count">
+        <Input {...register("residenceGuestCount")} placeholder="e.g. 4" />
+      </Field>
+      <Field label="Bedrooms Needed">
+        <Input {...register("bedroomsNeeded")} placeholder="e.g. 3" />
+      </Field>
+    </>
+  );
+}
+
+function ConciergeFields({
+  register,
+}: {
+  register: ReturnType<typeof useForm<FormValues>>["register"];
+}) {
+  return (
+    <>
+      <Field label="Request Type">
+        <Input
+          {...register("requestType")}
+          placeholder="e.g. Restaurant, VIP table, Spa, Airport transfer"
+        />
+      </Field>
+      <Field label="Location">
+        <Input {...register("conciergeLocation")} placeholder="Hotel or area in Miami" />
+      </Field>
+      <Field label="Date">
+        <Input {...register("conciergeDate")} type="date" />
+      </Field>
+    </>
+  );
+}
+
+function GenericFields({
+  register,
+}: {
+  register: ReturnType<typeof useForm<FormValues>>["register"];
+}) {
+  return (
+    <>
+      <Field label="Date">
+        <Input {...register("conciergeDate")} type="date" />
+      </Field>
+      <Field label="Location">
+        <Input {...register("conciergeLocation")} placeholder="Hotel name, area, or marina" />
+      </Field>
+    </>
+  );
+}
+
 // ─── Form ─────────────────────────────────────────────────────────────────────
 
-export default function RequestForm({ vehicleSlug, yachtSlug, jetSlug, assetTitle }: Props) {
+export default function RequestForm({
+  vehicleSlug,
+  yachtSlug,
+  jetSlug,
+  residenceSlug,
+  assetTitle,
+}: Props) {
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  const assetSlug = vehicleSlug ?? yachtSlug ?? jetSlug;
+  const assetSlug = vehicleSlug ?? yachtSlug ?? jetSlug ?? residenceSlug;
+
+  // Fire request_click once on mount — signals the user reached the form
+  // from a specific asset or concierge CTA.
+  useEffect(() => {
+    if (vehicleSlug) trackVehicleRequest(vehicleSlug);
+    else if (yachtSlug) trackYachtRequest(yachtSlug);
+    else if (jetSlug) trackJetRequest(jetSlug);
+    else if (residenceSlug) trackResidenceRequest(residenceSlug);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors },
   } = useForm<FormValues>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
-      serviceType: deriveServiceType(vehicleSlug, yachtSlug, jetSlug),
+      serviceType: deriveServiceType(vehicleSlug, yachtSlug, jetSlug, residenceSlug),
     },
   });
+
+  const serviceType = watch("serviceType");
 
   async function onSubmit(data: FormValues) {
     setStatus("loading");
     setErrorMsg(null);
+    trackFormSubmit(data.serviceType);
+
+    const serviceDetails = buildServiceDetails(data);
+    const combinedNotes = [serviceDetails, data.notes?.trim()].filter(Boolean).join("\n\n");
+
     try {
       const res = await fetch("/api/requests", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...data, assetSlug, assetTitle }),
+        body: JSON.stringify({
+          fullName: data.fullName,
+          email: data.email,
+          phone: data.phone,
+          serviceType: data.serviceType,
+          assetSlug,
+          assetTitle,
+          preferredDate: getPrimaryDate(data),
+          location: getPrimaryLocation(data),
+          notes: combinedNotes || undefined,
+        }),
       });
       if (!res.ok) throw new Error("server_error");
+
+      // Conversion events
+      trackFormSuccess(data.serviceType);
+      if (vehicleSlug) trackVehicleLead(vehicleSlug);
+      else if (yachtSlug) trackYachtLead(yachtSlug);
+      else if (jetSlug) trackJetLead(jetSlug);
+      else if (residenceSlug) trackResidenceLead(residenceSlug);
+      else if (
+        data.serviceType === "concierge" ||
+        data.serviceType === "restaurant" ||
+        data.serviceType === "nightlife"
+      )
+        trackConciergeLead();
+
       setStatus("success");
     } catch {
       setStatus("error");
@@ -118,7 +465,7 @@ export default function RequestForm({ vehicleSlug, yachtSlug, jetSlug, assetTitl
     }
   }
 
-  // ── Success state ───────────────────────────────────────────────────────────
+  // ── Success ─────────────────────────────────────────────────────────────────
 
   if (status === "success") {
     return (
@@ -144,12 +491,11 @@ export default function RequestForm({ vehicleSlug, yachtSlug, jetSlug, assetTitl
       className="border-ink/10 mt-12 border-t pt-10"
     >
       <div className="grid grid-cols-1 gap-x-10 gap-y-8 sm:grid-cols-2">
-        {/* Full Name */}
+        {/* Always-present contact fields */}
         <Field label="Full Name" error={errors.fullName?.message} required>
           <Input {...register("fullName")} placeholder="First & last name" autoComplete="name" />
         </Field>
 
-        {/* Email */}
         <Field label="Email" error={errors.email?.message} required>
           <Input
             {...register("email")}
@@ -159,7 +505,6 @@ export default function RequestForm({ vehicleSlug, yachtSlug, jetSlug, assetTitl
           />
         </Field>
 
-        {/* Phone */}
         <Field label="Phone" error={errors.phone?.message}>
           <Input
             {...register("phone")}
@@ -169,61 +514,44 @@ export default function RequestForm({ vehicleSlug, yachtSlug, jetSlug, assetTitl
           />
         </Field>
 
-        {/* Service Type */}
-        <Field label="Service" error={errors.serviceType?.message} required>
-          <div className="relative">
-            <select
-              {...register("serviceType")}
-              className="border-ink/30 w-full appearance-none border-b bg-transparent py-2 text-base outline-none transition-colors focus:border-ink"
-            >
-              {SERVICE_OPTIONS.map((o) => (
-                <option key={o.value} value={o.value}>
-                  {o.label}
-                </option>
-              ))}
-            </select>
-            <span
-              aria-hidden
-              className="text-ink/35 pointer-events-none absolute inset-y-0 right-0 flex items-center text-[10px]"
-            >
-              ↓
-            </span>
-          </div>
+        <SelectField
+          label="Service"
+          error={errors.serviceType?.message}
+          {...register("serviceType")}
+        >
+          {SERVICE_OPTIONS.map((o) => (
+            <option key={o.value} value={o.value}>
+              {o.label}
+            </option>
+          ))}
+        </SelectField>
+
+        {/* Service-specific fields */}
+        {(serviceType === "car" || serviceType === "chauffeur") && (
+          <CarFields register={register} />
+        )}
+        {serviceType === "jet" && <JetFields register={register} />}
+        {(serviceType === "yacht" || serviceType === "jet_ski") && (
+          <YachtFields register={register} />
+        )}
+        {serviceType === "residence" && <ResidenceFields register={register} />}
+        {(serviceType === "concierge" ||
+          serviceType === "restaurant" ||
+          serviceType === "nightlife") && <ConciergeFields register={register} />}
+        {/* jet_ski already covered by YachtFields; fallback for any unknown */}
+
+        {/* Notes — always last, always full width */}
+        <Field label="Additional Notes" error={errors.notes?.message} full>
+          <Textarea
+            {...register("notes")}
+            rows={4}
+            placeholder="Anything else we should know — special requests, add-ons, preferences."
+          />
         </Field>
-
-        {/* Preferred Date */}
-        <Field label="Preferred Date" error={errors.preferredDate?.message}>
-          <Input {...register("preferredDate")} type="date" />
-        </Field>
-
-        {/* Preferred Time */}
-        <Field label="Preferred Time" error={errors.preferredTime?.message}>
-          <Input {...register("preferredTime")} placeholder="e.g. Morning, 2 pm" />
-        </Field>
-
-        {/* Location — full width */}
-        <div className="sm:col-span-2">
-          <Field label="Pickup / Marina Location" error={errors.location?.message}>
-            <Input {...register("location")} placeholder="Hotel name, address, or marina" />
-          </Field>
-        </div>
-
-        {/* Notes — full width */}
-        <div className="sm:col-span-2">
-          <Field label="Notes" error={errors.notes?.message}>
-            <Textarea
-              {...register("notes")}
-              rows={4}
-              placeholder="Group size, add-ons, special requirements — anything useful."
-            />
-          </Field>
-        </div>
       </div>
 
-      {/* Submit error */}
       {status === "error" && errorMsg && <p className="mt-6 text-sm text-red-600">{errorMsg}</p>}
 
-      {/* Submit row */}
       <div className="mt-10">
         <button
           type="submit"

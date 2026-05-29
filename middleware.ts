@@ -6,6 +6,9 @@ export function middleware(req: NextRequest) {
   const isAdminPage = pathname.startsWith("/admin");
   const isAdminApi = pathname.startsWith("/api/admin");
 
+  // Login endpoint must be publicly reachable — it IS the auth mechanism
+  if (pathname === "/api/admin/login") return NextResponse.next();
+
   if (isAdminPage || isAdminApi) {
     const session = req.cookies.get("pulse_admin_session");
     if (!session?.value) {

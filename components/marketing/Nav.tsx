@@ -2,6 +2,7 @@ import Link from "next/link";
 import Logo from "./Logo";
 
 const links: ReadonlyArray<{ label: string; href: string }> = [
+  { label: "Home", href: "/" },
   { label: "Fleet", href: "/fleet" },
   { label: "Jets", href: "/jets" },
   { label: "Yachts", href: "/yachts" },

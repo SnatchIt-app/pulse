@@ -12,28 +12,48 @@ type SearchParams = Promise<{
   vehicle?: string;
   yacht?: string;
   jet?: string;
+  residence?: string;
   title?: string;
   [key: string]: string | undefined;
 }>;
 
 export default async function RequestPage({ searchParams }: { searchParams: SearchParams }) {
-  const { vehicle, yacht, jet, title } = await searchParams;
+  const { vehicle, yacht, jet, residence, title } = await searchParams;
 
   const assetTitle = title ? decodeURIComponent(title) : undefined;
   const hasVehicle = Boolean(vehicle && assetTitle);
   const hasYacht = Boolean(yacht && assetTitle);
   const hasJet = Boolean(jet && assetTitle);
-  const hasAsset = hasVehicle || hasYacht || hasJet;
+  const hasResidence = Boolean(residence && assetTitle);
+  const hasAsset = hasVehicle || hasYacht || hasJet || hasResidence;
 
-  const assetSlug = hasVehicle ? vehicle : hasYacht ? yacht : hasJet ? jet : null;
+  const assetSlug = hasVehicle
+    ? vehicle
+    : hasYacht
+      ? yacht
+      : hasJet
+        ? jet
+        : hasResidence
+          ? residence
+          : null;
   const assetHref = hasVehicle
     ? `/fleet/${assetSlug}`
     : hasYacht
       ? `/yachts/${assetSlug}`
       : hasJet
         ? `/jets/${assetSlug}`
-        : null;
-  const assetTypeLabel = hasVehicle ? "Vehicle" : hasYacht ? "Yacht" : hasJet ? "Jet" : null;
+        : hasResidence
+          ? `/residences/${assetSlug}`
+          : null;
+  const assetTypeLabel = hasVehicle
+    ? "Vehicle"
+    : hasYacht
+      ? "Yacht"
+      : hasJet
+        ? "Jet"
+        : hasResidence
+          ? "Residence"
+          : null;
 
   return (
     <Section className="bg-paper pb-32 pt-32">
@@ -70,13 +90,16 @@ export default async function RequestPage({ searchParams }: { searchParams: Sear
                 ? `A Pulse specialist will confirm availability for the ${assetTitle} and send a tailored charter quote within 15 minutes.`
                 : hasJet
                   ? `A Pulse specialist will confirm availability for the ${assetTitle} and send a tailored charter quote within 15 minutes.`
-                  : "A Pulse specialist responds within 15 minutes. Exotic cars, yachts, jets, residences — anything inside a Miami stay."}
+                  : hasResidence
+                    ? `A Pulse specialist will confirm availability for ${assetTitle} and arrange your stay within 15 minutes.`
+                    : "A Pulse specialist responds within 15 minutes. Exotic cars, yachts, jets, residences — anything inside a Miami stay."}
           </p>
 
           <RequestForm
             vehicleSlug={vehicle}
             yachtSlug={yacht}
             jetSlug={jet}
+            residenceSlug={residence}
             assetTitle={assetTitle}
           />
         </MotionFade>
