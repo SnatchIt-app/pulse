@@ -13,8 +13,15 @@ const SERVICE_TYPE = z.enum([
   "nightlife",
   "concierge",
   "residence",
+  "experience",
   "other",
 ]);
+
+// "experience" is a frontend-only label. The leads table stores it as
+// "concierge" — no DB migration required.
+const DB_SERVICE_MAP: Partial<Record<string, string>> = {
+  experience: "concierge",
+};
 
 const Body = z.object({
   fullName: z.string().min(1),
@@ -80,7 +87,7 @@ export async function POST(req: Request) {
       full_name: parsed.fullName,
       email: parsed.email,
       phone: parsed.phone ?? null,
-      service_type: parsed.serviceType ?? "other",
+      service_type: DB_SERVICE_MAP[parsed.serviceType ?? ""] ?? parsed.serviceType ?? "other",
       start_date: parsed.preferredDate ?? null,
       message: messageParts || null,
       source: "website_request",

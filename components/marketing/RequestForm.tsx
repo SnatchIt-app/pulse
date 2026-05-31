@@ -15,6 +15,8 @@ import {
   trackJetLead,
   trackResidenceRequest,
   trackResidenceLead,
+  trackExperienceRequest,
+  trackExperienceLead,
   trackConciergeLead,
   trackFormSubmit,
   trackFormSuccess,
@@ -31,6 +33,7 @@ const SERVICE_OPTIONS = [
   { value: "restaurant", label: "Dining & Reservations" },
   { value: "nightlife", label: "Nightlife" },
   { value: "residence", label: "Residence" },
+  { value: "experience", label: "Experience" },
   { value: "concierge", label: "Concierge / Other" },
 ] as const;
 
@@ -46,7 +49,7 @@ const FormSchema = z.object({
   phone: z.string().optional(),
   serviceType: z.enum(SERVICE_OPTIONS.map((o) => o.value) as [ServiceValue, ...ServiceValue[]]),
 
-  // Car
+  // Car / Chauffeur
   pickupLocation: z.string().optional(),
   deliveryLocation: z.string().optional(),
   startDate: z.string().optional(),
@@ -60,7 +63,7 @@ const FormSchema = z.object({
   returnDate: z.string().optional(),
   passengerCount: z.string().optional(),
 
-  // Yacht
+  // Yacht / Jet Ski
   charterDate: z.string().optional(),
   charterDuration: z.string().optional(),
   yachtGuestCount: z.string().optional(),
@@ -77,6 +80,12 @@ const FormSchema = z.object({
   conciergeLocation: z.string().optional(),
   conciergeDate: z.string().optional(),
 
+  // Experience
+  occasionType: z.string().optional(),
+  experienceDate: z.string().optional(),
+  experienceGuestCount: z.string().optional(),
+  experienceLocation: z.string().optional(),
+
   // Always present
   notes: z.string().max(2000, "Max 2,000 characters").optional(),
 });
@@ -85,16 +94,27 @@ type FormValues = z.infer<typeof FormSchema>;
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
+/** Formats an experience slug into a human title ("supercar-weekend" → "Supercar Weekend"). */
+function formatExperienceSlug(slug?: string): string {
+  if (!slug) return "";
+  return slug
+    .split("-")
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(" ");
+}
+
 function deriveServiceType(
   vehicleSlug?: string,
   yachtSlug?: string,
   jetSlug?: string,
   residenceSlug?: string,
+  experienceSlug?: string,
 ): ServiceValue {
   if (vehicleSlug) return "car";
   if (yachtSlug) return "yacht";
   if (jetSlug) return "jet";
   if (residenceSlug) return "residence";
+  if (experienceSlug) return "experience";
   return "car";
 }
 
@@ -134,6 +154,12 @@ function buildServiceDetails(data: FormValues): string {
       add("Guests", data.residenceGuestCount);
       add("Bedrooms needed", data.bedroomsNeeded);
       break;
+    case "experience":
+      add("Occasion", data.occasionType);
+      add("Preferred date", data.experienceDate);
+      add("Guest count", data.experienceGuestCount);
+      add("Location / area", data.experienceLocation);
+      break;
     case "restaurant":
     case "nightlife":
     case "concierge":
@@ -159,6 +185,8 @@ function getPrimaryDate(data: FormValues): string | undefined {
       return data.charterDate;
     case "residence":
       return data.checkIn;
+    case "experience":
+      return data.experienceDate;
     case "restaurant":
     case "nightlife":
     case "concierge":
@@ -177,6 +205,8 @@ function getPrimaryLocation(data: FormValues): string | undefined {
     case "yacht":
     case "jet_ski":
       return data.preferredMarina;
+    case "experience":
+      return data.experienceLocation;
     case "restaurant":
     case "nightlife":
     case "concierge":
@@ -193,6 +223,7 @@ type Props = {
   yachtSlug?: string;
   jetSlug?: string;
   residenceSlug?: string;
+  experienceSlug?: string;
   assetTitle?: string;
 };
 
@@ -341,6 +372,32 @@ function ResidenceFields({
   );
 }
 
+function ExperienceFields({
+  register,
+}: {
+  register: ReturnType<typeof useForm<FormValues>>["register"];
+}) {
+  return (
+    <>
+      <Field label="Occasion Type">
+        <Input
+          {...register("occasionType")}
+          placeholder="e.g. Birthday, Art Basel, Supercar Weekend"
+        />
+      </Field>
+      <Field label="Preferred Date">
+        <Input {...register("experienceDate")} type="date" />
+      </Field>
+      <Field label="Guest Count">
+        <Input {...register("experienceGuestCount")} placeholder="e.g. 4" />
+      </Field>
+      <Field label="Location / Area">
+        <Input {...register("experienceLocation")} placeholder="e.g. South Beach, Miami" />
+      </Field>
+    </>
+  );
+}
+
 function ConciergeFields({
   register,
 }: {
@@ -388,20 +445,22 @@ export default function RequestForm({
   yachtSlug,
   jetSlug,
   residenceSlug,
+  experienceSlug,
   assetTitle,
 }: Props) {
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  const assetSlug = vehicleSlug ?? yachtSlug ?? jetSlug ?? residenceSlug;
+  const assetSlug = vehicleSlug ?? yachtSlug ?? jetSlug ?? residenceSlug ?? experienceSlug;
 
   // Fire request_click once on mount — signals the user reached the form
-  // from a specific asset or concierge CTA.
+  // from a specific asset or experience CTA.
   useEffect(() => {
     if (vehicleSlug) trackVehicleRequest(vehicleSlug);
     else if (yachtSlug) trackYachtRequest(yachtSlug);
     else if (jetSlug) trackJetRequest(jetSlug);
     else if (residenceSlug) trackResidenceRequest(residenceSlug);
+    else if (experienceSlug) trackExperienceRequest(experienceSlug);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -413,7 +472,15 @@ export default function RequestForm({
   } = useForm<FormValues>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
-      serviceType: deriveServiceType(vehicleSlug, yachtSlug, jetSlug, residenceSlug),
+      serviceType: deriveServiceType(
+        vehicleSlug,
+        yachtSlug,
+        jetSlug,
+        residenceSlug,
+        experienceSlug,
+      ),
+      // Pre-populate occasion from experience slug ("supercar-weekend" → "Supercar Weekend")
+      occasionType: formatExperienceSlug(experienceSlug),
     },
   });
 
@@ -451,6 +518,7 @@ export default function RequestForm({
       else if (yachtSlug) trackYachtLead(yachtSlug);
       else if (jetSlug) trackJetLead(jetSlug);
       else if (residenceSlug) trackResidenceLead(residenceSlug);
+      else if (experienceSlug) trackExperienceLead(experienceSlug);
       else if (
         data.serviceType === "concierge" ||
         data.serviceType === "restaurant" ||
@@ -535,10 +603,21 @@ export default function RequestForm({
           <YachtFields register={register} />
         )}
         {serviceType === "residence" && <ResidenceFields register={register} />}
+        {serviceType === "experience" && <ExperienceFields register={register} />}
         {(serviceType === "concierge" ||
           serviceType === "restaurant" ||
           serviceType === "nightlife") && <ConciergeFields register={register} />}
-        {/* jet_ski already covered by YachtFields; fallback for any unknown */}
+        {/* Fallback for any unrecognised value */}
+        {serviceType !== "car" &&
+          serviceType !== "chauffeur" &&
+          serviceType !== "jet" &&
+          serviceType !== "yacht" &&
+          serviceType !== "jet_ski" &&
+          serviceType !== "residence" &&
+          serviceType !== "experience" &&
+          serviceType !== "concierge" &&
+          serviceType !== "restaurant" &&
+          serviceType !== "nightlife" && <GenericFields register={register} />}
 
         {/* Notes — always last, always full width */}
         <Field label="Additional Notes" error={errors.notes?.message} full>

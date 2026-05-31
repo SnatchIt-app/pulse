@@ -99,6 +99,13 @@ export const trackFormSubmit = (serviceType: string): void =>
 export const trackFormSuccess = (serviceType: string): void =>
   fire("request_form_success", { service_type: serviceType });
 
+// ─── Experience ───────────────────────────────────────────────────────────────
+
+export const trackExperienceRequest = (slug: string): void =>
+  fire("experience_request_click", { slug });
+
+export const trackExperienceLead = (slug: string): void => fire("experience_lead_submit", { slug });
+
 // ─── Contact channels ─────────────────────────────────────────────────────────
 
 export const trackWhatsAppClick = (): void => fire("whatsapp_click");

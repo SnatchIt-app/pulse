@@ -13,6 +13,7 @@ const SERVICE_LABELS: Record<string, string> = {
   nightlife: "Nightlife",
   concierge: "Concierge",
   residence: "Residence",
+  experience: "Experience",
   other: "Other",
 };
 

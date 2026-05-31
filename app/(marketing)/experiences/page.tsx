@@ -166,7 +166,7 @@ export default function ExperiencesPage() {
                     dangerouslySetInnerHTML={{ __html: exp.body }}
                   />
                   <Link
-                    href={`/request?service=concierge&experience=${exp.slug}`}
+                    href={`/request?service=experience&experience=${exp.slug}`}
                     className="text-ink/40 mt-5 inline-block text-[10px] uppercase tracking-[0.22em] transition-opacity hover:text-ink"
                     aria-label={`Inquire about ${exp.title}`}
                   >
