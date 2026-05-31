@@ -41,6 +41,18 @@ export default async function AdminPage() {
 
       {/* Module grid */}
       <div className="mt-12 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {/* Dashboard */}
+        <Link
+          href="/admin/dashboard"
+          className="border-paper/10 hover:border-paper/25 group block border p-6 transition-colors duration-[320ms]"
+        >
+          <p className="text-paper/35 text-[9px] uppercase tracking-[0.24em]">Analytics</p>
+          <p className="mt-4 font-display text-2xl text-paper">Dashboard</p>
+          <p className="text-paper/25 group-hover:text-paper/50 mt-6 text-[10px] uppercase tracking-[0.2em] transition-colors">
+            Open →
+          </p>
+        </Link>
+
         {/* Leads */}
         <Link
           href="/admin/leads"
@@ -84,22 +96,49 @@ export default async function AdminPage() {
             Open →
           </p>
         </Link>
+
+        {/* Assets */}
+        <Link
+          href="/admin/assets"
+          className="border-paper/10 hover:border-paper/25 group block border p-6 transition-colors duration-[320ms]"
+        >
+          <p className="text-paper/35 text-[9px] uppercase tracking-[0.24em]">Assets</p>
+          <p className="mt-4 font-display text-2xl text-paper">Fleet & Inventory</p>
+          <p className="text-paper/25 group-hover:text-paper/50 mt-6 text-[10px] uppercase tracking-[0.2em] transition-colors">
+            Open →
+          </p>
+        </Link>
+
+        {/* Calendar */}
+        <Link
+          href="/admin/calendar"
+          className="border-paper/10 hover:border-paper/25 group block border p-6 transition-colors duration-[320ms]"
+        >
+          <p className="text-paper/35 text-[9px] uppercase tracking-[0.24em]">Calendar</p>
+          <p className="mt-4 font-display text-2xl text-paper">Booking Schedule</p>
+          <p className="text-paper/25 group-hover:text-paper/50 mt-6 text-[10px] uppercase tracking-[0.2em] transition-colors">
+            Open →
+          </p>
+        </Link>
       </div>
 
       {/* Footer nav */}
-      <div className="border-paper/10 mt-16 flex gap-8 border-t pt-8">
-        <Link
-          href="/admin/leads"
-          className="text-paper/35 text-[10px] uppercase tracking-[0.2em] transition-colors hover:text-paper"
-        >
-          Leads
-        </Link>
-        <Link
-          href="/admin/bookings"
-          className="text-paper/35 text-[10px] uppercase tracking-[0.2em] transition-colors hover:text-paper"
-        >
-          Bookings
-        </Link>
+      <div className="border-paper/10 mt-16 flex flex-wrap gap-8 border-t pt-8">
+        {[
+          { href: "/admin/dashboard", label: "Dashboard" },
+          { href: "/admin/leads", label: "Leads" },
+          { href: "/admin/bookings", label: "Bookings" },
+          { href: "/admin/assets", label: "Assets" },
+          { href: "/admin/calendar", label: "Calendar" },
+        ].map((link) => (
+          <Link
+            key={link.href}
+            href={link.href}
+            className="text-paper/35 text-[10px] uppercase tracking-[0.2em] transition-colors hover:text-paper"
+          >
+            {link.label}
+          </Link>
+        ))}
       </div>
     </main>
   );

@@ -19,6 +19,21 @@ export type Lead = {
   status: string;
 };
 
+export type AssetOption = {
+  id: string;
+  name: string;
+  service_type: string;
+  status: string;
+};
+
+type Activity = {
+  id: string;
+  type: string;
+  content: string;
+  created_by: string | null;
+  created_at: string;
+};
+
 type FilterValue = "all" | "new" | "contacted" | "quoted" | "booked" | "closed" | "archived";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -90,6 +105,14 @@ const SERVICE_LABELS: Record<string, string> = {
   other: "Other",
 };
 
+const ACTIVITY_DOT: Record<string, string> = {
+  lead_created: "bg-emerald-400",
+  status_changed: "bg-amber-400",
+  note_updated: "bg-paper/40",
+  converted_to_booking: "bg-violet-400",
+  booking_status_changed: "bg-sky-300",
+};
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function formatDate(iso: string) {
@@ -113,6 +136,7 @@ function truncate(str: string | null, max = 120) {
 
 type ConvertData = {
   asset_title: string;
+  asset_id: string;
   start_date: string;
   end_date: string;
   notes: string;
@@ -120,16 +144,18 @@ type ConvertData = {
 
 function LeadDrawer({
   lead,
+  assets,
   onClose,
   onStatusChange,
   onLeadUpdate,
 }: {
   lead: Lead;
+  assets: AssetOption[];
   onClose: () => void;
   onStatusChange: (id: string, status: string) => Promise<void>;
   onLeadUpdate: (id: string, patch: Partial<Lead>) => void;
 }) {
-  const [tab, setTab] = useState<"details" | "convert">("details");
+  const [tab, setTab] = useState<"details" | "convert" | "timeline">("details");
   const [notes, setNotes] = useState(lead.admin_notes ?? "");
   const [assigned, setAssigned] = useState(lead.assigned_to ?? "");
   const [savingNotes, setSavingNotes] = useState(false);
@@ -137,6 +163,7 @@ function LeadDrawer({
 
   const [convertData, setConvertData] = useState<ConvertData>({
     asset_title: "",
+    asset_id: "",
     start_date: lead.start_date ?? "",
     end_date: "",
     notes: "",
@@ -144,6 +171,9 @@ function LeadDrawer({
   const [converting, setConverting] = useState(false);
   const [convertSuccess, setConvertSuccess] = useState(false);
   const [convertError, setConvertError] = useState<string | null>(null);
+
+  const [activities, setActivities] = useState<Activity[]>([]);
+  const [activitiesLoading, setActivitiesLoading] = useState(false);
 
   // Reset state when lead changes
   useEffect(() => {
@@ -153,7 +183,27 @@ function LeadDrawer({
     setConvertSuccess(false);
     setConvertError(null);
     setNotesSaved(false);
+    setActivities([]);
   }, [lead.id, lead.admin_notes, lead.assigned_to]);
+
+  // Fetch activities when timeline tab opens
+  useEffect(() => {
+    if (tab !== "timeline") return;
+    let cancelled = false;
+    setActivitiesLoading(true);
+    fetch(`/api/admin/leads/${lead.id}/activities`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (!cancelled && data.ok) setActivities(data.activities);
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (!cancelled) setActivitiesLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [tab, lead.id]);
 
   // Close on Escape
   useEffect(() => {
@@ -195,14 +245,25 @@ function LeadDrawer({
           phone: lead.phone,
           email: lead.email,
           asset_title: convertData.asset_title || undefined,
+          asset_id: convertData.asset_id || undefined,
           start_date: convertData.start_date || undefined,
           end_date: convertData.end_date || undefined,
           notes: convertData.notes || undefined,
           status: "pending",
         }),
       });
+
+      if (res.status === 409) {
+        const data = await res.json();
+        const c = data.conflict;
+        setConvertError(
+          `Conflict: "${c.client_name}" has this asset from ${c.start_date} to ${c.end_date}. Choose different dates or a different asset.`,
+        );
+        return;
+      }
+
       if (!res.ok) throw new Error("server_error");
-      // Lead status is set to "booked" by the API, sync locally
+
       await onStatusChange(lead.id, "booked");
       setConvertSuccess(true);
     } catch {
@@ -232,7 +293,7 @@ function LeadDrawer({
 
       {/* Tabs */}
       <div className="border-paper/10 mt-6 flex gap-6 border-b pb-3">
-        {(["details", "convert"] as const).map((t) => (
+        {(["details", "convert", "timeline"] as const).map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
@@ -242,7 +303,7 @@ function LeadDrawer({
                 : "text-paper/35 hover:text-paper/60"
             }`}
           >
-            {t === "details" ? "Details" : "Convert to Booking"}
+            {t === "details" ? "Details" : t === "convert" ? "Convert" : "Timeline"}
           </button>
         ))}
       </div>
@@ -382,8 +443,41 @@ function LeadDrawer({
                 <Row label="Service">{SERVICE_LABELS[lead.service_type] ?? lead.service_type}</Row>
               </div>
 
-              {/* Editable fields */}
-              <ConvertField label="Asset / Vehicle / Vessel">
+              {/* Asset dropdown */}
+              {assets.length > 0 && (
+                <ConvertField label="Asset — enables conflict detection">
+                  <div className="relative flex items-center">
+                    <select
+                      value={convertData.asset_id}
+                      onChange={(e) => {
+                        const id = e.target.value;
+                        const asset = assets.find((a) => a.id === id);
+                        setConvertData((d) => ({
+                          ...d,
+                          asset_id: id,
+                          asset_title: asset?.name ?? d.asset_title,
+                        }));
+                      }}
+                      className="border-paper/15 focus:border-paper/35 w-full cursor-pointer appearance-none border-b bg-transparent py-2 pr-6 text-sm text-paper outline-none transition-colors"
+                    >
+                      <option value="" className="bg-graphite text-paper/50">
+                        — no asset —
+                      </option>
+                      {assets.map((a) => (
+                        <option key={a.id} value={a.id} className="bg-graphite text-paper">
+                          {a.name}
+                        </option>
+                      ))}
+                    </select>
+                    <span className="text-paper/30 pointer-events-none absolute right-1 text-[8px]">
+                      ↓
+                    </span>
+                  </div>
+                </ConvertField>
+              )}
+
+              {/* Asset title (manual if no assets) */}
+              <ConvertField label={assets.length > 0 ? "Asset Label (overrides selection)" : "Asset / Vehicle / Vessel"}>
                 <input
                   type="text"
                   value={convertData.asset_title}
@@ -422,7 +516,11 @@ function LeadDrawer({
                 />
               </ConvertField>
 
-              {convertError && <p className="text-[11px] text-red-400">{convertError}</p>}
+              {convertError && (
+                <p className="border-red-400/20 bg-red-400/5 border p-3 text-[11px] leading-relaxed text-red-400">
+                  {convertError}
+                </p>
+              )}
 
               <button
                 type="button"
@@ -432,6 +530,34 @@ function LeadDrawer({
               >
                 {converting ? "Creating…" : "Create Booking"}
               </button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── Timeline tab ────────────────────────────────────────────────────── */}
+      {tab === "timeline" && (
+        <div className="mt-6">
+          {activitiesLoading ? (
+            <p className="text-paper/30 text-[10px] uppercase tracking-[0.18em]">Loading…</p>
+          ) : activities.length === 0 ? (
+            <p className="text-paper/35 text-sm">No activity recorded yet.</p>
+          ) : (
+            <div className="space-y-0">
+              {activities.map((a) => (
+                <div
+                  key={a.id}
+                  className="border-paper/[0.07] flex gap-3 border-b py-4 last:border-0"
+                >
+                  <span
+                    className={`mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full ${ACTIVITY_DOT[a.type] ?? "bg-paper/30"}`}
+                  />
+                  <div>
+                    <p className="text-paper/80 text-[12px] leading-relaxed">{a.content}</p>
+                    <p className="text-paper/30 mt-1 text-[10px]">{formatDate(a.created_at)}</p>
+                  </div>
+                </div>
+              ))}
             </div>
           )}
         </div>
@@ -462,7 +588,13 @@ function ConvertField({ label, children }: { label: string; children: React.Reac
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
-export default function LeadsClient({ initialLeads }: { initialLeads: Lead[] }) {
+export default function LeadsClient({
+  initialLeads,
+  assets,
+}: {
+  initialLeads: Lead[];
+  assets: AssetOption[];
+}) {
   const [leads, setLeads] = useState<Lead[]>(initialLeads);
   const [filter, setFilter] = useState<FilterValue>("all");
   const [search, setSearch] = useState("");
@@ -499,7 +631,6 @@ export default function LeadsClient({ initialLeads }: { initialLeads: Lead[] }) 
       if (!prev || prev === next) return;
 
       setLeads((ls) => ls.map((l) => (l.id === id ? { ...l, status: next } : l)));
-      // Keep drawer in sync
       setSelectedLead((sl) => (sl?.id === id ? { ...sl, status: next } : sl));
       setUpdateError(null);
 
@@ -651,7 +782,6 @@ export default function LeadsClient({ initialLeads }: { initialLeads: Lead[] }) 
                   <td className="text-paper/55 max-w-xs py-4 pr-6 text-[11px] leading-relaxed">
                     {truncate(lead.message)}
                   </td>
-                  {/* Open drawer */}
                   <td className="whitespace-nowrap py-4 pr-2">
                     <button
                       type="button"
@@ -693,6 +823,7 @@ export default function LeadsClient({ initialLeads }: { initialLeads: Lead[] }) 
         {selectedLead && (
           <LeadDrawer
             lead={selectedLead}
+            assets={assets}
             onClose={closeDrawer}
             onStatusChange={handleStatusChange}
             onLeadUpdate={handleLeadUpdate}

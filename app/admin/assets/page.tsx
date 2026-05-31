@@ -1,0 +1,53 @@
+import { getSupabaseAdmin } from "@/lib/supabase/admin";
+import Link from "next/link";
+import AssetsClient from "./AssetsClient";
+
+export type Asset = {
+  id: string;
+  name: string;
+  service_type: string;
+  status: string;
+  description: string | null;
+  created_at: string;
+};
+
+export default async function AssetsPage() {
+  if (
+    !process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() ||
+    !process.env.SUPABASE_SERVICE_ROLE_KEY?.trim()
+  ) {
+    return (
+      <main className="px-8 py-16">
+        <p className="text-paper/40 text-[10px] uppercase tracking-[0.24em]">Pulse CRM · Assets</p>
+        <h1 className="mt-3 font-display text-4xl text-paper">Assets</h1>
+        <p className="text-paper/50 mt-10 text-sm">Supabase env vars not configured.</p>
+      </main>
+    );
+  }
+
+  const supabase = getSupabaseAdmin();
+  const { data: assets, error } = await supabase
+    .from("assets")
+    .select("id, name, service_type, status, description, created_at")
+    .order("name");
+
+  return (
+    <main className="min-h-screen px-6 pb-24 pt-16 md:px-12">
+      <div className="flex items-end justify-between">
+        <div>
+          <p className="text-paper/40 text-[10px] uppercase tracking-[0.24em]">Pulse CRM</p>
+          <h1 className="mt-2 font-display text-4xl text-paper">Assets</h1>
+        </div>
+        <Link
+          href="/admin"
+          className="text-paper/35 text-[10px] uppercase tracking-[0.18em] transition-colors hover:text-paper"
+        >
+          ← Admin
+        </Link>
+      </div>
+
+      {error && <p className="mt-8 text-sm text-red-400">Database error: {error.message}</p>}
+      {!error && <AssetsClient initialAssets={assets ?? []} />}
+    </main>
+  );
+}

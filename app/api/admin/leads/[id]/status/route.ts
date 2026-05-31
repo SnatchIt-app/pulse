@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
+import { logActivity } from "@/lib/activity";
 
 // Full enum — includes legacy values (qualified, completed, lost) for backward compat
 const VALID_STATUSES = [
@@ -38,6 +39,8 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     console.error("[leads/status] Update error:", error.message);
     return NextResponse.json({ ok: false, error: "db_error" }, { status: 500 });
   }
+
+  await logActivity(id, "status_changed", `Status changed to ${parsed.status}`);
 
   return NextResponse.json({ ok: true }, { status: 200 });
 }

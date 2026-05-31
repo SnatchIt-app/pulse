@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { sendLeadNotification } from "@/lib/email";
+import { logActivity } from "@/lib/activity";
 
 const SERVICE_TYPE = z.enum([
   "car",
@@ -83,17 +84,21 @@ export async function POST(req: Request) {
       `[requests] Inserting lead — service: ${parsed.serviceType ?? "other"}, asset: ${parsed.assetSlug ?? "none"}`,
     );
 
-    const { error } = await supabase.from("leads").insert({
-      full_name: parsed.fullName,
-      email: parsed.email,
-      phone: parsed.phone ?? null,
-      service_type: DB_SERVICE_MAP[parsed.serviceType ?? ""] ?? parsed.serviceType ?? "other",
-      start_date: parsed.preferredDate ?? null,
-      message: messageParts || null,
-      source: "website_request",
-      landing_page: parsed.assetSlug ?? "/request",
-      status: "new",
-    });
+    const { data: lead, error } = await supabase
+      .from("leads")
+      .insert({
+        full_name: parsed.fullName,
+        email: parsed.email,
+        phone: parsed.phone ?? null,
+        service_type: DB_SERVICE_MAP[parsed.serviceType ?? ""] ?? parsed.serviceType ?? "other",
+        start_date: parsed.preferredDate ?? null,
+        message: messageParts || null,
+        source: "website_request",
+        landing_page: parsed.assetSlug ?? "/request",
+        status: "new",
+      })
+      .select("id")
+      .single();
 
     if (error) {
       console.error("[requests] Supabase insert error:", error.message, "| code:", error.code);
@@ -101,6 +106,10 @@ export async function POST(req: Request) {
     }
 
     console.log("[requests] Lead inserted successfully");
+
+    if (lead?.id) {
+      await logActivity(lead.id, "lead_created", "Lead submitted via website");
+    }
 
     // Fire notification email — never blocks response, never fails the request
     await sendLeadNotification({

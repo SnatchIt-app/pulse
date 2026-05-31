@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
+import { logActivity } from "@/lib/activity";
 
 const Body = z.object({
   lead_id: z.string().uuid().optional(),
@@ -11,6 +12,7 @@ const Body = z.object({
   start_date: z.string().optional(),
   end_date: z.string().optional(),
   asset_title: z.string().optional(),
+  asset_id: z.string().uuid().optional(),
   notes: z.string().max(4000).optional(),
   status: z
     .enum(["pending", "confirmed", "in_progress", "completed", "cancelled"])
@@ -28,6 +30,34 @@ export async function POST(req: Request) {
 
   const supabase = getSupabaseAdmin();
 
+  // Conflict detection — only when asset_id + both dates are provided
+  if (parsed.asset_id && parsed.start_date && parsed.end_date) {
+    const { data: conflicts } = await supabase
+      .from("bookings")
+      .select("id, client_name, start_date, end_date")
+      .eq("asset_id", parsed.asset_id)
+      .not("status", "eq", "cancelled")
+      .lte("start_date", parsed.end_date)
+      .gte("end_date", parsed.start_date);
+
+    if (conflicts && conflicts.length > 0) {
+      const c = conflicts[0]!;
+      return NextResponse.json(
+        {
+          ok: false,
+          error: "conflict",
+          conflict: {
+            id: c.id,
+            client_name: c.client_name,
+            start_date: c.start_date,
+            end_date: c.end_date,
+          },
+        },
+        { status: 409 },
+      );
+    }
+  }
+
   const { data, error } = await supabase
     .from("bookings")
     .insert({
@@ -39,6 +69,7 @@ export async function POST(req: Request) {
       start_date: parsed.start_date ?? null,
       end_date: parsed.end_date ?? null,
       asset_title: parsed.asset_title ?? null,
+      asset_id: parsed.asset_id ?? null,
       notes: parsed.notes ?? null,
       status: parsed.status,
     })
@@ -50,9 +81,13 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: false, error: "db_error" }, { status: 500 });
   }
 
-  // If a lead_id was provided, mark the lead as booked
   if (parsed.lead_id) {
     await supabase.from("leads").update({ status: "booked" }).eq("id", parsed.lead_id);
+    await logActivity(
+      parsed.lead_id,
+      "converted_to_booking",
+      `Converted to booking${parsed.asset_title ? ` — ${parsed.asset_title}` : ""}`,
+    );
   }
 
   return NextResponse.json({ ok: true, id: data.id }, { status: 201 });

@@ -22,12 +22,18 @@ export default async function LeadsPage() {
   }
 
   const supabase = getSupabaseAdmin();
-  const { data: leads, error } = await supabase
-    .from("leads")
-    .select(
-      "id, full_name, phone, email, service_type, message, admin_notes, assigned_to, start_date, created_at, status",
-    )
-    .order("created_at", { ascending: false });
+  const [{ data: leads, error }, { data: assets }] = await Promise.all([
+    supabase
+      .from("leads")
+      .select(
+        "id, full_name, phone, email, service_type, message, admin_notes, assigned_to, start_date, created_at, status",
+      )
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("assets")
+      .select("id, name, service_type, status")
+      .order("name"),
+  ]);
 
   return (
     <main className="min-h-screen px-6 pb-24 pt-16 md:px-12">
@@ -46,7 +52,7 @@ export default async function LeadsPage() {
 
       {error && <p className="mt-8 text-sm text-red-400">Database error: {error.message}</p>}
 
-      {!error && <LeadsClient initialLeads={leads ?? []} />}
+      {!error && <LeadsClient initialLeads={leads ?? []} assets={assets ?? []} />}
     </main>
   );
 }
