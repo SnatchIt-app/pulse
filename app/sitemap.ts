@@ -1,33 +1,72 @@
 import type { MetadataRoute } from "next";
 import { absoluteUrl } from "@/lib/utils";
+import { cars } from "@/data/inventory/cars";
+import { jets } from "@/data/inventory/jets";
+import { yachts } from "@/data/inventory/yachts";
+import { residences } from "@/data/inventory/residences";
 
-// Static routes. Dynamic /fleet/[slug] + /residences/[slug] entries are
-// added in Phase 3 / 3.5 once Supabase inventory is seeded.
-const STATIC_ROUTES = [
-  "/",
-  "/fleet",
-  "/jets",
-  "/yachts",
-  "/jet-skis",
-  "/chauffeur",
-  "/restaurants",
-  "/nightlife",
-  "/concierge",
-  "/residences",
-  "/experiences",
-  "/about",
-  "/contact",
-  "/request",
-  "/legal/terms",
-  "/legal/privacy",
+type SitemapEntry = MetadataRoute.Sitemap[number];
+
+const STATIC: ReadonlyArray<{
+  path: string;
+  priority: number;
+  freq: SitemapEntry["changeFrequency"];
+}> = [
+  { path: "/", priority: 1.0, freq: "daily" },
+  { path: "/fleet", priority: 0.9, freq: "weekly" },
+  { path: "/jets", priority: 0.9, freq: "weekly" },
+  { path: "/yachts", priority: 0.9, freq: "weekly" },
+  { path: "/residences", priority: 0.9, freq: "weekly" },
+  { path: "/concierge", priority: 0.8, freq: "weekly" },
+  { path: "/request", priority: 0.8, freq: "monthly" },
+  { path: "/chauffeur", priority: 0.7, freq: "weekly" },
+  { path: "/restaurants", priority: 0.7, freq: "weekly" },
+  { path: "/nightlife", priority: 0.7, freq: "weekly" },
+  { path: "/contact", priority: 0.7, freq: "monthly" },
+  { path: "/jet-skis", priority: 0.6, freq: "weekly" },
+  { path: "/about", priority: 0.6, freq: "monthly" },
+  { path: "/legal/terms", priority: 0.3, freq: "monthly" },
+  { path: "/legal/privacy", priority: 0.3, freq: "monthly" },
+  // /experiences omitted — stub page with no content yet
 ];
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();
-  return STATIC_ROUTES.map((path) => ({
+
+  const staticEntries: MetadataRoute.Sitemap = STATIC.map(({ path, priority, freq }) => ({
     url: absoluteUrl(path),
     lastModified: now,
-    changeFrequency: "weekly",
-    priority: path === "/" ? 1 : 0.7,
+    changeFrequency: freq,
+    priority,
   }));
+
+  const fleetEntries: MetadataRoute.Sitemap = cars.map((car) => ({
+    url: absoluteUrl(`/fleet/${car.slug}`),
+    lastModified: now,
+    changeFrequency: "monthly",
+    priority: 0.85,
+  }));
+
+  const jetEntries: MetadataRoute.Sitemap = jets.map((jet) => ({
+    url: absoluteUrl(`/jets/${jet.slug}`),
+    lastModified: now,
+    changeFrequency: "monthly",
+    priority: 0.85,
+  }));
+
+  const yachtEntries: MetadataRoute.Sitemap = yachts.map((yacht) => ({
+    url: absoluteUrl(`/yachts/${yacht.slug}`),
+    lastModified: now,
+    changeFrequency: "monthly",
+    priority: 0.85,
+  }));
+
+  const residenceEntries: MetadataRoute.Sitemap = residences.map((r) => ({
+    url: absoluteUrl(`/residences/${r.slug}`),
+    lastModified: now,
+    changeFrequency: "monthly",
+    priority: 0.85,
+  }));
+
+  return [...staticEntries, ...fleetEntries, ...jetEntries, ...yachtEntries, ...residenceEntries];
 }

@@ -17,8 +17,8 @@ const PULSE = {
     "Coral Gables",
   ],
   address: { addressLocality: "Miami", addressRegion: "FL", addressCountry: "US" },
-  telephone: "+1-000-000-0000",
-  email: "hello@pulse.example.com",
+  telephone: "+1-786-918-8895",
+  email: "pulsexotics@exoticsinfo.com",
 } as const;
 
 const cities = () => PULSE.areaServed.map((name) => ({ "@type": "City", name }));
