@@ -109,7 +109,7 @@ function AssetCard({
   onDeleteCancel: () => void;
 }) {
   return (
-    <div className="group border border-paper/10 bg-graphite">
+    <div className="border-paper/10 group border bg-graphite">
       {/* Cover image */}
       <div className="relative aspect-[16/10] overflow-hidden bg-ink">
         {asset.cover_image ? (
@@ -122,7 +122,7 @@ function AssetCard({
           />
         ) : (
           <div className="flex h-full items-center justify-center">
-            <p className="text-[9px] uppercase tracking-[0.22em] text-paper/15">No Image</p>
+            <p className="text-paper/15 text-[9px] uppercase tracking-[0.22em]">No Image</p>
           </div>
         )}
         {/* Status badge overlay */}
@@ -138,19 +138,19 @@ function AssetCard({
       {/* Card body */}
       <div className="p-4">
         <p className="font-display text-[17px] leading-snug text-paper">{asset.name}</p>
-        <p className="mt-1 text-[9px] uppercase tracking-[0.18em] text-paper/40">
+        <p className="text-paper/40 mt-1 text-[9px] uppercase tracking-[0.18em]">
           {SERVICE_LABELS[asset.service_type] ?? asset.service_type}
         </p>
         {asset.description && (
-          <p className="mt-2 text-[10px] leading-relaxed text-paper/35">{asset.description}</p>
+          <p className="text-paper/35 mt-2 text-[10px] leading-relaxed">{asset.description}</p>
         )}
 
         {/* Actions */}
-        <div className="mt-4 flex items-center gap-4 border-t border-paper/[0.07] pt-4">
+        <div className="border-paper/[0.07] mt-4 flex items-center gap-4 border-t pt-4">
           <button
             type="button"
             onClick={onEdit}
-            className="text-[9px] uppercase tracking-[0.18em] text-paper/40 transition-colors hover:text-paper"
+            className="text-paper/40 text-[9px] uppercase tracking-[0.18em] transition-colors hover:text-paper"
           >
             Edit
           </button>
@@ -159,7 +159,7 @@ function AssetCard({
               href={asset.public_url}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-[9px] uppercase tracking-[0.18em] text-paper/25 transition-colors hover:text-paper/60"
+              className="text-paper/25 hover:text-paper/60 text-[9px] uppercase tracking-[0.18em] transition-colors"
             >
               View ↗
             </a>
@@ -186,7 +186,7 @@ function AssetCard({
             <button
               type="button"
               onClick={onDeleteRequest}
-              className="ml-auto text-[9px] uppercase tracking-[0.18em] text-paper/15 transition-colors hover:text-red-400"
+              className="text-paper/15 ml-auto text-[9px] uppercase tracking-[0.18em] transition-colors hover:text-red-400"
             >
               Delete
             </button>
@@ -310,7 +310,7 @@ function AssetDrawer({
         <div className="border-paper/10 mt-5 border p-3">
           <p className="text-paper/35 text-[9px] uppercase tracking-[0.18em]">
             Inventory asset ·{" "}
-            <span className="normal-case tracking-normal text-paper/25">
+            <span className="text-paper/25 normal-case tracking-normal">
               {asset?.source_inventory_type} / {asset?.source_slug}
             </span>
           </p>
@@ -378,7 +378,7 @@ function AssetDrawer({
             value={form.cover_image}
             onChange={field("cover_image")}
             placeholder="/fleet/slug/cover.jpg"
-            className="border-paper/15 placeholder:text-paper/20 focus:border-paper/35 w-full border-b bg-transparent py-2 text-sm text-paper outline-none transition-colors font-mono text-[11px]"
+            className="border-paper/15 placeholder:text-paper/20 focus:border-paper/35 w-full border-b bg-transparent py-2 font-mono text-[11px] text-sm text-paper outline-none transition-colors"
           />
         </Field>
 
@@ -400,7 +400,7 @@ function AssetDrawer({
             value={form.public_url}
             onChange={field("public_url")}
             placeholder="/fleet/slug"
-            className="border-paper/15 placeholder:text-paper/20 focus:border-paper/35 w-full border-b bg-transparent py-2 text-sm text-paper outline-none transition-colors font-mono text-[11px]"
+            className="border-paper/15 placeholder:text-paper/20 focus:border-paper/35 w-full border-b bg-transparent py-2 font-mono text-[11px] text-sm text-paper outline-none transition-colors"
           />
         </Field>
 
@@ -575,9 +575,7 @@ export default function AssetsClient({ initialAssets }: { initialAssets: Asset[]
         {/* Actions */}
         <div className="ml-auto flex items-center gap-3">
           {syncMsg && (
-            <p
-              className={`text-[10px] ${syncMsg.ok ? "text-emerald-400" : "text-red-400"}`}
-            >
+            <p className={`text-[10px] ${syncMsg.ok ? "text-emerald-400" : "text-red-400"}`}>
               {syncMsg.text}
             </p>
           )}

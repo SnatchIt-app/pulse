@@ -54,7 +54,7 @@ function buildRows(): AssetRow[] {
   }
 
   for (const yacht of yachts) {
-    const displayName = yacht.model ? `${yacht.make} ${yacht.model}` : yacht.name ?? yacht.make;
+    const displayName = yacht.model ? `${yacht.make} ${yacht.model}` : (yacht.name ?? yacht.make);
     rows.push({
       name: displayName,
       service_type: "yacht",
@@ -110,9 +110,7 @@ export async function POST() {
     status: (existingStatus.get(r.source_slug) as "available") ?? r.status,
   }));
 
-  const { error } = await supabase
-    .from("assets")
-    .upsert(finalRows, { onConflict: "source_slug" });
+  const { error } = await supabase.from("assets").upsert(finalRows, { onConflict: "source_slug" });
 
   if (error) {
     console.error("[assets/sync] Upsert error:", error.message);
