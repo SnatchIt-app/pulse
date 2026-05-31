@@ -9,6 +9,9 @@ const PatchBody = z.object({
   service_type: z.string().min(1).optional(),
   status: z.enum(ASSET_STATUSES).optional(),
   description: z.string().max(2000).nullable().optional(),
+  cover_image: z.string().max(500).nullable().optional(),
+  gallery: z.array(z.string()).optional(),
+  public_url: z.string().max(500).nullable().optional(),
 });
 
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {

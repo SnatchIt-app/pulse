@@ -8,6 +8,12 @@ export type Asset = {
   service_type: string;
   status: string;
   description: string | null;
+  slug: string | null;
+  cover_image: string | null;
+  gallery: string[];
+  public_url: string | null;
+  source_inventory_type: string | null;
+  source_slug: string | null;
   created_at: string;
 };
 
@@ -28,7 +34,10 @@ export default async function AssetsPage() {
   const supabase = getSupabaseAdmin();
   const { data: assets, error } = await supabase
     .from("assets")
-    .select("id, name, service_type, status, description, created_at")
+    .select(
+      "id, name, service_type, status, description, slug, cover_image, gallery, public_url, source_inventory_type, source_slug, created_at",
+    )
+    .order("source_inventory_type", { nullsFirst: false })
     .order("name");
 
   return (
@@ -47,7 +56,14 @@ export default async function AssetsPage() {
       </div>
 
       {error && <p className="mt-8 text-sm text-red-400">Database error: {error.message}</p>}
-      {!error && <AssetsClient initialAssets={assets ?? []} />}
+      {!error && (
+        <AssetsClient
+          initialAssets={(assets ?? []).map((a) => ({
+            ...a,
+            gallery: Array.isArray(a.gallery) ? (a.gallery as string[]) : [],
+          }))}
+        />
+      )}
     </main>
   );
 }

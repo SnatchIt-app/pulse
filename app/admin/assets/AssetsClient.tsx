@@ -1,12 +1,15 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useMemo, useCallback } from "react";
+import Image from "next/image";
 import type { Asset } from "./page";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const ASSET_STATUSES = ["available", "reserved", "maintenance", "inactive"] as const;
 type AssetStatus = (typeof ASSET_STATUSES)[number];
+
+type InventoryFilter = "all" | "car" | "jet" | "yacht" | "residence";
 
 const STATUS_LABELS: Record<string, string> = {
   available: "Available",
@@ -39,6 +42,14 @@ const SERVICE_LABELS: Record<string, string> = Object.fromEntries(
   SERVICE_OPTIONS.map((o) => [o.value, o.label]),
 );
 
+const INVENTORY_FILTER_OPTIONS: { value: InventoryFilter; label: string }[] = [
+  { value: "all", label: "All" },
+  { value: "car", label: "Cars" },
+  { value: "jet", label: "Jets" },
+  { value: "yacht", label: "Yachts" },
+  { value: "residence", label: "Residences" },
+];
+
 // ─── Form State ───────────────────────────────────────────────────────────────
 
 type FormData = {
@@ -46,6 +57,9 @@ type FormData = {
   service_type: string;
   status: AssetStatus;
   description: string;
+  cover_image: string;
+  gallery_text: string;
+  public_url: string;
 };
 
 const EMPTY_FORM: FormData = {
@@ -53,6 +67,9 @@ const EMPTY_FORM: FormData = {
   service_type: "car",
   status: "available",
   description: "",
+  cover_image: "",
+  gallery_text: "",
+  public_url: "",
 };
 
 function assetToForm(a: Asset): FormData {
@@ -61,7 +78,123 @@ function assetToForm(a: Asset): FormData {
     service_type: a.service_type,
     status: a.status as AssetStatus,
     description: a.description ?? "",
+    cover_image: a.cover_image ?? "",
+    gallery_text: a.gallery.join("\n"),
+    public_url: a.public_url ?? "",
   };
+}
+
+function galleryFromText(text: string): string[] {
+  return text
+    .split("\n")
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
+// ─── Asset Card ───────────────────────────────────────────────────────────────
+
+function AssetCard({
+  asset,
+  onEdit,
+  onDeleteRequest,
+  isDeletePending,
+  onDeleteConfirm,
+  onDeleteCancel,
+}: {
+  asset: Asset;
+  onEdit: () => void;
+  onDeleteRequest: () => void;
+  isDeletePending: boolean;
+  onDeleteConfirm: () => void;
+  onDeleteCancel: () => void;
+}) {
+  return (
+    <div className="group border border-paper/10 bg-graphite">
+      {/* Cover image */}
+      <div className="relative aspect-[16/10] overflow-hidden bg-ink">
+        {asset.cover_image ? (
+          <Image
+            src={asset.cover_image}
+            alt={asset.name}
+            fill
+            sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
+            className="object-cover transition-transform duration-[480ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.03]"
+          />
+        ) : (
+          <div className="flex h-full items-center justify-center">
+            <p className="text-[9px] uppercase tracking-[0.22em] text-paper/15">No Image</p>
+          </div>
+        )}
+        {/* Status badge overlay */}
+        <span
+          className={`absolute right-3 top-3 border px-2 py-0.5 text-[8px] uppercase tracking-[0.15em] backdrop-blur-sm ${
+            STATUS_COLORS[asset.status] ?? "border-paper/10 text-paper/30"
+          } bg-ink/60`}
+        >
+          {STATUS_LABELS[asset.status] ?? asset.status}
+        </span>
+      </div>
+
+      {/* Card body */}
+      <div className="p-4">
+        <p className="font-display text-[17px] leading-snug text-paper">{asset.name}</p>
+        <p className="mt-1 text-[9px] uppercase tracking-[0.18em] text-paper/40">
+          {SERVICE_LABELS[asset.service_type] ?? asset.service_type}
+        </p>
+        {asset.description && (
+          <p className="mt-2 text-[10px] leading-relaxed text-paper/35">{asset.description}</p>
+        )}
+
+        {/* Actions */}
+        <div className="mt-4 flex items-center gap-4 border-t border-paper/[0.07] pt-4">
+          <button
+            type="button"
+            onClick={onEdit}
+            className="text-[9px] uppercase tracking-[0.18em] text-paper/40 transition-colors hover:text-paper"
+          >
+            Edit
+          </button>
+          {asset.public_url && (
+            <a
+              href={asset.public_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[9px] uppercase tracking-[0.18em] text-paper/25 transition-colors hover:text-paper/60"
+            >
+              View ↗
+            </a>
+          )}
+          {/* Delete */}
+          {isDeletePending ? (
+            <span className="ml-auto flex items-center gap-2">
+              <button
+                type="button"
+                onClick={onDeleteConfirm}
+                className="text-[9px] uppercase tracking-[0.18em] text-red-400 transition-colors hover:text-red-300"
+              >
+                Confirm
+              </button>
+              <button
+                type="button"
+                onClick={onDeleteCancel}
+                className="text-paper/25 text-[9px] uppercase tracking-[0.18em] transition-colors hover:text-paper"
+              >
+                Cancel
+              </button>
+            </span>
+          ) : (
+            <button
+              type="button"
+              onClick={onDeleteRequest}
+              className="ml-auto text-[9px] uppercase tracking-[0.18em] text-paper/15 transition-colors hover:text-red-400"
+            >
+              Delete
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
 }
 
 // ─── Asset Drawer ─────────────────────────────────────────────────────────────
@@ -75,7 +208,7 @@ function AssetDrawer({
   mode: "create" | "edit";
   asset: Asset | null;
   onClose: () => void;
-  onSaved: (asset: Asset) => void;
+  onSaved: (saved: Asset) => void;
 }) {
   const [form, setForm] = useState<FormData>(
     mode === "edit" && asset ? assetToForm(asset) : EMPTY_FORM,
@@ -96,53 +229,62 @@ function AssetDrawer({
     setSaving(true);
     setError(null);
 
+    const payload = {
+      name: form.name.trim(),
+      service_type: form.service_type,
+      status: form.status,
+      description: form.description.trim() || null,
+      cover_image: form.cover_image.trim() || null,
+      gallery: galleryFromText(form.gallery_text),
+      public_url: form.public_url.trim() || null,
+    };
+
     try {
       let res: Response;
       if (mode === "create") {
         res = await fetch("/api/admin/assets", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            name: form.name.trim(),
-            service_type: form.service_type,
-            status: form.status,
-            description: form.description.trim() || undefined,
-          }),
+          body: JSON.stringify(payload),
         });
       } else {
         res = await fetch(`/api/admin/assets/${asset!.id}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            name: form.name.trim(),
-            service_type: form.service_type,
-            status: form.status,
-            description: form.description.trim() || null,
-          }),
+          body: JSON.stringify(payload),
         });
       }
 
       if (!res.ok) throw new Error("server_error");
 
-      const saved: Asset =
-        mode === "create"
-          ? {
-              id: (await res.json()).id,
-              name: form.name.trim(),
-              service_type: form.service_type,
-              status: form.status,
-              description: form.description.trim() || null,
-              created_at: new Date().toISOString(),
-            }
-          : { ...asset!, ...form, description: form.description.trim() || null };
+      let savedAsset: Asset;
+      if (mode === "create") {
+        const json = await res.json();
+        savedAsset = {
+          id: String(json.id),
+          ...payload,
+          description: payload.description,
+          cover_image: payload.cover_image,
+          gallery: payload.gallery,
+          public_url: payload.public_url,
+          slug: null,
+          source_inventory_type: null,
+          source_slug: null,
+          created_at: new Date().toISOString(),
+        };
+      } else {
+        savedAsset = { ...asset!, ...payload };
+      }
 
-      onSaved(saved);
+      onSaved(savedAsset);
     } catch {
       setError("Something went wrong. Please try again.");
     } finally {
       setSaving(false);
     }
   }
+
+  const isInventoryAsset = mode === "edit" && !!asset?.source_slug;
 
   return (
     <div className="flex h-full flex-col overflow-y-auto p-6 md:p-8">
@@ -164,10 +306,20 @@ function AssetDrawer({
         </button>
       </div>
 
-      <div className="mt-8 space-y-6">
+      {isInventoryAsset && (
+        <div className="border-paper/10 mt-5 border p-3">
+          <p className="text-paper/35 text-[9px] uppercase tracking-[0.18em]">
+            Inventory asset ·{" "}
+            <span className="normal-case tracking-normal text-paper/25">
+              {asset?.source_inventory_type} / {asset?.source_slug}
+            </span>
+          </p>
+        </div>
+      )}
+
+      <div className="mt-6 space-y-5">
         {/* Name */}
-        <div>
-          <p className="text-paper/35 mb-2 text-[9px] uppercase tracking-[0.22em]">Name</p>
+        <Field label="Name">
           <input
             type="text"
             value={form.name}
@@ -175,12 +327,11 @@ function AssetDrawer({
             placeholder="e.g. Lamborghini Urus, Ferretti 780…"
             className="border-paper/15 placeholder:text-paper/20 focus:border-paper/35 w-full border-b bg-transparent py-2 text-sm text-paper outline-none transition-colors"
           />
-        </div>
+        </Field>
 
         {/* Service Type */}
-        <div>
-          <p className="text-paper/35 mb-2 text-[9px] uppercase tracking-[0.22em]">Service Type</p>
-          <div className="relative inline-flex w-full items-center">
+        <Field label="Service Type">
+          <div className="relative">
             <select
               value={form.service_type}
               onChange={field("service_type")}
@@ -192,18 +343,19 @@ function AssetDrawer({
                 </option>
               ))}
             </select>
-            <span className="text-paper/30 pointer-events-none absolute right-1 text-[8px]">↓</span>
+            <ChevronDown />
           </div>
-        </div>
+        </Field>
 
         {/* Status */}
-        <div>
-          <p className="text-paper/35 mb-2 text-[9px] uppercase tracking-[0.22em]">Status</p>
+        <Field label="Status">
           <div className="relative inline-flex items-center">
             <select
               value={form.status}
               onChange={field("status")}
-              className={`cursor-pointer appearance-none border bg-transparent py-1.5 pl-3 pr-7 text-[10px] uppercase tracking-[0.18em] outline-none transition-colors ${STATUS_COLORS[form.status]}`}
+              className={`cursor-pointer appearance-none border bg-transparent py-1.5 pl-3 pr-7 text-[10px] uppercase tracking-[0.18em] outline-none transition-colors ${
+                STATUS_COLORS[form.status] ?? "border-paper/10 text-paper/40"
+              }`}
             >
               {ASSET_STATUSES.map((s) => (
                 <option
@@ -217,13 +369,43 @@ function AssetDrawer({
             </select>
             <span className="text-paper/30 pointer-events-none absolute right-2 text-[8px]">↓</span>
           </div>
-        </div>
+        </Field>
+
+        {/* Cover Image */}
+        <Field label="Cover Image Path">
+          <input
+            type="text"
+            value={form.cover_image}
+            onChange={field("cover_image")}
+            placeholder="/fleet/slug/cover.jpg"
+            className="border-paper/15 placeholder:text-paper/20 focus:border-paper/35 w-full border-b bg-transparent py-2 text-sm text-paper outline-none transition-colors font-mono text-[11px]"
+          />
+        </Field>
+
+        {/* Gallery */}
+        <Field label="Gallery Paths — one per line">
+          <textarea
+            value={form.gallery_text}
+            onChange={field("gallery_text")}
+            rows={3}
+            placeholder="/fleet/slug/gallery-1.jpg&#10;/fleet/slug/gallery-2.jpg"
+            className="border-paper/15 placeholder:text-paper/20 focus:border-paper/35 w-full resize-none border bg-transparent p-3 font-mono text-[11px] leading-relaxed text-paper outline-none transition-colors"
+          />
+        </Field>
+
+        {/* Public URL */}
+        <Field label="Public URL">
+          <input
+            type="text"
+            value={form.public_url}
+            onChange={field("public_url")}
+            placeholder="/fleet/slug"
+            className="border-paper/15 placeholder:text-paper/20 focus:border-paper/35 w-full border-b bg-transparent py-2 text-sm text-paper outline-none transition-colors font-mono text-[11px]"
+          />
+        </Field>
 
         {/* Description */}
-        <div>
-          <p className="text-paper/35 mb-2 text-[9px] uppercase tracking-[0.22em]">
-            Description <span className="text-paper/20 normal-case tracking-normal">optional</span>
-          </p>
+        <Field label="Description / Notes">
           <textarea
             value={form.description}
             onChange={field("description")}
@@ -231,7 +413,7 @@ function AssetDrawer({
             placeholder="Internal notes about this asset…"
             className="border-paper/15 placeholder:text-paper/20 focus:border-paper/35 w-full resize-none border bg-transparent p-3 text-[12px] leading-relaxed text-paper outline-none transition-colors"
           />
-        </div>
+        </Field>
 
         {error && <p className="text-[11px] text-red-400">{error}</p>}
 
@@ -248,14 +430,39 @@ function AssetDrawer({
   );
 }
 
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <p className="text-paper/35 mb-2 text-[9px] uppercase tracking-[0.22em]">{label}</p>
+      {children}
+    </div>
+  );
+}
+
+function ChevronDown() {
+  return (
+    <span className="text-paper/30 pointer-events-none absolute right-1 top-1/2 -translate-y-1/2 text-[8px]">
+      ↓
+    </span>
+  );
+}
+
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function AssetsClient({ initialAssets }: { initialAssets: Asset[] }) {
   const [assets, setAssets] = useState<Asset[]>(initialAssets);
+  const [filter, setFilter] = useState<InventoryFilter>("all");
   const [drawerMode, setDrawerMode] = useState<"create" | "edit" | null>(null);
   const [editTarget, setEditTarget] = useState<Asset | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [syncing, setSyncing] = useState(false);
+  const [syncMsg, setSyncMsg] = useState<{ ok: boolean; text: string } | null>(null);
+
+  const visible = useMemo(() => {
+    if (filter === "all") return assets;
+    return assets.filter((a) => a.source_inventory_type === filter);
+  }, [assets, filter]);
 
   const openCreate = useCallback(() => {
     setEditTarget(null);
@@ -299,114 +506,134 @@ export default function AssetsClient({ initialAssets }: { initialAssets: Asset[]
     }
   }
 
+  async function handleSync() {
+    setSyncing(true);
+    setSyncMsg(null);
+    try {
+      const res = await fetch("/api/admin/assets/sync", { method: "POST" });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "sync_failed");
+
+      // Refresh assets list
+      const refreshed = await fetch("/api/admin/assets");
+      const refreshData = await refreshed.json();
+      if (refreshData.ok) {
+        setAssets(
+          (refreshData.assets as Asset[]).map((a) => ({
+            ...a,
+            gallery: Array.isArray(a.gallery) ? a.gallery : [],
+          })),
+        );
+      }
+
+      setSyncMsg({
+        ok: true,
+        text: `Synced — ${data.inserted} new, ${data.updated} updated.`,
+      });
+    } catch {
+      setSyncMsg({ ok: false, text: "Sync failed. Check console for details." });
+    } finally {
+      setSyncing(false);
+      setTimeout(() => setSyncMsg(null), 5000);
+    }
+  }
+
+  const counts = useMemo(
+    () => ({
+      all: assets.length,
+      car: assets.filter((a) => a.source_inventory_type === "car").length,
+      jet: assets.filter((a) => a.source_inventory_type === "jet").length,
+      yacht: assets.filter((a) => a.source_inventory_type === "yacht").length,
+      residence: assets.filter((a) => a.source_inventory_type === "residence").length,
+    }),
+    [assets],
+  );
+
   return (
     <div>
       {/* Toolbar */}
-      <div className="mt-8 flex items-center justify-between">
-        <p className="text-paper/35 text-[10px] uppercase tracking-[0.2em]">
-          {assets.length} asset{assets.length !== 1 ? "s" : ""}
-        </p>
-        <button
-          type="button"
-          onClick={openCreate}
-          className="border-paper/25 text-paper/70 hover:border-paper/50 border px-4 py-2 text-[10px] uppercase tracking-[0.2em] transition-colors hover:text-paper"
-        >
-          + Add Asset
-        </button>
+      <div className="mt-8 flex flex-wrap items-center gap-4">
+        {/* Filter tabs */}
+        <div className="flex flex-wrap gap-x-5 gap-y-2">
+          {INVENTORY_FILTER_OPTIONS.map((f) => (
+            <button
+              key={f.value}
+              type="button"
+              onClick={() => setFilter(f.value)}
+              className={`transition-colors ${
+                filter === f.value
+                  ? "border-b border-paper pb-px text-[10px] uppercase tracking-[0.2em] text-paper"
+                  : "text-paper/35 hover:text-paper/60 text-[10px] uppercase tracking-[0.2em]"
+              }`}
+            >
+              {f.label}
+              <span className="ml-1.5 text-[9px] opacity-50">({counts[f.value]})</span>
+            </button>
+          ))}
+        </div>
+
+        {/* Actions */}
+        <div className="ml-auto flex items-center gap-3">
+          {syncMsg && (
+            <p
+              className={`text-[10px] ${syncMsg.ok ? "text-emerald-400" : "text-red-400"}`}
+            >
+              {syncMsg.text}
+            </p>
+          )}
+          <button
+            type="button"
+            onClick={handleSync}
+            disabled={syncing}
+            className="border-paper/20 text-paper/50 hover:border-paper/40 border px-3 py-1.5 text-[9px] uppercase tracking-[0.18em] transition-colors hover:text-paper disabled:opacity-40"
+          >
+            {syncing ? "Syncing…" : "Sync Inventory"}
+          </button>
+          <button
+            type="button"
+            onClick={openCreate}
+            className="border-paper/25 text-paper/70 hover:border-paper/50 border px-4 py-1.5 text-[9px] uppercase tracking-[0.18em] transition-colors hover:text-paper"
+          >
+            + Add
+          </button>
+        </div>
       </div>
 
       {deleteError && <p className="mt-3 text-[11px] text-red-400">{deleteError}</p>}
 
-      {/* Table */}
-      {assets.length > 0 ? (
-        <div className="mt-6 overflow-x-auto">
-          <table className="w-full min-w-[640px] border-collapse text-left text-sm">
-            <thead>
-              <tr className="border-paper/10 border-b">
-                {["Name", "Service", "Status", "Description", ""].map((h) => (
-                  <th
-                    key={h}
-                    className="text-paper/35 pb-3 pr-6 text-[9px] font-normal uppercase tracking-[0.22em]"
-                  >
-                    {h}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {assets.map((asset) => (
-                <tr
-                  key={asset.id}
-                  className="border-paper/[0.06] hover:bg-paper/[0.03] border-b transition-colors"
-                >
-                  <td className="whitespace-nowrap py-4 pr-6 font-display text-base text-paper">
-                    {asset.name}
-                  </td>
-                  <td className="whitespace-nowrap py-4 pr-6">
-                    <span className="text-paper/50 text-[9px] uppercase tracking-[0.18em]">
-                      {SERVICE_LABELS[asset.service_type] ?? asset.service_type}
-                    </span>
-                  </td>
-                  <td className="whitespace-nowrap py-4 pr-6">
-                    <span
-                      className={`border px-2 py-0.5 text-[9px] uppercase tracking-[0.18em] ${STATUS_COLORS[asset.status] ?? "border-paper/10 text-paper/30"}`}
-                    >
-                      {STATUS_LABELS[asset.status] ?? asset.status}
-                    </span>
-                  </td>
-                  <td className="text-paper/45 max-w-xs py-4 pr-6 text-[11px]">
-                    {asset.description
-                      ? asset.description.length > 80
-                        ? asset.description.slice(0, 80) + "…"
-                        : asset.description
-                      : "—"}
-                  </td>
-                  <td className="whitespace-nowrap py-4 pr-2">
-                    <div className="flex items-center gap-4">
-                      <button
-                        type="button"
-                        onClick={() => openEdit(asset)}
-                        className="text-paper/30 text-[9px] uppercase tracking-[0.18em] transition-colors hover:text-paper"
-                      >
-                        Edit
-                      </button>
-                      {deleteTarget === asset.id ? (
-                        <span className="flex items-center gap-2">
-                          <button
-                            type="button"
-                            onClick={() => handleDelete(asset.id)}
-                            className="text-[9px] uppercase tracking-[0.18em] text-red-400 transition-colors hover:text-red-300"
-                          >
-                            Confirm
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setDeleteTarget(null)}
-                            className="text-paper/25 text-[9px] uppercase tracking-[0.18em] transition-colors hover:text-paper"
-                          >
-                            Cancel
-                          </button>
-                        </span>
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={() => setDeleteTarget(asset.id)}
-                          className="text-paper/20 text-[9px] uppercase tracking-[0.18em] transition-colors hover:text-red-400"
-                        >
-                          Delete
-                        </button>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      {/* Card grid */}
+      {visible.length > 0 ? (
+        <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {visible.map((asset) => (
+            <AssetCard
+              key={asset.id}
+              asset={asset}
+              onEdit={() => openEdit(asset)}
+              onDeleteRequest={() => setDeleteTarget(asset.id)}
+              isDeletePending={deleteTarget === asset.id}
+              onDeleteConfirm={() => handleDelete(asset.id)}
+              onDeleteCancel={() => setDeleteTarget(null)}
+            />
+          ))}
         </div>
       ) : (
-        <p className="text-paper/35 mt-12 text-sm">
-          No assets yet. Add your first asset to enable conflict detection on bookings.
-        </p>
+        <div className="mt-16 text-center">
+          <p className="text-paper/35 text-sm">
+            {filter !== "all" ? "No assets in this category." : "No assets yet."}
+          </p>
+          {filter === "all" && assets.length === 0 && (
+            <p className="text-paper/25 mt-2 text-[11px]">
+              Click{" "}
+              <button
+                onClick={handleSync}
+                className="underline transition-opacity hover:opacity-60"
+              >
+                Sync Inventory
+              </button>{" "}
+              to import all public inventory.
+            </p>
+          )}
+        </div>
       )}
 
       {/* Backdrop */}

@@ -24,6 +24,8 @@ export type AssetOption = {
   name: string;
   service_type: string;
   status: string;
+  cover_image: string | null;
+  source_slug: string | null;
 };
 
 type Activity = {
