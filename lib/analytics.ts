@@ -98,3 +98,7 @@ export const trackFormSubmit = (serviceType: string): void =>
 
 export const trackFormSuccess = (serviceType: string): void =>
   fire("request_form_success", { service_type: serviceType });
+
+// ─── Contact channels ─────────────────────────────────────────────────────────
+
+export const trackWhatsAppClick = (): void => fire("whatsapp_click");
