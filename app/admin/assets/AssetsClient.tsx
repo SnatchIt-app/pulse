@@ -102,7 +102,7 @@ function AssetCard({
   onDeleteCancel: () => void;
 }) {
   return (
-    <div className="group border border-paper/10 bg-graphite">
+    <div className="border-paper/10 group border bg-graphite">
       {/* Cover image */}
       <div className="relative aspect-[16/10] overflow-hidden bg-ink">
         {asset.cover_image ? (
@@ -115,7 +115,7 @@ function AssetCard({
           />
         ) : (
           <div className="flex h-full items-center justify-center">
-            <p className="text-[9px] uppercase tracking-[0.22em] text-paper/15">No Image</p>
+            <p className="text-paper/15 text-[9px] uppercase tracking-[0.22em]">No Image</p>
           </div>
         )}
         {/* Status badge */}
@@ -131,26 +131,26 @@ function AssetCard({
       {/* Card body */}
       <div className="p-4">
         <p className="font-display text-[17px] leading-snug text-paper">{asset.name}</p>
-        <p className="mt-1 text-[9px] uppercase tracking-[0.18em] text-paper/40">
+        <p className="text-paper/40 mt-1 text-[9px] uppercase tracking-[0.18em]">
           {SERVICE_LABELS[asset.service_type] ?? asset.service_type}
         </p>
         {asset.description && (
-          <p className="mt-2 text-[10px] leading-relaxed text-paper/35">{asset.description}</p>
+          <p className="text-paper/35 mt-2 text-[10px] leading-relaxed">{asset.description}</p>
         )}
 
         {/* Gallery count */}
         {asset.gallery.length > 0 && (
-          <p className="mt-1 text-[9px] text-paper/20">
+          <p className="text-paper/20 mt-1 text-[9px]">
             +{asset.gallery.length} gallery image{asset.gallery.length !== 1 ? "s" : ""}
           </p>
         )}
 
         {/* Actions */}
-        <div className="mt-4 flex items-center gap-4 border-t border-paper/[0.07] pt-4">
+        <div className="border-paper/[0.07] mt-4 flex items-center gap-4 border-t pt-4">
           <button
             type="button"
             onClick={onEdit}
-            className="text-[9px] uppercase tracking-[0.18em] text-paper/40 transition-colors hover:text-paper"
+            className="text-paper/40 text-[9px] uppercase tracking-[0.18em] transition-colors hover:text-paper"
           >
             Edit
           </button>
@@ -159,7 +159,7 @@ function AssetCard({
               href={asset.public_url}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-[9px] uppercase tracking-[0.18em] text-paper/25 transition-colors hover:text-paper/60"
+              className="text-paper/25 hover:text-paper/60 text-[9px] uppercase tracking-[0.18em] transition-colors"
             >
               View ↗
             </a>
@@ -176,7 +176,7 @@ function AssetCard({
               <button
                 type="button"
                 onClick={onDeleteCancel}
-                className="text-[9px] uppercase tracking-[0.18em] text-paper/25 transition-colors hover:text-paper"
+                className="text-paper/25 text-[9px] uppercase tracking-[0.18em] transition-colors hover:text-paper"
               >
                 Cancel
               </button>
@@ -185,7 +185,7 @@ function AssetCard({
             <button
               type="button"
               onClick={onDeleteRequest}
-              className="ml-auto text-[9px] uppercase tracking-[0.18em] text-paper/15 transition-colors hover:text-red-400"
+              className="text-paper/15 ml-auto text-[9px] uppercase tracking-[0.18em] transition-colors hover:text-red-400"
             >
               Delete
             </button>
@@ -315,7 +315,7 @@ function AssetDrawer({
         <button
           type="button"
           onClick={onClose}
-          className="mt-1 shrink-0 text-lg text-paper/40 transition-opacity hover:text-paper"
+          className="text-paper/40 mt-1 shrink-0 text-lg transition-opacity hover:text-paper"
         >
           ✕
         </button>
@@ -323,10 +323,10 @@ function AssetDrawer({
 
       {/* Inventory source badge */}
       {isInventoryAsset && (
-        <div className="mt-5 border border-paper/10 p-3">
-          <p className="text-[9px] uppercase tracking-[0.18em] text-paper/35">
+        <div className="border-paper/10 mt-5 border p-3">
+          <p className="text-paper/35 text-[9px] uppercase tracking-[0.18em]">
             Inventory asset ·{" "}
-            <span className="normal-case tracking-normal text-paper/20">
+            <span className="text-paper/20 normal-case tracking-normal">
               {asset?.source_inventory_type} / {asset?.source_slug}
             </span>
           </p>
@@ -341,7 +341,7 @@ function AssetDrawer({
             value={form.name}
             onChange={(e) => setField("name", e.target.value)}
             placeholder="e.g. Lamborghini Urus, Ferretti 780…"
-            className="w-full border-b border-paper/15 bg-transparent py-2 text-sm text-paper outline-none transition-colors placeholder:text-paper/20 focus:border-paper/35"
+            className="border-paper/15 placeholder:text-paper/20 focus:border-paper/35 w-full border-b bg-transparent py-2 text-sm text-paper outline-none transition-colors"
           />
         </DrawerField>
 
@@ -360,7 +360,7 @@ function AssetDrawer({
                   </option>
                 ))}
               </select>
-              <span className="pointer-events-none absolute right-1 top-1/2 -translate-y-1/2 text-[8px] text-paper/30">
+              <span className="text-paper/30 pointer-events-none absolute right-1 top-1/2 -translate-y-1/2 text-[8px]">
                 ↓
               </span>
             </div>
@@ -385,7 +385,7 @@ function AssetDrawer({
                   </option>
                 ))}
               </select>
-              <span className="pointer-events-none absolute right-2 text-[8px] text-paper/30">
+              <span className="text-paper/30 pointer-events-none absolute right-2 text-[8px]">
                 ↓
               </span>
             </div>
@@ -395,13 +395,13 @@ function AssetDrawer({
         {/* ── Cover Image ──────────────────────────────────────────────── */}
         <div>
           <div className="mb-3 flex items-center justify-between">
-            <p className="text-[9px] uppercase tracking-[0.22em] text-paper/35">Cover Image</p>
+            <p className="text-paper/35 text-[9px] uppercase tracking-[0.22em]">Cover Image</p>
             {form.cover_image && !showCoverInput && (
               <div className="flex gap-4">
                 <button
                   type="button"
                   onClick={() => setShowCoverInput(true)}
-                  className="text-[9px] uppercase tracking-[0.18em] text-paper/35 transition-colors hover:text-paper"
+                  className="text-paper/35 text-[9px] uppercase tracking-[0.18em] transition-colors hover:text-paper"
                 >
                   Change
                 </button>
@@ -411,7 +411,7 @@ function AssetDrawer({
                     setField("cover_image", "");
                     setShowCoverInput(false);
                   }}
-                  className="text-[9px] uppercase tracking-[0.18em] text-paper/20 transition-colors hover:text-red-400"
+                  className="text-paper/20 text-[9px] uppercase tracking-[0.18em] transition-colors hover:text-red-400"
                 >
                   Remove
                 </button>
@@ -447,13 +447,13 @@ function AssetDrawer({
                 }}
                 placeholder="/fleet/slug/cover.jpg"
                 autoFocus={showCoverInput}
-                className="flex-1 border-b border-paper/15 bg-transparent py-2 font-mono text-[11px] text-paper/70 outline-none transition-colors focus:border-paper/35 focus:text-paper"
+                className="border-paper/15 text-paper/70 focus:border-paper/35 flex-1 border-b bg-transparent py-2 font-mono text-[11px] outline-none transition-colors focus:text-paper"
               />
               {showCoverInput && (
                 <button
                   type="button"
                   onClick={() => setShowCoverInput(false)}
-                  className="shrink-0 text-[9px] uppercase tracking-[0.16em] text-paper/30 transition-colors hover:text-paper"
+                  className="text-paper/30 shrink-0 text-[9px] uppercase tracking-[0.16em] transition-colors hover:text-paper"
                 >
                   Done
                 </button>
@@ -466,7 +466,7 @@ function AssetDrawer({
             <button
               type="button"
               onClick={() => setShowCoverInput(true)}
-              className="flex w-full items-center justify-center border border-paper/15 py-6 text-[10px] uppercase tracking-[0.2em] text-paper/25 transition-colors hover:border-paper/30 hover:text-paper/50"
+              className="border-paper/15 text-paper/25 hover:border-paper/30 hover:text-paper/50 flex w-full items-center justify-center border py-6 text-[10px] uppercase tracking-[0.2em] transition-colors"
             >
               + Set Cover Image
             </button>
@@ -476,9 +476,9 @@ function AssetDrawer({
         {/* ── Gallery ─────────────────────────────────────────────────── */}
         <div>
           <div className="mb-3 flex items-center justify-between">
-            <p className="text-[9px] uppercase tracking-[0.22em] text-paper/35">Gallery</p>
+            <p className="text-paper/35 text-[9px] uppercase tracking-[0.22em]">Gallery</p>
             {form.gallery.length > 0 && (
-              <span className="text-[9px] text-paper/20">
+              <span className="text-paper/20 text-[9px]">
                 {form.gallery.length} image{form.gallery.length !== 1 ? "s" : ""}
               </span>
             )}
@@ -490,18 +490,12 @@ function AssetDrawer({
               {form.gallery.map((path, i) => (
                 <div key={i} className="group relative">
                   <div className="relative aspect-[4/3] overflow-hidden bg-ink">
-                    <Image
-                      src={path}
-                      alt=""
-                      fill
-                      sizes="160px"
-                      className="object-cover"
-                    />
+                    <Image src={path} alt="" fill sizes="160px" className="object-cover" />
                   </div>
                   <button
                     type="button"
                     onClick={() => removeGalleryImage(i)}
-                    className="absolute right-0.5 top-0.5 bg-ink/80 px-1.5 py-0.5 text-[9px] text-paper/40 opacity-0 transition-opacity group-hover:opacity-100 hover:text-red-400"
+                    className="bg-ink/80 text-paper/40 absolute right-0.5 top-0.5 px-1.5 py-0.5 text-[9px] opacity-0 transition-opacity hover:text-red-400 group-hover:opacity-100"
                   >
                     ×
                   </button>
@@ -526,12 +520,12 @@ function AssetDrawer({
                 }}
                 placeholder="/fleet/slug/photo.jpg"
                 autoFocus
-                className="flex-1 border-b border-paper/15 bg-transparent py-2 font-mono text-[11px] text-paper/70 outline-none transition-colors focus:border-paper/35 focus:text-paper"
+                className="border-paper/15 text-paper/70 focus:border-paper/35 flex-1 border-b bg-transparent py-2 font-mono text-[11px] outline-none transition-colors focus:text-paper"
               />
               <button
                 type="button"
                 onClick={addGalleryImage}
-                className="shrink-0 text-[9px] uppercase tracking-[0.16em] text-paper/40 transition-colors hover:text-paper"
+                className="text-paper/40 shrink-0 text-[9px] uppercase tracking-[0.16em] transition-colors hover:text-paper"
               >
                 Add
               </button>
@@ -541,7 +535,7 @@ function AssetDrawer({
                   setNewGalleryPath("");
                   setShowGalleryInput(false);
                 }}
-                className="shrink-0 text-[9px] uppercase tracking-[0.16em] text-paper/20 transition-colors hover:text-paper"
+                className="text-paper/20 shrink-0 text-[9px] uppercase tracking-[0.16em] transition-colors hover:text-paper"
               >
                 Cancel
               </button>
@@ -550,7 +544,7 @@ function AssetDrawer({
             <button
               type="button"
               onClick={() => setShowGalleryInput(true)}
-              className="text-[9px] uppercase tracking-[0.18em] text-paper/25 transition-colors hover:text-paper/60"
+              className="text-paper/25 hover:text-paper/60 text-[9px] uppercase tracking-[0.18em] transition-colors"
             >
               + Add Image
             </button>
@@ -564,7 +558,7 @@ function AssetDrawer({
             onChange={(e) => setField("description", e.target.value)}
             rows={3}
             placeholder="Internal notes about this asset…"
-            className="w-full resize-none border border-paper/15 bg-transparent p-3 text-[12px] leading-relaxed text-paper outline-none transition-colors placeholder:text-paper/20 focus:border-paper/35"
+            className="border-paper/15 placeholder:text-paper/20 focus:border-paper/35 w-full resize-none border bg-transparent p-3 text-[12px] leading-relaxed text-paper outline-none transition-colors"
           />
         </DrawerField>
 
@@ -586,7 +580,7 @@ function AssetDrawer({
 function DrawerField({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <p className="mb-2 text-[9px] uppercase tracking-[0.22em] text-paper/35">{label}</p>
+      <p className="text-paper/35 mb-2 text-[9px] uppercase tracking-[0.22em]">{label}</p>
       {children}
     </div>
   );
@@ -711,7 +705,7 @@ export default function AssetsClient({ initialAssets }: { initialAssets: Asset[]
               className={`transition-colors ${
                 filter === f.value
                   ? "border-b border-paper pb-px text-[10px] uppercase tracking-[0.2em] text-paper"
-                  : "text-[10px] uppercase tracking-[0.2em] text-paper/35 hover:text-paper/60"
+                  : "text-paper/35 hover:text-paper/60 text-[10px] uppercase tracking-[0.2em]"
               }`}
             >
               {f.label}
@@ -731,14 +725,14 @@ export default function AssetsClient({ initialAssets }: { initialAssets: Asset[]
             type="button"
             onClick={handleSync}
             disabled={syncing}
-            className="border border-paper/20 px-3 py-1.5 text-[9px] uppercase tracking-[0.18em] text-paper/50 transition-colors hover:border-paper/40 hover:text-paper disabled:opacity-40"
+            className="border-paper/20 text-paper/50 hover:border-paper/40 border px-3 py-1.5 text-[9px] uppercase tracking-[0.18em] transition-colors hover:text-paper disabled:opacity-40"
           >
             {syncing ? "Syncing…" : "Sync Inventory"}
           </button>
           <button
             type="button"
             onClick={openCreate}
-            className="border border-paper/25 px-4 py-1.5 text-[9px] uppercase tracking-[0.18em] text-paper/70 transition-colors hover:border-paper/50 hover:text-paper"
+            className="border-paper/25 text-paper/70 hover:border-paper/50 border px-4 py-1.5 text-[9px] uppercase tracking-[0.18em] transition-colors hover:text-paper"
           >
             + Add
           </button>
@@ -764,11 +758,11 @@ export default function AssetsClient({ initialAssets }: { initialAssets: Asset[]
         </div>
       ) : (
         <div className="mt-16 text-center">
-          <p className="text-sm text-paper/35">
+          <p className="text-paper/35 text-sm">
             {filter !== "all" ? "No assets in this category." : "No assets yet."}
           </p>
           {filter === "all" && assets.length === 0 && (
-            <p className="mt-2 text-[11px] text-paper/20">
+            <p className="text-paper/20 mt-2 text-[11px]">
               Click{" "}
               <button
                 type="button"
@@ -786,7 +780,7 @@ export default function AssetsClient({ initialAssets }: { initialAssets: Asset[]
       {/* Backdrop */}
       <div
         aria-hidden="true"
-        className={`fixed inset-0 z-40 bg-ink/70 transition-opacity duration-[360ms] ${
+        className={`bg-ink/70 fixed inset-0 z-40 transition-opacity duration-[360ms] ${
           drawerMode ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
         }`}
         onClick={closeDrawer}

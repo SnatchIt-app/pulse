@@ -97,10 +97,7 @@ export async function POST() {
 
   if (fetchErr) {
     console.error("[assets/sync] Fetch error:", fetchErr.message);
-    return NextResponse.json(
-      { ok: false, error: fetchErr.message },
-      { status: 500 },
-    );
+    return NextResponse.json({ ok: false, error: fetchErr.message }, { status: 500 });
   }
 
   type ExistingRow = {
