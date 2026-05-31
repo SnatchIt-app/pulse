@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
+import Link from "next/link";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -11,6 +12,9 @@ export type Lead = {
   email: string;
   service_type: string;
   message: string | null;
+  admin_notes: string | null;
+  assigned_to: string | null;
+  start_date: string | null;
   created_at: string;
   status: string;
 };
@@ -36,7 +40,6 @@ const COUNT_CARDS: { status: string; label: string }[] = [
   { status: "booked", label: "Booked" },
 ];
 
-// All valid status values (includes legacy enum values for existing data)
 const ALL_STATUSES = [
   "new",
   "contacted",
@@ -61,7 +64,6 @@ const STATUS_LABELS: Record<string, string> = {
   archived: "Archived",
 };
 
-// Text + border color classes per status (on dark bg-ink background)
 const STATUS_COLORS: Record<string, string> = {
   new: "text-paper/55 border-paper/20",
   contacted: "text-amber-400 border-amber-400/30",
@@ -84,10 +86,11 @@ const SERVICE_LABELS: Record<string, string> = {
   nightlife: "Nightlife",
   concierge: "Concierge",
   residence: "Residence",
+  experience: "Experience",
   other: "Other",
 };
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleString("en-US", {
@@ -106,15 +109,366 @@ function truncate(str: string | null, max = 120) {
   return str.length > max ? str.slice(0, max) + "…" : str;
 }
 
-// ─── Component ────────────────────────────────────────────────────────────────
+// ─── Lead Drawer ──────────────────────────────────────────────────────────────
+
+type ConvertData = {
+  asset_title: string;
+  start_date: string;
+  end_date: string;
+  notes: string;
+};
+
+function LeadDrawer({
+  lead,
+  onClose,
+  onStatusChange,
+  onLeadUpdate,
+}: {
+  lead: Lead;
+  onClose: () => void;
+  onStatusChange: (id: string, status: string) => Promise<void>;
+  onLeadUpdate: (id: string, patch: Partial<Lead>) => void;
+}) {
+  const [tab, setTab] = useState<"details" | "convert">("details");
+  const [notes, setNotes] = useState(lead.admin_notes ?? "");
+  const [assigned, setAssigned] = useState(lead.assigned_to ?? "");
+  const [savingNotes, setSavingNotes] = useState(false);
+  const [notesSaved, setNotesSaved] = useState(false);
+
+  const [convertData, setConvertData] = useState<ConvertData>({
+    asset_title: "",
+    start_date: lead.start_date ?? "",
+    end_date: "",
+    notes: "",
+  });
+  const [converting, setConverting] = useState(false);
+  const [convertSuccess, setConvertSuccess] = useState(false);
+  const [convertError, setConvertError] = useState<string | null>(null);
+
+  // Reset state when lead changes
+  useEffect(() => {
+    setNotes(lead.admin_notes ?? "");
+    setAssigned(lead.assigned_to ?? "");
+    setTab("details");
+    setConvertSuccess(false);
+    setConvertError(null);
+    setNotesSaved(false);
+  }, [lead.id, lead.admin_notes, lead.assigned_to]);
+
+  // Close on Escape
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") onClose();
+    }
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  const saveNotes = useCallback(async () => {
+    setSavingNotes(true);
+    setNotesSaved(false);
+    try {
+      await fetch(`/api/admin/leads/${lead.id}/notes`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ admin_notes: notes, assigned_to: assigned }),
+      });
+      onLeadUpdate(lead.id, { admin_notes: notes, assigned_to: assigned });
+      setNotesSaved(true);
+      setTimeout(() => setNotesSaved(false), 2000);
+    } finally {
+      setSavingNotes(false);
+    }
+  }, [lead.id, notes, assigned, onLeadUpdate]);
+
+  async function handleConvert() {
+    setConverting(true);
+    setConvertError(null);
+    try {
+      const res = await fetch("/api/admin/bookings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          lead_id: lead.id,
+          service_type: lead.service_type,
+          client_name: lead.full_name,
+          phone: lead.phone,
+          email: lead.email,
+          asset_title: convertData.asset_title || undefined,
+          start_date: convertData.start_date || undefined,
+          end_date: convertData.end_date || undefined,
+          notes: convertData.notes || undefined,
+          status: "pending",
+        }),
+      });
+      if (!res.ok) throw new Error("server_error");
+      // Lead status is set to "booked" by the API, sync locally
+      await onStatusChange(lead.id, "booked");
+      setConvertSuccess(true);
+    } catch {
+      setConvertError("Something went wrong. Please try again.");
+    } finally {
+      setConverting(false);
+    }
+  }
+
+  return (
+    <div className="flex h-full flex-col overflow-y-auto p-6 md:p-8">
+      {/* Header */}
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <p className="text-paper/40 text-[9px] uppercase tracking-[0.24em]">Lead</p>
+          <h2 className="mt-1 font-display text-2xl text-paper">{lead.full_name}</h2>
+        </div>
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Close"
+          className="text-paper/40 mt-1 shrink-0 text-lg transition-opacity hover:text-paper"
+        >
+          ✕
+        </button>
+      </div>
+
+      {/* Tabs */}
+      <div className="border-paper/10 mt-6 flex gap-6 border-b pb-3">
+        {(["details", "convert"] as const).map((t) => (
+          <button
+            key={t}
+            onClick={() => setTab(t)}
+            className={`text-[10px] uppercase tracking-[0.2em] transition-colors ${
+              tab === t
+                ? "border-b border-paper pb-[3px] text-paper"
+                : "text-paper/35 hover:text-paper/60"
+            }`}
+          >
+            {t === "details" ? "Details" : "Convert to Booking"}
+          </button>
+        ))}
+      </div>
+
+      {/* ── Details tab ─────────────────────────────────────────────────────── */}
+      {tab === "details" && (
+        <div className="mt-6 space-y-6">
+          {/* Contact */}
+          <div className="space-y-3">
+            <Row label="Email">
+              <a
+                href={`mailto:${lead.email}`}
+                className="text-paper/80 transition-opacity hover:text-paper"
+              >
+                {lead.email}
+              </a>
+            </Row>
+            <Row label="Phone">
+              {lead.phone ? (
+                <a href={`tel:${lead.phone}`} className="text-paper/80 hover:text-paper">
+                  {lead.phone}
+                </a>
+              ) : (
+                <span className="text-paper/30">—</span>
+              )}
+            </Row>
+            <Row label="Service">{SERVICE_LABELS[lead.service_type] ?? lead.service_type}</Row>
+            <Row label="Created">{formatDate(lead.created_at)}</Row>
+            {lead.start_date && <Row label="Req. Date">{lead.start_date}</Row>}
+          </div>
+
+          {/* Status */}
+          <div>
+            <p className="text-paper/35 mb-2 text-[9px] uppercase tracking-[0.22em]">Status</p>
+            <div className="relative inline-flex items-center">
+              <select
+                value={lead.status}
+                onChange={(e) => onStatusChange(lead.id, e.target.value)}
+                className={`cursor-pointer appearance-none border bg-transparent py-1.5 pl-3 pr-7 text-[10px] uppercase tracking-[0.18em] outline-none transition-colors ${STATUS_COLORS[lead.status] ?? "border-paper/10 text-paper/40"}`}
+              >
+                {ALL_STATUSES.map((s) => (
+                  <option
+                    key={s}
+                    value={s}
+                    className="bg-graphite text-sm normal-case tracking-normal text-paper"
+                  >
+                    {STATUS_LABELS[s]}
+                  </option>
+                ))}
+              </select>
+              <span className="text-paper/30 pointer-events-none absolute right-2 text-[8px]">
+                ↓
+              </span>
+            </div>
+          </div>
+
+          {/* Client message */}
+          {lead.message && (
+            <div>
+              <p className="text-paper/35 mb-2 text-[9px] uppercase tracking-[0.22em]">
+                Client Message
+              </p>
+              <p className="text-paper/65 whitespace-pre-wrap text-[11px] leading-relaxed">
+                {lead.message}
+              </p>
+            </div>
+          )}
+
+          {/* Admin notes */}
+          <div>
+            <div className="mb-2 flex items-center justify-between">
+              <p className="text-paper/35 text-[9px] uppercase tracking-[0.22em]">Admin Notes</p>
+              {notesSaved && (
+                <span className="text-[9px] uppercase tracking-[0.18em] text-emerald-400">
+                  Saved
+                </span>
+              )}
+            </div>
+            <textarea
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              onBlur={saveNotes}
+              rows={4}
+              placeholder="Internal notes — not visible to the client."
+              className="border-paper/15 placeholder:text-paper/20 focus:border-paper/35 w-full resize-none border bg-transparent p-3 text-[12px] leading-relaxed text-paper outline-none transition-colors"
+            />
+          </div>
+
+          {/* Assigned to */}
+          <div>
+            <p className="text-paper/35 mb-2 text-[9px] uppercase tracking-[0.22em]">Assigned To</p>
+            <input
+              type="text"
+              value={assigned}
+              onChange={(e) => setAssigned(e.target.value)}
+              onBlur={saveNotes}
+              placeholder="Specialist name…"
+              className="border-paper/15 placeholder:text-paper/20 focus:border-paper/35 w-full border-b bg-transparent py-2 text-sm text-paper outline-none transition-colors"
+            />
+          </div>
+
+          {savingNotes && (
+            <p className="text-paper/30 text-[9px] uppercase tracking-[0.18em]">Saving…</p>
+          )}
+        </div>
+      )}
+
+      {/* ── Convert tab ─────────────────────────────────────────────────────── */}
+      {tab === "convert" && (
+        <div className="mt-6">
+          {convertSuccess ? (
+            <div>
+              <p className="text-[10px] uppercase tracking-[0.2em] text-emerald-400">
+                Booking created
+              </p>
+              <p className="text-paper/70 mt-3 text-sm leading-relaxed">
+                Lead status updated to <strong className="text-paper">Booked</strong>. A new booking
+                record has been created.
+              </p>
+              <Link
+                href="/admin/bookings"
+                className="border-paper/20 text-paper/70 hover:border-paper/40 mt-6 inline-block border px-4 py-2 text-[10px] uppercase tracking-[0.2em] transition-colors hover:text-paper"
+              >
+                View Bookings →
+              </Link>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              <p className="text-paper/55 text-[11px] leading-relaxed">
+                Pre-fills from the lead. Add service details to create the booking record.
+              </p>
+
+              {/* Pre-filled read-only */}
+              <div className="border-paper/10 space-y-2 border p-4">
+                <Row label="Client">{lead.full_name}</Row>
+                <Row label="Email">{lead.email}</Row>
+                <Row label="Service">{SERVICE_LABELS[lead.service_type] ?? lead.service_type}</Row>
+              </div>
+
+              {/* Editable fields */}
+              <ConvertField label="Asset / Vehicle / Vessel">
+                <input
+                  type="text"
+                  value={convertData.asset_title}
+                  onChange={(e) => setConvertData((d) => ({ ...d, asset_title: e.target.value }))}
+                  placeholder="e.g. Lamborghini Urus, Ferretti 780…"
+                  className="border-paper/15 placeholder:text-paper/20 focus:border-paper/35 w-full border-b bg-transparent py-2 text-sm text-paper outline-none transition-colors"
+                />
+              </ConvertField>
+
+              <div className="grid grid-cols-2 gap-4">
+                <ConvertField label="Start Date">
+                  <input
+                    type="date"
+                    value={convertData.start_date}
+                    onChange={(e) => setConvertData((d) => ({ ...d, start_date: e.target.value }))}
+                    className="border-paper/15 focus:border-paper/35 w-full border-b bg-transparent py-2 text-sm text-paper outline-none transition-colors"
+                  />
+                </ConvertField>
+                <ConvertField label="End Date">
+                  <input
+                    type="date"
+                    value={convertData.end_date}
+                    onChange={(e) => setConvertData((d) => ({ ...d, end_date: e.target.value }))}
+                    className="border-paper/15 focus:border-paper/35 w-full border-b bg-transparent py-2 text-sm text-paper outline-none transition-colors"
+                  />
+                </ConvertField>
+              </div>
+
+              <ConvertField label="Booking Notes">
+                <textarea
+                  value={convertData.notes}
+                  onChange={(e) => setConvertData((d) => ({ ...d, notes: e.target.value }))}
+                  rows={3}
+                  placeholder="Internal booking notes…"
+                  className="border-paper/15 placeholder:text-paper/20 focus:border-paper/35 w-full resize-none border bg-transparent p-3 text-[12px] leading-relaxed text-paper outline-none transition-colors"
+                />
+              </ConvertField>
+
+              {convertError && <p className="text-[11px] text-red-400">{convertError}</p>}
+
+              <button
+                type="button"
+                onClick={handleConvert}
+                disabled={converting}
+                className="w-full bg-paper py-3 text-[10px] uppercase tracking-[0.24em] text-ink transition-opacity hover:opacity-80 disabled:opacity-50"
+              >
+                {converting ? "Creating…" : "Create Booking"}
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function Row({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="flex items-baseline gap-3">
+      <span className="text-paper/35 w-20 shrink-0 text-[9px] uppercase tracking-[0.2em]">
+        {label}
+      </span>
+      <span className="text-paper/80 text-[12px] leading-relaxed">{children}</span>
+    </div>
+  );
+}
+
+function ConvertField({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <p className="text-paper/35 mb-2 text-[9px] uppercase tracking-[0.22em]">{label}</p>
+      {children}
+    </div>
+  );
+}
+
+// ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function LeadsClient({ initialLeads }: { initialLeads: Lead[] }) {
   const [leads, setLeads] = useState<Lead[]>(initialLeads);
   const [filter, setFilter] = useState<FilterValue>("all");
   const [search, setSearch] = useState("");
   const [updateError, setUpdateError] = useState<string | null>(null);
+  const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
 
-  // Count cards — always computed from full leads set (not filtered)
   const counts = useMemo(
     () =>
       COUNT_CARDS.map((card) => ({
@@ -124,12 +478,9 @@ export default function LeadsClient({ initialLeads }: { initialLeads: Lead[] }) 
     [leads],
   );
 
-  // Filtered + searched rows
   const visible = useMemo(() => {
     let rows = leads;
-    if (filter !== "all") {
-      rows = rows.filter((l) => l.status === filter);
-    }
+    if (filter !== "all") rows = rows.filter((l) => l.status === filter);
     if (search.trim()) {
       const q = search.toLowerCase().trim();
       rows = rows.filter(
@@ -142,28 +493,40 @@ export default function LeadsClient({ initialLeads }: { initialLeads: Lead[] }) 
     return rows;
   }, [leads, filter, search]);
 
-  // Optimistic status update
-  async function handleStatusChange(id: string, next: string) {
-    const prev = leads.find((l) => l.id === id)?.status;
-    if (!prev || prev === next) return;
+  const handleStatusChange = useCallback(
+    async (id: string, next: string) => {
+      const prev = leads.find((l) => l.id === id)?.status;
+      if (!prev || prev === next) return;
 
-    setLeads((ls) => ls.map((l) => (l.id === id ? { ...l, status: next } : l)));
-    setUpdateError(null);
+      setLeads((ls) => ls.map((l) => (l.id === id ? { ...l, status: next } : l)));
+      // Keep drawer in sync
+      setSelectedLead((sl) => (sl?.id === id ? { ...sl, status: next } : sl));
+      setUpdateError(null);
 
-    try {
-      const res = await fetch(`/api/admin/leads/${id}/status`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: next }),
-      });
-      if (!res.ok) throw new Error("failed");
-    } catch {
-      setLeads((ls) => ls.map((l) => (l.id === id ? { ...l, status: prev } : l)));
-      setUpdateError("Status update failed — reverted. Please try again.");
-    }
-  }
+      try {
+        const res = await fetch(`/api/admin/leads/${id}/status`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status: next }),
+        });
+        if (!res.ok) throw new Error("failed");
+      } catch {
+        setLeads((ls) => ls.map((l) => (l.id === id ? { ...l, status: prev } : l)));
+        setSelectedLead((sl) => (sl?.id === id ? { ...sl, status: prev } : sl));
+        setUpdateError("Status update failed — reverted. Please try again.");
+      }
+    },
+    [leads],
+  );
 
-  // ── Render ─────────────────────────────────────────────────────────────────
+  const handleLeadUpdate = useCallback((id: string, patch: Partial<Lead>) => {
+    setLeads((ls) => ls.map((l) => (l.id === id ? { ...l, ...patch } : l)));
+    setSelectedLead((sl) => (sl?.id === id ? { ...sl, ...patch } : sl));
+  }, []);
+
+  const closeDrawer = useCallback(() => setSelectedLead(null), []);
+
+  // ── Render ──────────────────────────────────────────────────────────────────
 
   return (
     <div>
@@ -220,23 +583,24 @@ export default function LeadsClient({ initialLeads }: { initialLeads: Lead[] }) 
         })}
       </div>
 
-      {/* Optimistic update error */}
       {updateError && <p className="mt-4 text-[11px] text-red-400">{updateError}</p>}
 
       {/* Table */}
       {visible.length > 0 ? (
         <div className="mt-6 overflow-x-auto">
-          <table className="w-full min-w-[1040px] border-collapse text-left text-sm">
+          <table className="w-full min-w-[1080px] border-collapse text-left text-sm">
             <thead>
               <tr className="border-paper/10 border-b">
-                {["Date", "Name", "Phone", "Email", "Service", "Status", "Message"].map((h) => (
-                  <th
-                    key={h}
-                    className="text-paper/35 pb-3 pr-6 text-[9px] font-normal uppercase tracking-[0.22em]"
-                  >
-                    {h}
-                  </th>
-                ))}
+                {["Date", "Name", "Phone", "Email", "Service", "Status", "Message", ""].map(
+                  (h, i) => (
+                    <th
+                      key={i}
+                      className="text-paper/35 pb-3 pr-6 text-[9px] font-normal uppercase tracking-[0.22em]"
+                    >
+                      {h}
+                    </th>
+                  ),
+                )}
               </tr>
             </thead>
             <tbody>
@@ -245,29 +609,23 @@ export default function LeadsClient({ initialLeads }: { initialLeads: Lead[] }) 
                   key={lead.id}
                   className="border-paper/[0.06] hover:bg-paper/[0.03] border-b transition-colors"
                 >
-                  {/* Date */}
                   <td className="text-paper/50 whitespace-nowrap py-4 pr-6 text-[11px]">
                     {formatDate(lead.created_at)}
                   </td>
-                  {/* Name */}
                   <td className="whitespace-nowrap py-4 pr-6 font-display text-base text-paper">
                     {lead.full_name}
                   </td>
-                  {/* Phone */}
                   <td className="text-paper/65 whitespace-nowrap py-4 pr-6 text-[11px]">
                     {lead.phone ?? "—"}
                   </td>
-                  {/* Email */}
                   <td className="text-paper/65 whitespace-nowrap py-4 pr-6 text-[11px]">
                     {lead.email}
                   </td>
-                  {/* Service */}
                   <td className="whitespace-nowrap py-4 pr-6">
                     <span className="text-paper/50 text-[9px] uppercase tracking-[0.18em]">
                       {SERVICE_LABELS[lead.service_type] ?? lead.service_type}
                     </span>
                   </td>
-                  {/* Status dropdown */}
                   <td className="whitespace-nowrap py-4 pr-6">
                     <div className="relative inline-flex items-center">
                       <select
@@ -290,9 +648,18 @@ export default function LeadsClient({ initialLeads }: { initialLeads: Lead[] }) 
                       </span>
                     </div>
                   </td>
-                  {/* Message */}
                   <td className="text-paper/55 max-w-xs py-4 pr-6 text-[11px] leading-relaxed">
                     {truncate(lead.message)}
+                  </td>
+                  {/* Open drawer */}
+                  <td className="whitespace-nowrap py-4 pr-2">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedLead(lead)}
+                      className="text-paper/30 text-[9px] uppercase tracking-[0.18em] transition-colors hover:text-paper"
+                    >
+                      Details →
+                    </button>
                   </td>
                 </tr>
               ))}
@@ -304,6 +671,34 @@ export default function LeadsClient({ initialLeads }: { initialLeads: Lead[] }) 
           {search.trim() || filter !== "all" ? "No matching leads." : "No leads yet."}
         </p>
       )}
+
+      {/* ── Backdrop ──────────────────────────────────────────────────────────── */}
+      <div
+        aria-hidden="true"
+        className={`bg-ink/70 fixed inset-0 z-40 transition-opacity duration-[360ms] ${
+          selectedLead ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
+        }`}
+        onClick={closeDrawer}
+      />
+
+      {/* ── Drawer ────────────────────────────────────────────────────────────── */}
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label={selectedLead ? `Lead: ${selectedLead.full_name}` : undefined}
+        className={`fixed right-0 top-0 z-50 h-screen w-full overflow-hidden bg-graphite shadow-2xl transition-transform duration-[360ms] ease-[cubic-bezier(0.16,1,0.3,1)] sm:w-[520px] ${
+          selectedLead ? "translate-x-0" : "translate-x-full"
+        }`}
+      >
+        {selectedLead && (
+          <LeadDrawer
+            lead={selectedLead}
+            onClose={closeDrawer}
+            onStatusChange={handleStatusChange}
+            onLeadUpdate={handleLeadUpdate}
+          />
+        )}
+      </div>
     </div>
   );
 }
