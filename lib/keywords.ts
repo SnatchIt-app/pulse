@@ -97,10 +97,16 @@ export const KEYWORDS: Record<RouteKey, KeywordEntry> = {
       "Pulse Residences is a curated selection of luxury homes and private stays across Miami, Miami Beach, Brickell, and beyond.",
   },
   "/experiences": {
-    primary: "Miami luxury experiences",
-    secondary: ["F1 Miami packages", "Art Basel Miami concierge"],
-    title: "Curated Miami Experiences",
-    description: "Pre-built multi-service experiences for marquee Miami weekends.",
+    primary: "luxury experiences Miami",
+    secondary: [
+      "F1 Miami concierge packages",
+      "Art Basel Miami concierge",
+      "luxury weekend packages Miami",
+      "yacht and supercar Miami",
+    ],
+    title: "Curated Luxury Experiences in Miami — Pulse",
+    description:
+      "Pulse arranges multi-service luxury experiences in Miami — supercar weekends, yacht days, private jet stays, Art Basel, F1, and bespoke occasions. Quote-only, handled by one specialist.",
   },
   "/about": {
     primary: "Pulse Miami",

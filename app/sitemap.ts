@@ -23,11 +23,12 @@ const STATIC: ReadonlyArray<{
   { path: "/restaurants", priority: 0.7, freq: "weekly" },
   { path: "/nightlife", priority: 0.7, freq: "weekly" },
   { path: "/contact", priority: 0.7, freq: "monthly" },
+  { path: "/experiences", priority: 0.75, freq: "weekly" },
   { path: "/jet-skis", priority: 0.6, freq: "weekly" },
   { path: "/about", priority: 0.6, freq: "monthly" },
   { path: "/legal/terms", priority: 0.3, freq: "monthly" },
   { path: "/legal/privacy", priority: 0.3, freq: "monthly" },
-  // /experiences omitted — stub page with no content yet
+  // /experiences — full page, included above
 ];
 
 export default function sitemap(): MetadataRoute.Sitemap {

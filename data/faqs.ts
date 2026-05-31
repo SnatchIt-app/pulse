@@ -114,4 +114,26 @@ export const SERVICE_FAQS = {
       a: "Submit a request for the residence you'd like; a Pulse specialist replies within 15 minutes.",
     },
   ],
+  experiences: [
+    {
+      q: "What is a Pulse experience?",
+      a: "A Pulse experience is a multi-service arrangement — exotic cars, private jets, yachts, residences, restaurants, and nightlife combined into a single seamless package, managed by one specialist from start to finish.",
+    },
+    {
+      q: "Can Pulse build a custom experience for a specific occasion?",
+      a: "Yes. F1, Art Basel, Ultra, birthdays, bachelor and bachelorette weekends — if there is an occasion, Pulse builds around it. Submit your request with dates and a specialist responds within 15 minutes.",
+    },
+    {
+      q: "How much does a Pulse experience cost?",
+      a: "Every arrangement is quote-only. Final pricing depends on the services included, dates, group size, and availability. There are no fixed packages or listed prices.",
+    },
+    {
+      q: "How far in advance should I request a Pulse experience?",
+      a: "For marquee events like F1 or Art Basel, two to four weeks is ideal. For general weekend experiences, 72 hours to one week is usually sufficient. Pulse can also arrange on short notice when availability allows.",
+    },
+    {
+      q: "Can I add or remove services from an experience?",
+      a: "Yes. Pulse arranges exactly what you need. You can start with one service and add others at any point before or during your stay.",
+    },
+  ],
 } satisfies Record<string, ReadonlyArray<FaqItem>>;
