@@ -58,7 +58,7 @@ type FormData = {
   status: AssetStatus;
   description: string;
   cover_image: string;
-  gallery_text: string;
+  gallery: string[];
   public_url: string;
 };
 
@@ -68,7 +68,7 @@ const EMPTY_FORM: FormData = {
   status: "available",
   description: "",
   cover_image: "",
-  gallery_text: "",
+  gallery: [],
   public_url: "",
 };
 
@@ -79,16 +79,9 @@ function assetToForm(a: Asset): FormData {
     status: a.status as AssetStatus,
     description: a.description ?? "",
     cover_image: a.cover_image ?? "",
-    gallery_text: a.gallery.join("\n"),
+    gallery: a.gallery,
     public_url: a.public_url ?? "",
   };
-}
-
-function galleryFromText(text: string): string[] {
-  return text
-    .split("\n")
-    .map((s) => s.trim())
-    .filter(Boolean);
 }
 
 // ─── Asset Card ───────────────────────────────────────────────────────────────
@@ -109,7 +102,7 @@ function AssetCard({
   onDeleteCancel: () => void;
 }) {
   return (
-    <div className="border-paper/10 group border bg-graphite">
+    <div className="group border border-paper/10 bg-graphite">
       {/* Cover image */}
       <div className="relative aspect-[16/10] overflow-hidden bg-ink">
         {asset.cover_image ? (
@@ -122,10 +115,10 @@ function AssetCard({
           />
         ) : (
           <div className="flex h-full items-center justify-center">
-            <p className="text-paper/15 text-[9px] uppercase tracking-[0.22em]">No Image</p>
+            <p className="text-[9px] uppercase tracking-[0.22em] text-paper/15">No Image</p>
           </div>
         )}
-        {/* Status badge overlay */}
+        {/* Status badge */}
         <span
           className={`absolute right-3 top-3 border px-2 py-0.5 text-[8px] uppercase tracking-[0.15em] backdrop-blur-sm ${
             STATUS_COLORS[asset.status] ?? "border-paper/10 text-paper/30"
@@ -138,19 +131,26 @@ function AssetCard({
       {/* Card body */}
       <div className="p-4">
         <p className="font-display text-[17px] leading-snug text-paper">{asset.name}</p>
-        <p className="text-paper/40 mt-1 text-[9px] uppercase tracking-[0.18em]">
+        <p className="mt-1 text-[9px] uppercase tracking-[0.18em] text-paper/40">
           {SERVICE_LABELS[asset.service_type] ?? asset.service_type}
         </p>
         {asset.description && (
-          <p className="text-paper/35 mt-2 text-[10px] leading-relaxed">{asset.description}</p>
+          <p className="mt-2 text-[10px] leading-relaxed text-paper/35">{asset.description}</p>
+        )}
+
+        {/* Gallery count */}
+        {asset.gallery.length > 0 && (
+          <p className="mt-1 text-[9px] text-paper/20">
+            +{asset.gallery.length} gallery image{asset.gallery.length !== 1 ? "s" : ""}
+          </p>
         )}
 
         {/* Actions */}
-        <div className="border-paper/[0.07] mt-4 flex items-center gap-4 border-t pt-4">
+        <div className="mt-4 flex items-center gap-4 border-t border-paper/[0.07] pt-4">
           <button
             type="button"
             onClick={onEdit}
-            className="text-paper/40 text-[9px] uppercase tracking-[0.18em] transition-colors hover:text-paper"
+            className="text-[9px] uppercase tracking-[0.18em] text-paper/40 transition-colors hover:text-paper"
           >
             Edit
           </button>
@@ -159,14 +159,13 @@ function AssetCard({
               href={asset.public_url}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-paper/25 hover:text-paper/60 text-[9px] uppercase tracking-[0.18em] transition-colors"
+              className="text-[9px] uppercase tracking-[0.18em] text-paper/25 transition-colors hover:text-paper/60"
             >
               View ↗
             </a>
           )}
-          {/* Delete */}
           {isDeletePending ? (
-            <span className="ml-auto flex items-center gap-2">
+            <span className="ml-auto flex items-center gap-3">
               <button
                 type="button"
                 onClick={onDeleteConfirm}
@@ -177,7 +176,7 @@ function AssetCard({
               <button
                 type="button"
                 onClick={onDeleteCancel}
-                className="text-paper/25 text-[9px] uppercase tracking-[0.18em] transition-colors hover:text-paper"
+                className="text-[9px] uppercase tracking-[0.18em] text-paper/25 transition-colors hover:text-paper"
               >
                 Cancel
               </button>
@@ -186,7 +185,7 @@ function AssetCard({
             <button
               type="button"
               onClick={onDeleteRequest}
-              className="text-paper/15 ml-auto text-[9px] uppercase tracking-[0.18em] transition-colors hover:text-red-400"
+              className="ml-auto text-[9px] uppercase tracking-[0.18em] text-paper/15 transition-colors hover:text-red-400"
             >
               Delete
             </button>
@@ -216,9 +215,28 @@ function AssetDrawer({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  function field(key: keyof FormData) {
-    return (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
-      setForm((f) => ({ ...f, [key]: e.target.value }));
+  // Image UI local state
+  const [showCoverInput, setShowCoverInput] = useState(false);
+  const [newGalleryPath, setNewGalleryPath] = useState("");
+  const [showGalleryInput, setShowGalleryInput] = useState(false);
+
+  function setField<K extends keyof FormData>(key: K, value: FormData[K]) {
+    setForm((f) => ({ ...f, [key]: value }));
+  }
+
+  function addGalleryImage() {
+    const path = newGalleryPath.trim();
+    if (!path) return;
+    setField("gallery", [...form.gallery, path]);
+    setNewGalleryPath("");
+    setShowGalleryInput(false);
+  }
+
+  function removeGalleryImage(index: number) {
+    setField(
+      "gallery",
+      form.gallery.filter((_, i) => i !== index),
+    );
   }
 
   async function handleSave() {
@@ -235,7 +253,7 @@ function AssetDrawer({
       status: form.status,
       description: form.description.trim() || null,
       cover_image: form.cover_image.trim() || null,
-      gallery: galleryFromText(form.gallery_text),
+      gallery: form.gallery,
       public_url: form.public_url.trim() || null,
     };
 
@@ -263,10 +281,6 @@ function AssetDrawer({
         savedAsset = {
           id: String(json.id),
           ...payload,
-          description: payload.description,
-          cover_image: payload.cover_image,
-          gallery: payload.gallery,
-          public_url: payload.public_url,
           slug: null,
           source_inventory_type: null,
           source_slug: null,
@@ -288,6 +302,7 @@ function AssetDrawer({
 
   return (
     <div className="flex h-full flex-col overflow-y-auto p-6 md:p-8">
+      {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div>
           <p className="text-paper/40 text-[9px] uppercase tracking-[0.24em]">
@@ -300,120 +315,258 @@ function AssetDrawer({
         <button
           type="button"
           onClick={onClose}
-          className="text-paper/40 mt-1 shrink-0 text-lg transition-opacity hover:text-paper"
+          className="mt-1 shrink-0 text-lg text-paper/40 transition-opacity hover:text-paper"
         >
           ✕
         </button>
       </div>
 
+      {/* Inventory source badge */}
       {isInventoryAsset && (
-        <div className="border-paper/10 mt-5 border p-3">
-          <p className="text-paper/35 text-[9px] uppercase tracking-[0.18em]">
+        <div className="mt-5 border border-paper/10 p-3">
+          <p className="text-[9px] uppercase tracking-[0.18em] text-paper/35">
             Inventory asset ·{" "}
-            <span className="text-paper/25 normal-case tracking-normal">
+            <span className="normal-case tracking-normal text-paper/20">
               {asset?.source_inventory_type} / {asset?.source_slug}
             </span>
           </p>
         </div>
       )}
 
-      <div className="mt-6 space-y-5">
+      <div className="mt-6 space-y-6">
         {/* Name */}
-        <Field label="Name">
+        <DrawerField label="Name">
           <input
             type="text"
             value={form.name}
-            onChange={field("name")}
+            onChange={(e) => setField("name", e.target.value)}
             placeholder="e.g. Lamborghini Urus, Ferretti 780…"
-            className="border-paper/15 placeholder:text-paper/20 focus:border-paper/35 w-full border-b bg-transparent py-2 text-sm text-paper outline-none transition-colors"
+            className="w-full border-b border-paper/15 bg-transparent py-2 text-sm text-paper outline-none transition-colors placeholder:text-paper/20 focus:border-paper/35"
           />
-        </Field>
+        </DrawerField>
 
-        {/* Service Type */}
-        <Field label="Service Type">
-          <div className="relative">
-            <select
-              value={form.service_type}
-              onChange={field("service_type")}
-              className="border-paper/15 focus:border-paper/35 w-full cursor-pointer appearance-none border-b bg-transparent py-2 pr-6 text-sm text-paper outline-none transition-colors"
-            >
-              {SERVICE_OPTIONS.map((o) => (
-                <option key={o.value} value={o.value} className="bg-graphite text-paper">
-                  {o.label}
-                </option>
-              ))}
-            </select>
-            <ChevronDown />
-          </div>
-        </Field>
+        {/* Service + Status side by side */}
+        <div className="grid grid-cols-2 gap-4">
+          <DrawerField label="Service">
+            <div className="relative">
+              <select
+                value={form.service_type}
+                onChange={(e) => setField("service_type", e.target.value)}
+                className="border-paper/15 focus:border-paper/35 w-full cursor-pointer appearance-none border-b bg-transparent py-2 pr-6 text-sm text-paper outline-none transition-colors"
+              >
+                {SERVICE_OPTIONS.map((o) => (
+                  <option key={o.value} value={o.value} className="bg-graphite text-paper">
+                    {o.label}
+                  </option>
+                ))}
+              </select>
+              <span className="pointer-events-none absolute right-1 top-1/2 -translate-y-1/2 text-[8px] text-paper/30">
+                ↓
+              </span>
+            </div>
+          </DrawerField>
 
-        {/* Status */}
-        <Field label="Status">
-          <div className="relative inline-flex items-center">
-            <select
-              value={form.status}
-              onChange={field("status")}
-              className={`cursor-pointer appearance-none border bg-transparent py-1.5 pl-3 pr-7 text-[10px] uppercase tracking-[0.18em] outline-none transition-colors ${
-                STATUS_COLORS[form.status] ?? "border-paper/10 text-paper/40"
-              }`}
-            >
-              {ASSET_STATUSES.map((s) => (
-                <option
-                  key={s}
-                  value={s}
-                  className="bg-graphite text-sm normal-case tracking-normal text-paper"
+          <DrawerField label="Status">
+            <div className="relative inline-flex items-center">
+              <select
+                value={form.status}
+                onChange={(e) => setField("status", e.target.value as AssetStatus)}
+                className={`cursor-pointer appearance-none border bg-transparent py-1.5 pl-3 pr-7 text-[10px] uppercase tracking-[0.18em] outline-none transition-colors ${
+                  STATUS_COLORS[form.status] ?? "border-paper/10 text-paper/40"
+                }`}
+              >
+                {ASSET_STATUSES.map((s) => (
+                  <option
+                    key={s}
+                    value={s}
+                    className="bg-graphite text-sm normal-case tracking-normal text-paper"
+                  >
+                    {STATUS_LABELS[s]}
+                  </option>
+                ))}
+              </select>
+              <span className="pointer-events-none absolute right-2 text-[8px] text-paper/30">
+                ↓
+              </span>
+            </div>
+          </DrawerField>
+        </div>
+
+        {/* ── Cover Image ──────────────────────────────────────────────── */}
+        <div>
+          <div className="mb-3 flex items-center justify-between">
+            <p className="text-[9px] uppercase tracking-[0.22em] text-paper/35">Cover Image</p>
+            {form.cover_image && !showCoverInput && (
+              <div className="flex gap-4">
+                <button
+                  type="button"
+                  onClick={() => setShowCoverInput(true)}
+                  className="text-[9px] uppercase tracking-[0.18em] text-paper/35 transition-colors hover:text-paper"
                 >
-                  {STATUS_LABELS[s]}
-                </option>
-              ))}
-            </select>
-            <span className="text-paper/30 pointer-events-none absolute right-2 text-[8px]">↓</span>
+                  Change
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setField("cover_image", "");
+                    setShowCoverInput(false);
+                  }}
+                  className="text-[9px] uppercase tracking-[0.18em] text-paper/20 transition-colors hover:text-red-400"
+                >
+                  Remove
+                </button>
+              </div>
+            )}
           </div>
-        </Field>
 
-        {/* Cover Image */}
-        <Field label="Cover Image Path">
-          <input
-            type="text"
-            value={form.cover_image}
-            onChange={field("cover_image")}
-            placeholder="/fleet/slug/cover.jpg"
-            className="border-paper/15 placeholder:text-paper/20 focus:border-paper/35 w-full border-b bg-transparent py-2 font-mono text-[11px] text-sm text-paper outline-none transition-colors"
-          />
-        </Field>
+          {/* Thumbnail preview */}
+          {form.cover_image && (
+            <div className="relative mb-3 h-32 w-full overflow-hidden bg-ink">
+              <Image
+                src={form.cover_image}
+                alt="Cover preview"
+                fill
+                sizes="480px"
+                className="object-cover"
+              />
+            </div>
+          )}
 
-        {/* Gallery */}
-        <Field label="Gallery Paths — one per line">
-          <textarea
-            value={form.gallery_text}
-            onChange={field("gallery_text")}
-            rows={3}
-            placeholder="/fleet/slug/gallery-1.jpg&#10;/fleet/slug/gallery-2.jpg"
-            className="border-paper/15 placeholder:text-paper/20 focus:border-paper/35 w-full resize-none border bg-transparent p-3 font-mono text-[11px] leading-relaxed text-paper outline-none transition-colors"
-          />
-        </Field>
+          {/* Path input — shown when no image or changing */}
+          {(!form.cover_image || showCoverInput) && (
+            <div className="flex items-center gap-3">
+              <input
+                type="text"
+                value={form.cover_image}
+                onChange={(e) => setField("cover_image", e.target.value)}
+                onBlur={() => {
+                  if (form.cover_image.trim()) setShowCoverInput(false);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === "Escape") setShowCoverInput(false);
+                }}
+                placeholder="/fleet/slug/cover.jpg"
+                autoFocus={showCoverInput}
+                className="flex-1 border-b border-paper/15 bg-transparent py-2 font-mono text-[11px] text-paper/70 outline-none transition-colors focus:border-paper/35 focus:text-paper"
+              />
+              {showCoverInput && (
+                <button
+                  type="button"
+                  onClick={() => setShowCoverInput(false)}
+                  className="shrink-0 text-[9px] uppercase tracking-[0.16em] text-paper/30 transition-colors hover:text-paper"
+                >
+                  Done
+                </button>
+              )}
+            </div>
+          )}
 
-        {/* Public URL */}
-        <Field label="Public URL">
-          <input
-            type="text"
-            value={form.public_url}
-            onChange={field("public_url")}
-            placeholder="/fleet/slug"
-            className="border-paper/15 placeholder:text-paper/20 focus:border-paper/35 w-full border-b bg-transparent py-2 font-mono text-[11px] text-sm text-paper outline-none transition-colors"
-          />
-        </Field>
+          {/* Placeholder — no image and input hidden */}
+          {!form.cover_image && !showCoverInput && (
+            <button
+              type="button"
+              onClick={() => setShowCoverInput(true)}
+              className="flex w-full items-center justify-center border border-paper/15 py-6 text-[10px] uppercase tracking-[0.2em] text-paper/25 transition-colors hover:border-paper/30 hover:text-paper/50"
+            >
+              + Set Cover Image
+            </button>
+          )}
+        </div>
 
-        {/* Description */}
-        <Field label="Description / Notes">
+        {/* ── Gallery ─────────────────────────────────────────────────── */}
+        <div>
+          <div className="mb-3 flex items-center justify-between">
+            <p className="text-[9px] uppercase tracking-[0.22em] text-paper/35">Gallery</p>
+            {form.gallery.length > 0 && (
+              <span className="text-[9px] text-paper/20">
+                {form.gallery.length} image{form.gallery.length !== 1 ? "s" : ""}
+              </span>
+            )}
+          </div>
+
+          {/* Thumbnails grid */}
+          {form.gallery.length > 0 && (
+            <div className="mb-3 grid grid-cols-3 gap-2">
+              {form.gallery.map((path, i) => (
+                <div key={i} className="group relative">
+                  <div className="relative aspect-[4/3] overflow-hidden bg-ink">
+                    <Image
+                      src={path}
+                      alt=""
+                      fill
+                      sizes="160px"
+                      className="object-cover"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => removeGalleryImage(i)}
+                    className="absolute right-0.5 top-0.5 bg-ink/80 px-1.5 py-0.5 text-[9px] text-paper/40 opacity-0 transition-opacity group-hover:opacity-100 hover:text-red-400"
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Add image input */}
+          {showGalleryInput ? (
+            <div className="flex items-center gap-3">
+              <input
+                type="text"
+                value={newGalleryPath}
+                onChange={(e) => setNewGalleryPath(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") addGalleryImage();
+                  if (e.key === "Escape") {
+                    setNewGalleryPath("");
+                    setShowGalleryInput(false);
+                  }
+                }}
+                placeholder="/fleet/slug/photo.jpg"
+                autoFocus
+                className="flex-1 border-b border-paper/15 bg-transparent py-2 font-mono text-[11px] text-paper/70 outline-none transition-colors focus:border-paper/35 focus:text-paper"
+              />
+              <button
+                type="button"
+                onClick={addGalleryImage}
+                className="shrink-0 text-[9px] uppercase tracking-[0.16em] text-paper/40 transition-colors hover:text-paper"
+              >
+                Add
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setNewGalleryPath("");
+                  setShowGalleryInput(false);
+                }}
+                className="shrink-0 text-[9px] uppercase tracking-[0.16em] text-paper/20 transition-colors hover:text-paper"
+              >
+                Cancel
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setShowGalleryInput(true)}
+              className="text-[9px] uppercase tracking-[0.18em] text-paper/25 transition-colors hover:text-paper/60"
+            >
+              + Add Image
+            </button>
+          )}
+        </div>
+
+        {/* ── Notes ───────────────────────────────────────────────────── */}
+        <DrawerField label="Notes">
           <textarea
             value={form.description}
-            onChange={field("description")}
+            onChange={(e) => setField("description", e.target.value)}
             rows={3}
             placeholder="Internal notes about this asset…"
-            className="border-paper/15 placeholder:text-paper/20 focus:border-paper/35 w-full resize-none border bg-transparent p-3 text-[12px] leading-relaxed text-paper outline-none transition-colors"
+            className="w-full resize-none border border-paper/15 bg-transparent p-3 text-[12px] leading-relaxed text-paper outline-none transition-colors placeholder:text-paper/20 focus:border-paper/35"
           />
-        </Field>
+        </DrawerField>
 
         {error && <p className="text-[11px] text-red-400">{error}</p>}
 
@@ -430,20 +583,12 @@ function AssetDrawer({
   );
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function DrawerField({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <p className="text-paper/35 mb-2 text-[9px] uppercase tracking-[0.22em]">{label}</p>
+      <p className="mb-2 text-[9px] uppercase tracking-[0.22em] text-paper/35">{label}</p>
       {children}
     </div>
-  );
-}
-
-function ChevronDown() {
-  return (
-    <span className="text-paper/30 pointer-events-none absolute right-1 top-1/2 -translate-y-1/2 text-[8px]">
-      ↓
-    </span>
   );
 }
 
@@ -463,6 +608,17 @@ export default function AssetsClient({ initialAssets }: { initialAssets: Asset[]
     if (filter === "all") return assets;
     return assets.filter((a) => a.source_inventory_type === filter);
   }, [assets, filter]);
+
+  const counts = useMemo(
+    () => ({
+      all: assets.length,
+      car: assets.filter((a) => a.source_inventory_type === "car").length,
+      jet: assets.filter((a) => a.source_inventory_type === "jet").length,
+      yacht: assets.filter((a) => a.source_inventory_type === "yacht").length,
+      residence: assets.filter((a) => a.source_inventory_type === "residence").length,
+    }),
+    [assets],
+  );
 
   const openCreate = useCallback(() => {
     setEditTarget(null);
@@ -496,7 +652,6 @@ export default function AssetsClient({ initialAssets }: { initialAssets: Asset[]
     const prev = assets;
     setAssets((a) => a.filter((x) => x.id !== id));
     setDeleteTarget(null);
-
     try {
       const res = await fetch(`/api/admin/assets/${id}`, { method: "DELETE" });
       if (!res.ok) throw new Error("failed");
@@ -512,7 +667,10 @@ export default function AssetsClient({ initialAssets }: { initialAssets: Asset[]
     try {
       const res = await fetch("/api/admin/assets/sync", { method: "POST" });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "sync_failed");
+      if (!res.ok) {
+        setSyncMsg({ ok: false, text: data.error ?? "Sync failed — check server logs." });
+        return;
+      }
 
       // Refresh assets list
       const refreshed = await fetch("/api/admin/assets");
@@ -530,29 +688,19 @@ export default function AssetsClient({ initialAssets }: { initialAssets: Asset[]
         ok: true,
         text: `Synced — ${data.inserted} new, ${data.updated} updated.`,
       });
-    } catch {
-      setSyncMsg({ ok: false, text: "Sync failed. Check console for details." });
+    } catch (err) {
+      setSyncMsg({ ok: false, text: "Sync failed — check server logs." });
+      console.error("[assets] sync error:", err);
     } finally {
       setSyncing(false);
       setTimeout(() => setSyncMsg(null), 5000);
     }
   }
 
-  const counts = useMemo(
-    () => ({
-      all: assets.length,
-      car: assets.filter((a) => a.source_inventory_type === "car").length,
-      jet: assets.filter((a) => a.source_inventory_type === "jet").length,
-      yacht: assets.filter((a) => a.source_inventory_type === "yacht").length,
-      residence: assets.filter((a) => a.source_inventory_type === "residence").length,
-    }),
-    [assets],
-  );
-
   return (
     <div>
       {/* Toolbar */}
-      <div className="mt-8 flex flex-wrap items-center gap-4">
+      <div className="mt-8 flex flex-wrap items-center gap-y-3">
         {/* Filter tabs */}
         <div className="flex flex-wrap gap-x-5 gap-y-2">
           {INVENTORY_FILTER_OPTIONS.map((f) => (
@@ -563,7 +711,7 @@ export default function AssetsClient({ initialAssets }: { initialAssets: Asset[]
               className={`transition-colors ${
                 filter === f.value
                   ? "border-b border-paper pb-px text-[10px] uppercase tracking-[0.2em] text-paper"
-                  : "text-paper/35 hover:text-paper/60 text-[10px] uppercase tracking-[0.2em]"
+                  : "text-[10px] uppercase tracking-[0.2em] text-paper/35 hover:text-paper/60"
               }`}
             >
               {f.label}
@@ -583,14 +731,14 @@ export default function AssetsClient({ initialAssets }: { initialAssets: Asset[]
             type="button"
             onClick={handleSync}
             disabled={syncing}
-            className="border-paper/20 text-paper/50 hover:border-paper/40 border px-3 py-1.5 text-[9px] uppercase tracking-[0.18em] transition-colors hover:text-paper disabled:opacity-40"
+            className="border border-paper/20 px-3 py-1.5 text-[9px] uppercase tracking-[0.18em] text-paper/50 transition-colors hover:border-paper/40 hover:text-paper disabled:opacity-40"
           >
             {syncing ? "Syncing…" : "Sync Inventory"}
           </button>
           <button
             type="button"
             onClick={openCreate}
-            className="border-paper/25 text-paper/70 hover:border-paper/50 border px-4 py-1.5 text-[9px] uppercase tracking-[0.18em] transition-colors hover:text-paper"
+            className="border border-paper/25 px-4 py-1.5 text-[9px] uppercase tracking-[0.18em] text-paper/70 transition-colors hover:border-paper/50 hover:text-paper"
           >
             + Add
           </button>
@@ -616,19 +764,20 @@ export default function AssetsClient({ initialAssets }: { initialAssets: Asset[]
         </div>
       ) : (
         <div className="mt-16 text-center">
-          <p className="text-paper/35 text-sm">
+          <p className="text-sm text-paper/35">
             {filter !== "all" ? "No assets in this category." : "No assets yet."}
           </p>
           {filter === "all" && assets.length === 0 && (
-            <p className="text-paper/25 mt-2 text-[11px]">
+            <p className="mt-2 text-[11px] text-paper/20">
               Click{" "}
               <button
+                type="button"
                 onClick={handleSync}
                 className="underline transition-opacity hover:opacity-60"
               >
                 Sync Inventory
               </button>{" "}
-              to import all public inventory.
+              to import all public inventory automatically.
             </p>
           )}
         </div>
@@ -637,7 +786,7 @@ export default function AssetsClient({ initialAssets }: { initialAssets: Asset[]
       {/* Backdrop */}
       <div
         aria-hidden="true"
-        className={`bg-ink/70 fixed inset-0 z-40 transition-opacity duration-[360ms] ${
+        className={`fixed inset-0 z-40 bg-ink/70 transition-opacity duration-[360ms] ${
           drawerMode ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
         }`}
         onClick={closeDrawer}

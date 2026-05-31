@@ -18,7 +18,7 @@ type AssetRow = {
   gallery: string[];
 };
 
-function buildRows(): AssetRow[] {
+function buildSeedRows(): AssetRow[] {
   const rows: AssetRow[] = [];
 
   for (const car of cars) {
@@ -26,9 +26,7 @@ function buildRows(): AssetRow[] {
       name: `${car.make} ${car.model} — ${car.color_label}`,
       service_type: "car",
       status: "available",
-      description: car.body_style
-        ? `${car.body_style} · ${car.exterior_color} exterior / ${car.interior_color ?? "—"} interior`
-        : null,
+      description: car.body_style ? `${car.body_style} · ${car.color_label}` : car.color_label,
       slug: car.slug,
       cover_image: car.images?.[0] ?? null,
       public_url: `/fleet/${car.slug}`,
@@ -89,33 +87,81 @@ function buildRows(): AssetRow[] {
 
 export async function POST() {
   const supabase = getSupabaseAdmin();
-  const rows = buildRows();
+  const seedRows = buildSeedRows();
 
-  // Fetch existing statuses to preserve manual edits
-  const { data: existing } = await supabase
+  // Fetch existing assets keyed by source_slug
+  const { data: existing, error: fetchErr } = await supabase
     .from("assets")
-    .select("source_slug, status")
+    .select("id, source_slug, status, cover_image, gallery")
     .not("source_slug", "is", null);
 
-  const existingStatus = new Map<string, string>(
-    (existing ?? []).map((a) => [String(a.source_slug), String(a.status)]),
-  );
-
-  const existingSlugs = new Set(existingStatus.keys());
-  const inserted = rows.filter((r) => !existingSlugs.has(r.source_slug)).length;
-  const updated = rows.filter((r) => existingSlugs.has(r.source_slug)).length;
-
-  const finalRows = rows.map((r) => ({
-    ...r,
-    status: (existingStatus.get(r.source_slug) as "available") ?? r.status,
-  }));
-
-  const { error } = await supabase.from("assets").upsert(finalRows, { onConflict: "source_slug" });
-
-  if (error) {
-    console.error("[assets/sync] Upsert error:", error.message);
-    return NextResponse.json({ ok: false, error: "db_error" }, { status: 500 });
+  if (fetchErr) {
+    console.error("[assets/sync] Fetch error:", fetchErr.message);
+    return NextResponse.json(
+      { ok: false, error: fetchErr.message },
+      { status: 500 },
+    );
   }
 
-  return NextResponse.json({ ok: true, inserted, updated, total: rows.length });
+  type ExistingRow = {
+    id: string;
+    source_slug: string;
+    status: string;
+    cover_image: string | null;
+    gallery: unknown;
+  };
+
+  const existingMap = new Map<string, ExistingRow>(
+    (existing ?? []).map((a) => [String(a.source_slug), a as ExistingRow]),
+  );
+
+  const toInsert = seedRows.filter((r) => !existingMap.has(r.source_slug));
+  const toUpdate = seedRows.filter((r) => existingMap.has(r.source_slug));
+
+  // Insert new assets
+  if (toInsert.length > 0) {
+    const { error } = await supabase.from("assets").insert(toInsert);
+    if (error) {
+      console.error("[assets/sync] Insert error:", error.message);
+      return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
+    }
+  }
+
+  // Update existing — preserve status, cover_image, gallery
+  if (toUpdate.length > 0) {
+    const results = await Promise.all(
+      toUpdate.map((seed) => {
+        const ex = existingMap.get(seed.source_slug)!;
+        const existingGallery = Array.isArray(ex.gallery) ? (ex.gallery as string[]) : [];
+        return supabase
+          .from("assets")
+          .update({
+            name: seed.name,
+            service_type: seed.service_type,
+            description: seed.description,
+            public_url: seed.public_url,
+            slug: seed.slug,
+            source_inventory_type: seed.source_inventory_type,
+            cover_image: ex.cover_image ?? seed.cover_image,
+            gallery: existingGallery.length > 0 ? existingGallery : seed.gallery,
+            // status intentionally NOT updated
+          })
+          .eq("id", ex.id);
+      }),
+    );
+
+    const failed = results.filter((r) => r.error);
+    if (failed.length > 0) {
+      const msg = failed[0]?.error?.message ?? "update_failed";
+      console.error("[assets/sync] Update error:", msg);
+      return NextResponse.json({ ok: false, error: msg }, { status: 500 });
+    }
+  }
+
+  return NextResponse.json({
+    ok: true,
+    inserted: toInsert.length,
+    updated: toUpdate.length,
+    total: seedRows.length,
+  });
 }

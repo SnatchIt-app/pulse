@@ -7,8 +7,9 @@
  *   npx tsx scripts/sync-assets-from-inventory.ts
  *
  * Reads .env.local automatically when present.
- * Upserts by source_slug — never duplicates.
- * Preserves manual status edits on existing assets.
+ * Inserts new assets, updates existing ones (identified by source_slug).
+ * Preserves manual status edits, cover images, and gallery additions.
+ * Does NOT require a unique index — safe to run before or after migrations.
  */
 
 import { readFileSync } from "fs";
@@ -39,14 +40,13 @@ const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
 
 if (!SUPABASE_URL || !SERVICE_ROLE_KEY) {
   console.error(
-    "Missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY.\n" +
-      "Set them in .env.local or pass as env vars.",
+    "\nError: Missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY.\n" +
+      "Set them in .env.local or pass as environment variables.\n",
   );
   process.exit(1);
 }
 
 // ─── Asset Seed Data ──────────────────────────────────────────────────────────
-// Mirrors public inventory (data/inventory/*.ts). No vendor/source data exposed.
 
 type AssetSeed = {
   name: string;
@@ -67,7 +67,7 @@ const ASSETS: AssetSeed[] = [
     name: "Rolls-Royce Cullinan — Black / Black-Teal",
     service_type: "car",
     status: "available",
-    description: "SUV · Black exterior / Black-Teal interior",
+    description: "SUV · Black / Black-Teal",
     slug: "Rolls-Royce-Cullinan-BlackBlack-Teal",
     cover_image: "/fleet/Rolls-Royce-Cullinan-BlackBlack-Teal/cover.jpg",
     public_url: "/fleet/Rolls-Royce-Cullinan-BlackBlack-Teal",
@@ -79,7 +79,7 @@ const ASSETS: AssetSeed[] = [
     name: "Rolls-Royce Cullinan — Black",
     service_type: "car",
     status: "available",
-    description: "SUV · Black exterior / Black interior",
+    description: "SUV · Black / Black",
     slug: "Rolls-Royce-Cullinan-BlackBlack",
     cover_image: "/fleet/Rolls-Royce-Cullinan-BlackBlack/cover.jpg",
     public_url: "/fleet/Rolls-Royce-Cullinan-BlackBlack",
@@ -91,7 +91,7 @@ const ASSETS: AssetSeed[] = [
     name: "Rolls-Royce Dawn — Black",
     service_type: "car",
     status: "available",
-    description: "Convertible · Black exterior / Black interior",
+    description: "Convertible · Black / Black",
     slug: "Rolls-Royce-Dawn-BlackBlack",
     cover_image: "/fleet/Rolls-Royce-Dawn-BlackBlack/cover.jpg",
     public_url: "/fleet/Rolls-Royce-Dawn-BlackBlack",
@@ -103,7 +103,7 @@ const ASSETS: AssetSeed[] = [
     name: "Rolls-Royce Dawn — Black / Red",
     service_type: "car",
     status: "available",
-    description: "Convertible · Black exterior / Red interior",
+    description: "Convertible · Black / Red",
     slug: "Rolls-Royce-Dawn-BlackRed",
     cover_image: "/fleet/Rolls-Royce-Dawn-BlackRed/cover.jpg",
     public_url: "/fleet/Rolls-Royce-Dawn-BlackRed",
@@ -115,7 +115,7 @@ const ASSETS: AssetSeed[] = [
     name: "Lamborghini Urus — Grey / Brown",
     service_type: "car",
     status: "available",
-    description: "SUV · Grey exterior / Brown interior",
+    description: "SUV · Grey / Brown",
     slug: "Lamborghini-Urus-GreyBrown",
     cover_image: "/fleet/Lamborghini-Urus-GreyBrown/cover.jpg",
     public_url: "/fleet/Lamborghini-Urus-GreyBrown",
@@ -127,7 +127,7 @@ const ASSETS: AssetSeed[] = [
     name: "Lamborghini Huracan Spyder — Black",
     service_type: "car",
     status: "available",
-    description: "Convertible/Spyder · Black exterior / Black interior",
+    description: "Convertible/Spyder · Black / Black",
     slug: "Lamborghini-Huracan-Spyder-BlackBlack",
     cover_image: "/fleet/Lamborghini-Huracan-Spyder-BlackBlack/cover.jpg",
     public_url: "/fleet/Lamborghini-Huracan-Spyder-BlackBlack",
@@ -139,7 +139,7 @@ const ASSETS: AssetSeed[] = [
     name: "Lamborghini Huracan Spyder — Balloon White / Red",
     service_type: "car",
     status: "available",
-    description: "Convertible/Spyder · Balloon White exterior / Red interior",
+    description: "Convertible/Spyder · Balloon White / Red",
     slug: "Lamborghini-Huracan-Spyder-Balloon-WhiteRed",
     cover_image: "/fleet/Lamborghini-Huracan-Spyder-Balloon-WhiteRed/cover.jpg",
     public_url: "/fleet/Lamborghini-Huracan-Spyder-Balloon-WhiteRed",
@@ -151,7 +151,7 @@ const ASSETS: AssetSeed[] = [
     name: "Lamborghini Huracan EVO — Green / Black",
     service_type: "car",
     status: "available",
-    description: "Coupé · Green exterior / Black interior",
+    description: "Coupé · Green / Black",
     slug: "Lamborghini-Huracan-EVO-GreenBlack",
     cover_image: "/fleet/Lamborghini-Huracan-EVO-GreenBlack/cover.jpg",
     public_url: "/fleet/Lamborghini-Huracan-EVO-GreenBlack",
@@ -163,7 +163,7 @@ const ASSETS: AssetSeed[] = [
     name: "Lamborghini Huracan EVO Spyder — Blu Glauco / Black",
     service_type: "car",
     status: "available",
-    description: "Convertible/Spyder · Blu Glauco exterior / Black interior",
+    description: "Convertible/Spyder · Blu Glauco / Black",
     slug: "Lamborghini-Huracan-EVO-Spyder-Blu-Glauco-Black",
     cover_image: "/fleet/Lamborghini-Huracan-EVO-Spyder-Blu-Glauco-Black/cover.jpg",
     public_url: "/fleet/Lamborghini-Huracan-EVO-Spyder-Blu-Glauco-Black",
@@ -175,7 +175,7 @@ const ASSETS: AssetSeed[] = [
     name: "Lamborghini Huracan — Yellow / Black",
     service_type: "car",
     status: "available",
-    description: "Coupé · Yellow exterior / Black interior",
+    description: "Coupé · Yellow / Black",
     slug: "Lamborghini-Huracan-YellowBlack",
     cover_image: "/fleet/Lamborghini-Huracan-YellowBlack/cover.jpg",
     public_url: "/fleet/Lamborghini-Huracan-YellowBlack",
@@ -187,7 +187,7 @@ const ASSETS: AssetSeed[] = [
     name: "Bentley Bentayga W12 Speed — Black / Black-Orange",
     service_type: "car",
     status: "available",
-    description: "SUV · Black exterior / Black-Orange interior",
+    description: "SUV · Black / Black-Orange",
     slug: "Bentley-Bentayga-W12-Speed-BlackBlack-Orange",
     cover_image: "/fleet/Bentley-Bentayga-W12-Speed-BlackBlack-Orange/cover.jpg",
     public_url: "/fleet/Bentley-Bentayga-W12-Speed-BlackBlack-Orange",
@@ -199,7 +199,7 @@ const ASSETS: AssetSeed[] = [
     name: "Bentley Continental Convertible W12 Speed — Black / Black-Orange",
     service_type: "car",
     status: "available",
-    description: "Convertible · Black exterior / Black-Orange interior",
+    description: "Convertible · Black / Black-Orange",
     slug: "Bentley-Continental-Convertible-W12-Speed-BlackBlack-Orange",
     cover_image: "/fleet/Bentley-Continental-Convertible-W12-Speed-BlackBlack-Orange/cover.jpg",
     public_url: "/fleet/Bentley-Continental-Convertible-W12-Speed-BlackBlack-Orange",
@@ -211,7 +211,7 @@ const ASSETS: AssetSeed[] = [
     name: "McLaren GT — Green / Black",
     service_type: "car",
     status: "available",
-    description: "Coupé · Green exterior / Black interior",
+    description: "Coupé · Green / Black",
     slug: "McLaren-GT-GreenBlack",
     cover_image: "/fleet/McLaren-GT-GreenBlack/cover.jpg",
     public_url: "/fleet/McLaren-GT-GreenBlack",
@@ -223,7 +223,7 @@ const ASSETS: AssetSeed[] = [
     name: "McLaren GT — Orange / Black",
     service_type: "car",
     status: "available",
-    description: "Coupé · Orange exterior / Black interior",
+    description: "Coupé · Orange / Black",
     slug: "McLaren-GT-OrangeBlack",
     cover_image: "/fleet/McLaren-GT-OrangeBlack/cover.jpg",
     public_url: "/fleet/McLaren-GT-OrangeBlack",
@@ -235,7 +235,7 @@ const ASSETS: AssetSeed[] = [
     name: "McLaren GT — Black",
     service_type: "car",
     status: "available",
-    description: "Coupé · Black exterior / Black interior",
+    description: "Coupé · Black / Black",
     slug: "McLaren-GT-BlackBlack",
     cover_image: "/fleet/McLaren-GT-BlackBlack/cover.jpg",
     public_url: "/fleet/McLaren-GT-BlackBlack",
@@ -433,6 +433,14 @@ const ASSETS: AssetSeed[] = [
 
 // ─── Sync ─────────────────────────────────────────────────────────────────────
 
+type ExistingAsset = {
+  id: string;
+  source_slug: string;
+  status: string;
+  cover_image: string | null;
+  gallery: unknown;
+};
+
 async function main() {
   const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
     auth: { persistSession: false },
@@ -440,50 +448,83 @@ async function main() {
 
   console.log(`\nPulse Asset Sync — ${ASSETS.length} items from public inventory\n`);
 
-  // Fetch existing statuses to preserve manual edits
+  // Fetch existing assets keyed by source_slug
   const { data: existing, error: fetchErr } = await supabase
     .from("assets")
-    .select("source_slug, status")
+    .select("id, source_slug, status, cover_image, gallery")
     .not("source_slug", "is", null);
 
   if (fetchErr) {
     console.error("Failed to fetch existing assets:", fetchErr.message);
+    if (fetchErr.message.includes("column") && fetchErr.message.includes("does not exist")) {
+      console.error(
+        "\nHint: Run the SQL migration first to add the required columns.\n" +
+          "See the migration in the project documentation.\n",
+      );
+    }
     process.exit(1);
   }
 
-  const existingStatus = new Map<string, string>(
-    (existing ?? []).map((a) => [a.source_slug as string, a.status as string]),
+  const existingMap = new Map<string, ExistingAsset>(
+    (existing ?? []).map((a) => [String(a.source_slug), a as ExistingAsset]),
   );
 
-  const existingSlugs = new Set(existingStatus.keys());
-  const newItems = ASSETS.filter((a) => !existingSlugs.has(a.source_slug));
-  const updateItems = ASSETS.filter((a) => existingSlugs.has(a.source_slug));
+  const toInsert = ASSETS.filter((a) => !existingMap.has(a.source_slug));
+  const toUpdate = ASSETS.filter((a) => existingMap.has(a.source_slug));
 
-  console.log(`  Found: ${existingSlugs.size} existing assets`);
-  console.log(`  New:   ${newItems.length} items to insert`);
-  console.log(`  Update: ${updateItems.length} items to update (status preserved)\n`);
+  console.log(`  Found:  ${existingMap.size} existing`);
+  console.log(`  New:    ${toInsert.length} to insert`);
+  console.log(`  Update: ${toUpdate.length} to update (status + images preserved)\n`);
 
-  // Build rows with preserved statuses
-  const rows = ASSETS.map((a) => ({
-    ...a,
-    status: existingStatus.get(a.source_slug) ?? a.status,
-  }));
-
-  const { error: upsertErr } = await supabase
-    .from("assets")
-    .upsert(rows, { onConflict: "source_slug" });
-
-  if (upsertErr) {
-    console.error("Upsert failed:", upsertErr.message);
-    process.exit(1);
+  // Insert new
+  if (toInsert.length > 0) {
+    const { error } = await supabase.from("assets").insert(toInsert);
+    if (error) {
+      console.error("Insert failed:", error.message);
+      process.exit(1);
+    }
+    console.log(`  ✓ Inserted ${toInsert.length} new assets`);
   }
 
-  console.log(`  ✓ Sync complete — ${rows.length} assets upserted.`);
-  if (newItems.length > 0) {
-    console.log("\n  New assets added:");
-    newItems.forEach((a) => console.log(`    · ${a.name}`));
+  // Update existing — preserve status, cover_image, gallery
+  if (toUpdate.length > 0) {
+    const results = await Promise.all(
+      toUpdate.map((seed) => {
+        const ex = existingMap.get(seed.source_slug)!;
+        const existingGallery = Array.isArray(ex.gallery) ? (ex.gallery as string[]) : [];
+        return supabase
+          .from("assets")
+          .update({
+            name: seed.name,
+            service_type: seed.service_type,
+            description: seed.description,
+            public_url: seed.public_url,
+            slug: seed.slug,
+            source_inventory_type: seed.source_inventory_type,
+            // Preserve cover_image if already set by admin
+            cover_image: ex.cover_image ?? seed.cover_image,
+            // Preserve gallery if already has items
+            gallery: existingGallery.length > 0 ? existingGallery : seed.gallery,
+            // status is intentionally NOT updated
+          })
+          .eq("id", ex.id);
+      }),
+    );
+
+    const failed = results.filter((r) => r.error);
+    if (failed.length > 0) {
+      console.error(`  ${failed.length} update(s) failed:`, failed[0]?.error?.message);
+      process.exit(1);
+    }
+    console.log(`  ✓ Updated ${toUpdate.length} existing assets`);
   }
-  console.log();
+
+  if (toInsert.length > 0) {
+    console.log("\n  New assets:");
+    toInsert.forEach((a) => console.log(`    · ${a.name}`));
+  }
+
+  console.log("\n  Sync complete.\n");
 }
 
 main().catch((err) => {
