@@ -460,7 +460,7 @@ function LeadDrawer({
                       }}
                       className="border-paper/15 focus:border-paper/35 w-full cursor-pointer appearance-none border-b bg-transparent py-2 pr-6 text-sm text-paper outline-none transition-colors"
                     >
-                      <option value="" className="bg-graphite text-paper/50">
+                      <option value="" className="text-paper/50 bg-graphite">
                         — no asset —
                       </option>
                       {assets.map((a) => (
@@ -477,7 +477,13 @@ function LeadDrawer({
               )}
 
               {/* Asset title (manual if no assets) */}
-              <ConvertField label={assets.length > 0 ? "Asset Label (overrides selection)" : "Asset / Vehicle / Vessel"}>
+              <ConvertField
+                label={
+                  assets.length > 0
+                    ? "Asset Label (overrides selection)"
+                    : "Asset / Vehicle / Vessel"
+                }
+              >
                 <input
                   type="text"
                   value={convertData.asset_title}
@@ -517,7 +523,7 @@ function LeadDrawer({
               </ConvertField>
 
               {convertError && (
-                <p className="border-red-400/20 bg-red-400/5 border p-3 text-[11px] leading-relaxed text-red-400">
+                <p className="border border-red-400/20 bg-red-400/5 p-3 text-[11px] leading-relaxed text-red-400">
                   {convertError}
                 </p>
               )}

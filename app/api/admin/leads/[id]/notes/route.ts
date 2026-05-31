@@ -38,10 +38,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     return NextResponse.json({ ok: false, error: "db_error" }, { status: 500 });
   }
 
-  if (
-    parsed.admin_notes !== undefined &&
-    parsed.admin_notes !== (current?.admin_notes ?? "")
-  ) {
+  if (parsed.admin_notes !== undefined && parsed.admin_notes !== (current?.admin_notes ?? "")) {
     await logActivity(id, "note_updated", "Admin note updated");
   }
 

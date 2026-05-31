@@ -25,6 +25,7 @@ miamiworldrental | miami world rental | \bmwr\b | avantio | provided by | partne
 ```
 
 **Rules:**
+
 - Banned strings must never appear in any public-facing file, compiled output, HTML, JS, CSS, JSON, RSC, or XML.
 - Vendor references in source files (e.g., comments in residences.ts) are acceptable ONLY if confirmed they are excluded from compiled output.
 - Third-party (hyphenated) is banned — use "independent," "vetted," or "partner operators" instead.

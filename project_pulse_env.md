@@ -15,6 +15,7 @@ NEXT_PUBLIC_SITE_URL=https://pulse.luxury
 **This is the most important env var for production.**
 
 Used in:
+
 - `lib/utils.ts` — `SITE_URL` constant, fallback to `http://localhost:3000`
 - `app/layout.tsx` — `metadataBase: new URL(SITE_URL)`
 - `app/sitemap.ts` — all sitemap URLs via `absoluteUrl()`
@@ -35,6 +36,7 @@ SUPABASE_SERVICE_ROLE_KEY=[service role key — NEVER expose to browser]
 ```
 
 **Project details:**
+
 - Project name: Pulse
 - Project ID: aihgejwdvkvngjwttxij
 - Region: us-east-1
@@ -42,6 +44,7 @@ SUPABASE_SERVICE_ROLE_KEY=[service role key — NEVER expose to browser]
 - PostgreSQL: 17.6.1.127
 
 **Usage:**
+
 - `NEXT_PUBLIC_SUPABASE_URL` — used in `lib/supabase/admin.ts` to create the service role client
 - `SUPABASE_SERVICE_ROLE_KEY` — server-only. Used in `lib/supabase/admin.ts`. Bypasses RLS. Never import in client components.
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY` — in `.env.local.example` but not currently used in application code (service role only pattern)
@@ -59,6 +62,7 @@ ADMIN_PASSWORD=[password]
 **Purpose:** Validates POST `/api/admin/login`. When password matches, sets `pulse_admin_session` cookie.
 
 **Cookie spec:**
+
 - Name: `pulse_admin_session`
 - Value: `"1"`
 - `httpOnly: true`
@@ -81,6 +85,7 @@ RESEND_FROM_EMAIL=Pulse notifications@pulse.luxury
 **Usage:** `lib/email.ts` — `sendLeadNotification()`. Called from `/api/requests` and `/api/residence-requests` after successful Supabase insert.
 
 **Behavior:**
+
 - Never throws — all errors are logged and swallowed. The caller is never blocked.
 - If `RESEND_API_KEY` or `LEAD_NOTIFY_EMAIL` are missing: notification skipped, warning logged.
 - If `RESEND_FROM_EMAIL` is missing: falls back to `onboarding@resend.dev` (Resend account owner only).
@@ -88,6 +93,7 @@ RESEND_FROM_EMAIL=Pulse notifications@pulse.luxury
 **Email subject format:** `New Pulse Lead — [Service Label]`
 
 **Service labels in email:**
+
 - car → "Exotic Car"
 - yacht → "Yacht Charter"
 - jet → "Private Jet"
@@ -110,6 +116,7 @@ NEXT_PUBLIC_META_PIXEL_ID=[meta pixel ID — not yet configured]
 ```
 
 **GA4:**
+
 - Measurement ID: G-G52Y1TQ8TM
 - Status: installed and active in production
 - Script: loaded via `next/script` with `strategy="afterInteractive"` in root layout
@@ -117,11 +124,13 @@ NEXT_PUBLIC_META_PIXEL_ID=[meta pixel ID — not yet configured]
 - Custom events: all via `lib/analytics.ts` `fire()` function
 
 **Meta Pixel:**
+
 - Status: script installed in root layout, ID not yet configured
 - Set `NEXT_PUBLIC_META_PIXEL_ID` in Vercel to activate
 - Page views: fired by AnalyticsProvider alongside GA4
 
 **Analytics pattern:** All functions in `lib/analytics.ts` are safe no-ops when:
+
 - `NODE_ENV !== "production"`
 - `typeof window === "undefined"` (SSR)
 - The relevant env var is not set
@@ -164,20 +173,20 @@ Note: `ADMIN_PASSWORD`, `LEAD_NOTIFY_EMAIL`, `RESEND_FROM_EMAIL`, `NEXT_PUBLIC_G
 
 ## Vercel Environment Variables — Production Checklist
 
-| Variable | Status | Notes |
-|---|---|---|
-| `NEXT_PUBLIC_SITE_URL` | Must set | Set to `https://pulse.luxury` |
-| `NEXT_PUBLIC_SUPABASE_URL` | Must set | From Supabase dashboard |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Optional | Not currently used in code |
-| `SUPABASE_SERVICE_ROLE_KEY` | Must set | From Supabase → Settings → API |
-| `ADMIN_PASSWORD` | Must set | Choose strong password |
-| `RESEND_API_KEY` | Must set | From resend.com |
-| `LEAD_NOTIFY_EMAIL` | Must set | Where to receive lead emails |
-| `RESEND_FROM_EMAIL` | Must set | Verified Resend sender domain |
-| `NEXT_PUBLIC_GA_MEASUREMENT_ID` | Known | `G-G52Y1TQ8TM` |
-| `NEXT_PUBLIC_META_PIXEL_ID` | Not yet configured | Get from Meta Events Manager |
-| `SYNC_SECRET` | Optional | Only needed for residence sync |
-| `SLACK_OPS_WEBHOOK` | Optional | Not in active use |
+| Variable                        | Status             | Notes                          |
+| ------------------------------- | ------------------ | ------------------------------ |
+| `NEXT_PUBLIC_SITE_URL`          | Must set           | Set to `https://pulse.luxury`  |
+| `NEXT_PUBLIC_SUPABASE_URL`      | Must set           | From Supabase dashboard        |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Optional           | Not currently used in code     |
+| `SUPABASE_SERVICE_ROLE_KEY`     | Must set           | From Supabase → Settings → API |
+| `ADMIN_PASSWORD`                | Must set           | Choose strong password         |
+| `RESEND_API_KEY`                | Must set           | From resend.com                |
+| `LEAD_NOTIFY_EMAIL`             | Must set           | Where to receive lead emails   |
+| `RESEND_FROM_EMAIL`             | Must set           | Verified Resend sender domain  |
+| `NEXT_PUBLIC_GA_MEASUREMENT_ID` | Known              | `G-G52Y1TQ8TM`                 |
+| `NEXT_PUBLIC_META_PIXEL_ID`     | Not yet configured | Get from Meta Events Manager   |
+| `SYNC_SECRET`                   | Optional           | Only needed for residence sync |
+| `SLACK_OPS_WEBHOOK`             | Optional           | Not in active use              |
 
 ---
 

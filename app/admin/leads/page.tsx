@@ -29,10 +29,7 @@ export default async function LeadsPage() {
         "id, full_name, phone, email, service_type, message, admin_notes, assigned_to, start_date, created_at, status",
       )
       .order("created_at", { ascending: false }),
-    supabase
-      .from("assets")
-      .select("id, name, service_type, status")
-      .order("name"),
+    supabase.from("assets").select("id, name, service_type, status").order("name"),
   ]);
 
   return (

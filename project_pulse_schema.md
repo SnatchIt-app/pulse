@@ -9,11 +9,13 @@
 ## Enums
 
 ### user_role
+
 ```sql
 CREATE TYPE user_role AS ENUM ('owner', 'admin', 'agent', 'viewer');
 ```
 
 ### service_type
+
 ```sql
 CREATE TYPE service_type AS ENUM (
   'car', 'jet', 'yacht', 'jet_ski', 'chauffeur',
@@ -24,6 +26,7 @@ CREATE TYPE service_type AS ENUM (
 Important: `experience` is NOT in this enum. The frontend `experience` service type is mapped to `concierge` before DB write via `DB_SERVICE_MAP` in `/api/requests/route.ts`. No migration required.
 
 ### lead_status
+
 ```sql
 CREATE TYPE lead_status AS ENUM (
   'new', 'contacted', 'qualified', 'quoted',
@@ -32,31 +35,37 @@ CREATE TYPE lead_status AS ENUM (
 ```
 
 ### vehicle_status
+
 ```sql
 CREATE TYPE vehicle_status AS ENUM ('available', 'on_trip', 'maintenance', 'retired');
 ```
 
 ### residence_source_type
+
 ```sql
 CREATE TYPE residence_source_type AS ENUM ('ical', 'api', 'scrape', 'manual');
 ```
 
 ### residence_markup_type
+
 ```sql
 CREATE TYPE residence_markup_type AS ENUM ('flat', 'percent');
 ```
 
 ### residence_status
+
 ```sql
 CREATE TYPE residence_status AS ENUM ('available', 'unavailable', 'retired');
 ```
 
 ### residence_request_status
+
 ```sql
 CREATE TYPE residence_request_status AS ENUM ('new', 'contacted', 'quoted', 'booked', 'lost');
 ```
 
 ### residence_booking_status
+
 ```sql
 CREATE TYPE residence_booking_status AS ENUM (
   'pending', 'confirmed', 'in_progress', 'completed', 'cancelled'
@@ -71,17 +80,17 @@ CREATE TYPE residence_booking_status AS ENUM (
 
 Internal admin/staff users. References `auth.users` (Supabase Auth). RLS enabled.
 
-| Column | Type | Notes |
-|---|---|---|
-| id | uuid | PK, FK → auth.users.id |
-| email | text | unique |
-| full_name | text | nullable |
-| phone | text | nullable |
-| role | user_role | default 'viewer' |
-| avatar_url | text | nullable |
-| is_active | boolean | default true |
-| created_at | timestamptz | default now() |
-| updated_at | timestamptz | default now() |
+| Column     | Type        | Notes                  |
+| ---------- | ----------- | ---------------------- |
+| id         | uuid        | PK, FK → auth.users.id |
+| email      | text        | unique                 |
+| full_name  | text        | nullable               |
+| phone      | text        | nullable               |
+| role       | user_role   | default 'viewer'       |
+| avatar_url | text        | nullable               |
+| is_active  | boolean     | default true           |
+| created_at | timestamptz | default now()          |
+| updated_at | timestamptz | default now()          |
 
 Roles: `owner`, `admin`, `agent`, `viewer`.
 
@@ -91,38 +100,38 @@ Not yet used in application code — auth is currently `ADMIN_PASSWORD` cookie. 
 
 Vehicle inventory in Supabase (not yet used by frontend — frontend uses flat-file `cars.ts`). RLS enabled.
 
-| Column | Type | Notes |
-|---|---|---|
-| id | uuid | PK, default `gen_random_uuid()` |
-| slug | text | unique |
-| make | text | |
-| model | text | |
-| year | integer | |
-| trim | text | nullable |
-| body_style | text | nullable |
-| color_exterior | text | nullable |
-| color_interior | text | nullable |
-| horsepower | integer | nullable |
-| zero_sixty | numeric | nullable |
-| top_speed | integer | nullable |
-| transmission | text | nullable |
-| drivetrain | text | nullable |
-| seats | integer | nullable |
-| daily_rate | numeric | nullable |
-| weekly_rate | numeric | nullable |
-| weekend_rate | numeric | nullable |
-| included_miles | integer | nullable |
-| delivery_fee | numeric | nullable |
-| status | vehicle_status | default 'available' |
-| current_location | text | nullable |
-| description | text | nullable |
-| gallery | jsonb | default '[]' |
-| hero_image_url | text | nullable |
-| hero_video_url | text | nullable |
-| is_featured | boolean | default false |
-| display_order | integer | default 0 |
-| created_at | timestamptz | default now() |
-| updated_at | timestamptz | default now() |
+| Column           | Type           | Notes                           |
+| ---------------- | -------------- | ------------------------------- |
+| id               | uuid           | PK, default `gen_random_uuid()` |
+| slug             | text           | unique                          |
+| make             | text           |                                 |
+| model            | text           |                                 |
+| year             | integer        |                                 |
+| trim             | text           | nullable                        |
+| body_style       | text           | nullable                        |
+| color_exterior   | text           | nullable                        |
+| color_interior   | text           | nullable                        |
+| horsepower       | integer        | nullable                        |
+| zero_sixty       | numeric        | nullable                        |
+| top_speed        | integer        | nullable                        |
+| transmission     | text           | nullable                        |
+| drivetrain       | text           | nullable                        |
+| seats            | integer        | nullable                        |
+| daily_rate       | numeric        | nullable                        |
+| weekly_rate      | numeric        | nullable                        |
+| weekend_rate     | numeric        | nullable                        |
+| included_miles   | integer        | nullable                        |
+| delivery_fee     | numeric        | nullable                        |
+| status           | vehicle_status | default 'available'             |
+| current_location | text           | nullable                        |
+| description      | text           | nullable                        |
+| gallery          | jsonb          | default '[]'                    |
+| hero_image_url   | text           | nullable                        |
+| hero_video_url   | text           | nullable                        |
+| is_featured      | boolean        | default false                   |
+| display_order    | integer        | default 0                       |
+| created_at       | timestamptz    | default now()                   |
+| updated_at       | timestamptz    | default now()                   |
 
 Rows: 0 (inventory migration not done yet — frontend uses flat-file `data/inventory/cars.ts`)
 
@@ -130,36 +139,36 @@ Rows: 0 (inventory migration not done yet — frontend uses flat-file `data/inve
 
 Primary leads/CRM table. RLS enabled. 2 rows as of schema audit.
 
-| Column | Type | Notes |
-|---|---|---|
-| id | uuid | PK, default `gen_random_uuid()` |
-| full_name | text | required |
-| email | text | required |
-| phone | text | nullable |
-| service_type | service_type | default 'other' — enum does NOT include 'experience' |
-| vehicle_id | uuid | nullable, FK → vehicles.id |
-| start_date | date | nullable |
-| end_date | date | nullable |
-| party_size | integer | nullable |
-| budget_tier | text | nullable |
-| message | text | nullable — client-submitted message + serialized service fields |
-| source | text | default 'website' |
-| utm_source | text | nullable |
-| utm_medium | text | nullable |
-| utm_campaign | text | nullable |
-| utm_content | text | nullable |
-| utm_term | text | nullable |
-| referrer_url | text | nullable |
-| landing_page | text | nullable — slug or /request |
-| status | lead_status | default 'new' |
-| lost_reason | text | nullable |
-| owner_id | uuid | nullable, FK → users.id |
-| client_id | uuid | nullable |
-| last_contacted_at | timestamptz | nullable |
-| admin_notes | text | nullable — added Phase 1 CRM |
-| assigned_to | text | nullable — added Phase 1 CRM (text, not FK, for simplicity) |
-| created_at | timestamptz | default now() |
-| updated_at | timestamptz | default now() |
+| Column            | Type         | Notes                                                           |
+| ----------------- | ------------ | --------------------------------------------------------------- |
+| id                | uuid         | PK, default `gen_random_uuid()`                                 |
+| full_name         | text         | required                                                        |
+| email             | text         | required                                                        |
+| phone             | text         | nullable                                                        |
+| service_type      | service_type | default 'other' — enum does NOT include 'experience'            |
+| vehicle_id        | uuid         | nullable, FK → vehicles.id                                      |
+| start_date        | date         | nullable                                                        |
+| end_date          | date         | nullable                                                        |
+| party_size        | integer      | nullable                                                        |
+| budget_tier       | text         | nullable                                                        |
+| message           | text         | nullable — client-submitted message + serialized service fields |
+| source            | text         | default 'website'                                               |
+| utm_source        | text         | nullable                                                        |
+| utm_medium        | text         | nullable                                                        |
+| utm_campaign      | text         | nullable                                                        |
+| utm_content       | text         | nullable                                                        |
+| utm_term          | text         | nullable                                                        |
+| referrer_url      | text         | nullable                                                        |
+| landing_page      | text         | nullable — slug or /request                                     |
+| status            | lead_status  | default 'new'                                                   |
+| lost_reason       | text         | nullable                                                        |
+| owner_id          | uuid         | nullable, FK → users.id                                         |
+| client_id         | uuid         | nullable                                                        |
+| last_contacted_at | timestamptz  | nullable                                                        |
+| admin_notes       | text         | nullable — added Phase 1 CRM                                    |
+| assigned_to       | text         | nullable — added Phase 1 CRM (text, not FK, for simplicity)     |
+| created_at        | timestamptz  | default now()                                                   |
+| updated_at        | timestamptz  | default now()                                                   |
 
 **What the API writes:**
 `full_name`, `email`, `phone`, `service_type` (remapped if 'experience' → 'concierge'), `start_date`, `message` (serialized service details + client notes), `source = "website_request"`, `landing_page` (asset slug or `/request`), `status = "new"`
@@ -174,21 +183,21 @@ Primary leads/CRM table. RLS enabled. 2 rows as of schema audit.
 
 General bookings table (all service types). Created Phase 1 CRM. RLS enabled.
 
-| Column | Type | Notes |
-|---|---|---|
-| id | uuid | PK, default `gen_random_uuid()` |
-| lead_id | uuid | nullable, FK → leads.id ON DELETE SET NULL |
-| service_type | text | required — free text (not enum) |
-| client_name | text | required |
-| phone | text | nullable |
-| email | text | required |
-| start_date | date | nullable |
-| end_date | date | nullable |
-| asset_title | text | nullable — e.g., "Lamborghini Urus", "Ferretti 780" |
-| notes | text | nullable — admin booking notes |
-| status | text | default 'pending' — CHECK constraint |
-| created_at | timestamptz | default now() |
-| updated_at | timestamptz | default now() — auto-stamped by trigger |
+| Column       | Type        | Notes                                               |
+| ------------ | ----------- | --------------------------------------------------- |
+| id           | uuid        | PK, default `gen_random_uuid()`                     |
+| lead_id      | uuid        | nullable, FK → leads.id ON DELETE SET NULL          |
+| service_type | text        | required — free text (not enum)                     |
+| client_name  | text        | required                                            |
+| phone        | text        | nullable                                            |
+| email        | text        | required                                            |
+| start_date   | date        | nullable                                            |
+| end_date     | date        | nullable                                            |
+| asset_title  | text        | nullable — e.g., "Lamborghini Urus", "Ferretti 780" |
+| notes        | text        | nullable — admin booking notes                      |
+| status       | text        | default 'pending' — CHECK constraint                |
+| created_at   | timestamptz | default now()                                       |
+| updated_at   | timestamptz | default now() — auto-stamped by trigger             |
 
 **Status values** (CHECK constraint):
 `pending`, `confirmed`, `in_progress`, `completed`, `cancelled`
@@ -203,37 +212,37 @@ When a booking is created: POST `/api/admin/bookings` also sets `leads.status = 
 
 Residence inventory in Supabase. RLS enabled. 0 rows (inventory not yet migrated).
 
-| Column | Type | Notes |
-|---|---|---|
-| id | uuid | PK |
-| slug | text | unique |
-| title | text | |
-| internal_source_name | text | nullable — NEVER expose publicly |
-| internal_source_url | text | nullable — NEVER expose publicly |
-| external_property_id | text | nullable — NEVER expose publicly |
-| source_calendar_url | text | nullable — iCal URL for availability sync |
-| source_type | residence_source_type | default 'manual' |
-| address_private | text | nullable — NEVER expose publicly |
-| base_rate_internal | numeric | nullable — NEVER expose publicly |
-| markup_type | residence_markup_type | nullable |
-| markup_value | numeric | nullable |
-| neighborhood | text | nullable |
-| public_location_label | text | nullable — what clients see |
-| bedrooms | integer | default 0 |
-| bathrooms | integer | default 0 |
-| max_guests | integer | default 0 |
-| nightly_rate_from | numeric | nullable |
-| final_rate_display | numeric | nullable |
-| min_stay | integer | nullable |
-| amenities | text[] | default '{}' |
-| description | text | nullable |
-| gallery | jsonb | default '[]' |
-| hero_image_url | text | nullable |
-| status | residence_status | default 'available' |
-| is_featured | boolean | default false |
-| display_order | integer | default 0 |
-| created_at | timestamptz | |
-| updated_at | timestamptz | |
+| Column                | Type                  | Notes                                     |
+| --------------------- | --------------------- | ----------------------------------------- |
+| id                    | uuid                  | PK                                        |
+| slug                  | text                  | unique                                    |
+| title                 | text                  |                                           |
+| internal_source_name  | text                  | nullable — NEVER expose publicly          |
+| internal_source_url   | text                  | nullable — NEVER expose publicly          |
+| external_property_id  | text                  | nullable — NEVER expose publicly          |
+| source_calendar_url   | text                  | nullable — iCal URL for availability sync |
+| source_type           | residence_source_type | default 'manual'                          |
+| address_private       | text                  | nullable — NEVER expose publicly          |
+| base_rate_internal    | numeric               | nullable — NEVER expose publicly          |
+| markup_type           | residence_markup_type | nullable                                  |
+| markup_value          | numeric               | nullable                                  |
+| neighborhood          | text                  | nullable                                  |
+| public_location_label | text                  | nullable — what clients see               |
+| bedrooms              | integer               | default 0                                 |
+| bathrooms             | integer               | default 0                                 |
+| max_guests            | integer               | default 0                                 |
+| nightly_rate_from     | numeric               | nullable                                  |
+| final_rate_display    | numeric               | nullable                                  |
+| min_stay              | integer               | nullable                                  |
+| amenities             | text[]                | default '{}'                              |
+| description           | text                  | nullable                                  |
+| gallery               | jsonb                 | default '[]'                              |
+| hero_image_url        | text                  | nullable                                  |
+| status                | residence_status      | default 'available'                       |
+| is_featured           | boolean               | default false                             |
+| display_order         | integer               | default 0                                 |
+| created_at            | timestamptz           |                                           |
+| updated_at            | timestamptz           |                                           |
 
 **Public projection rule:** When querying residences for public display, NEVER select: `internal_source_name`, `internal_source_url`, `external_property_id`, `source_calendar_url`, `address_private`, `base_rate_internal`, `markup_type`, `markup_value`.
 
@@ -241,34 +250,34 @@ Residence inventory in Supabase. RLS enabled. 0 rows (inventory not yet migrated
 
 Links residence inquiries to leads. RLS enabled. 0 rows.
 
-| Column | Type | Notes |
-|---|---|---|
-| id | uuid | PK |
-| lead_id | uuid | nullable, FK → leads.id |
-| residence_id | uuid | nullable, FK → residences.id |
-| start_date | date | nullable |
-| end_date | date | nullable |
-| guests | integer | nullable |
-| budget | numeric | nullable |
-| message | text | nullable |
-| status | residence_request_status | default 'new' |
-| created_at | timestamptz | |
-| updated_at | timestamptz | |
+| Column       | Type                     | Notes                        |
+| ------------ | ------------------------ | ---------------------------- |
+| id           | uuid                     | PK                           |
+| lead_id      | uuid                     | nullable, FK → leads.id      |
+| residence_id | uuid                     | nullable, FK → residences.id |
+| start_date   | date                     | nullable                     |
+| end_date     | date                     | nullable                     |
+| guests       | integer                  | nullable                     |
+| budget       | numeric                  | nullable                     |
+| message      | text                     | nullable                     |
+| status       | residence_request_status | default 'new'                |
+| created_at   | timestamptz              |                              |
+| updated_at   | timestamptz              |                              |
 
 ### public.residence_availability
 
 Availability calendar for residences. RLS enabled. 0 rows.
 
-| Column | Type | Notes |
-|---|---|---|
-| id | uuid | PK |
-| residence_id | uuid | FK → residences.id |
-| date | date | |
-| available | boolean | default true |
-| nightly_rate | numeric | nullable |
-| min_stay | integer | nullable |
-| source | residence_source_type | default 'manual' |
-| last_synced_at | timestamptz | default now() |
+| Column         | Type                  | Notes              |
+| -------------- | --------------------- | ------------------ |
+| id             | uuid                  | PK                 |
+| residence_id   | uuid                  | FK → residences.id |
+| date           | date                  |                    |
+| available      | boolean               | default true       |
+| nightly_rate   | numeric               | nullable           |
+| min_stay       | integer               | nullable           |
+| source         | residence_source_type | default 'manual'   |
+| last_synced_at | timestamptz           | default now()      |
 
 Populated by `/api/residences/sync` route (requires `SYNC_SECRET` + written permission from vendor).
 
@@ -276,23 +285,23 @@ Populated by `/api/residences/sync` route (requires `SYNC_SECRET` + written perm
 
 Confirmed residence bookings. RLS enabled. 0 rows.
 
-| Column | Type | Notes |
-|---|---|---|
-| id | uuid | PK |
-| client_id | uuid | nullable, FK → ??? |
-| residence_id | uuid | FK → residences.id |
-| start_date | date | required |
-| end_date | date | required |
-| guests | integer | nullable |
-| base_cost_internal | numeric | nullable — NEVER expose |
-| client_price | numeric | nullable |
-| margin | numeric | GENERATED — (client_price - base_cost_internal) |
-| deposit_amount | numeric | nullable |
-| deposit_status | text | nullable |
-| status | residence_booking_status | default 'pending' |
-| notes | text | nullable |
-| created_at | timestamptz | |
-| updated_at | timestamptz | |
+| Column             | Type                     | Notes                                           |
+| ------------------ | ------------------------ | ----------------------------------------------- |
+| id                 | uuid                     | PK                                              |
+| client_id          | uuid                     | nullable, FK → ???                              |
+| residence_id       | uuid                     | FK → residences.id                              |
+| start_date         | date                     | required                                        |
+| end_date           | date                     | required                                        |
+| guests             | integer                  | nullable                                        |
+| base_cost_internal | numeric                  | nullable — NEVER expose                         |
+| client_price       | numeric                  | nullable                                        |
+| margin             | numeric                  | GENERATED — (client_price - base_cost_internal) |
+| deposit_amount     | numeric                  | nullable                                        |
+| deposit_status     | text                     | nullable                                        |
+| status             | residence_booking_status | default 'pending'                               |
+| notes              | text                     | nullable                                        |
+| created_at         | timestamptz              |                                                 |
+| updated_at         | timestamptz              |                                                 |
 
 Note: This is residence-specific. The general `public.bookings` table (Phase 1 CRM) handles all service types.
 
@@ -317,6 +326,7 @@ users.id              → auth.users.id
 ## Migrations Applied
 
 ### Initial schema (pre-Phase 1)
+
 `users`, `vehicles`, `leads`, `residences`, `residence_availability`, `residence_requests`, `residence_bookings` tables. All enums defined above. RLS enabled on all tables.
 
 ### Phase 1 CRM (crm_phase1_bookings_lead_notes)
@@ -444,7 +454,7 @@ CREATE TABLE public.booking_lines (
 const { data: leads } = await supabase
   .from("leads")
   .select(
-    "id, full_name, phone, email, service_type, message, admin_notes, assigned_to, start_date, created_at, status"
+    "id, full_name, phone, email, service_type, message, admin_notes, assigned_to, start_date, created_at, status",
   )
   .order("created_at", { ascending: false });
 ```
@@ -455,7 +465,7 @@ const { data: leads } = await supabase
 const { data: bookings } = await supabase
   .from("bookings")
   .select(
-    "id, lead_id, service_type, client_name, phone, email, start_date, end_date, asset_title, notes, status, created_at"
+    "id, lead_id, service_type, client_name, phone, email, start_date, end_date, asset_title, notes, status, created_at",
   )
   .order("created_at", { ascending: false });
 ```
@@ -464,7 +474,9 @@ const { data: bookings } = await supabase
 
 ```ts
 await supabase.from("leads").insert({
-  full_name, email, phone,
+  full_name,
+  email,
+  phone,
   service_type: DB_SERVICE_MAP[serviceType] ?? serviceType ?? "other",
   start_date: preferredDate ?? null,
   message: combinedNotes || null,

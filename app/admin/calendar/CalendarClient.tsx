@@ -8,8 +8,18 @@ import type { CalendarBooking } from "./page";
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 const MONTH_NAMES = [
-  "January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December",
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
 ];
 
 const STATUS_CHIP: Record<string, string> = {
@@ -140,9 +150,7 @@ function BookingDrawer({
       </div>
 
       <div className="mt-8 space-y-5">
-        <Row label="Service">
-          {SERVICE_LABELS[booking.service_type] ?? booking.service_type}
-        </Row>
+        <Row label="Service">{SERVICE_LABELS[booking.service_type] ?? booking.service_type}</Row>
         {booking.asset_title && <Row label="Asset">{booking.asset_title}</Row>}
         <Row label="Email">
           <a href={`mailto:${booking.email}`} className="text-paper/80 hover:text-paper">
@@ -182,7 +190,11 @@ function BookingDrawer({
               className={`cursor-pointer appearance-none border bg-transparent py-1.5 pl-3 pr-7 text-[10px] uppercase tracking-[0.18em] outline-none transition-colors ${STATUS_CHIP[booking.status] ?? "border-paper/10 text-paper/40"}`}
             >
               {BOOKING_STATUSES.map((s) => (
-                <option key={s} value={s} className="bg-graphite text-sm normal-case tracking-normal text-paper">
+                <option
+                  key={s}
+                  value={s}
+                  className="bg-graphite text-sm normal-case tracking-normal text-paper"
+                >
                   {STATUS_LABELS[s]}
                 </option>
               ))}
@@ -290,7 +302,7 @@ export default function CalendarClient({
         >
           ←
         </button>
-        <p className="font-display text-xl text-paper min-w-[180px] text-center">
+        <p className="min-w-[180px] text-center font-display text-xl text-paper">
           {MONTH_NAMES[month]} {year}
         </p>
         <button
@@ -315,12 +327,9 @@ export default function CalendarClient({
       {/* Calendar grid */}
       <div className="mt-6">
         {/* Weekday headers */}
-        <div className="grid grid-cols-7 border-paper/10 border-b pb-2">
+        <div className="border-paper/10 grid grid-cols-7 border-b pb-2">
           {WEEKDAYS.map((d) => (
-            <p
-              key={d}
-              className="text-paper/30 text-center text-[9px] uppercase tracking-[0.18em]"
-            >
+            <p key={d} className="text-paper/30 text-center text-[9px] uppercase tracking-[0.18em]">
               {d}
             </p>
           ))}
@@ -343,9 +352,7 @@ export default function CalendarClient({
                 {/* Day number */}
                 <p
                   className={`mb-1 text-right text-[10px] md:text-[11px] ${
-                    today_
-                      ? "font-medium text-paper"
-                      : "text-paper/50"
+                    today_ ? "font-medium text-paper" : "text-paper/50"
                   }`}
                 >
                   {today_ ? (
@@ -387,9 +394,7 @@ export default function CalendarClient({
                     </button>
                   ))}
                   {dayBookings.length > 2 && (
-                    <p className="text-paper/30 pl-1 text-[8px]">
-                      +{dayBookings.length - 2} more
-                    </p>
+                    <p className="text-paper/30 pl-1 text-[8px]">+{dayBookings.length - 2} more</p>
                   )}
                 </div>
               </div>

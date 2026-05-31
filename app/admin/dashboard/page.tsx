@@ -3,8 +3,7 @@ import Link from "next/link";
 
 function noEnv() {
   return (
-    !process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() ||
-    !process.env.SUPABASE_SERVICE_ROLE_KEY?.trim()
+    !process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() || !process.env.SUPABASE_SERVICE_ROLE_KEY?.trim()
   );
 }
 
@@ -45,15 +44,7 @@ async function getMetrics() {
   };
 }
 
-function StatCard({
-  label,
-  value,
-  sub,
-}: {
-  label: string;
-  value: number;
-  sub?: string;
-}) {
+function StatCard({ label, value, sub }: { label: string; value: number; sub?: string }) {
   return (
     <div className="border-paper/10 border p-6">
       <p className="text-paper/35 text-[9px] uppercase tracking-[0.24em]">{label}</p>
@@ -63,15 +54,7 @@ function StatCard({
   );
 }
 
-function PeriodRow({
-  label,
-  leads,
-  bookings,
-}: {
-  label: string;
-  leads: number;
-  bookings: number;
-}) {
+function PeriodRow({ label, leads, bookings }: { label: string; leads: number; bookings: number }) {
   return (
     <div className="border-paper/10 border p-6">
       <p className="text-paper/35 mb-4 text-[9px] uppercase tracking-[0.24em]">{label}</p>

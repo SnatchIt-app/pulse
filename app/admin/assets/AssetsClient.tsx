@@ -206,7 +206,11 @@ function AssetDrawer({
               className={`cursor-pointer appearance-none border bg-transparent py-1.5 pl-3 pr-7 text-[10px] uppercase tracking-[0.18em] outline-none transition-colors ${STATUS_COLORS[form.status]}`}
             >
               {ASSET_STATUSES.map((s) => (
-                <option key={s} value={s} className="bg-graphite text-sm normal-case tracking-normal text-paper">
+                <option
+                  key={s}
+                  value={s}
+                  className="bg-graphite text-sm normal-case tracking-normal text-paper"
+                >
                   {STATUS_LABELS[s]}
                 </option>
               ))}
@@ -218,8 +222,7 @@ function AssetDrawer({
         {/* Description */}
         <div>
           <p className="text-paper/35 mb-2 text-[9px] uppercase tracking-[0.22em]">
-            Description{" "}
-            <span className="text-paper/20 normal-case tracking-normal">optional</span>
+            Description <span className="text-paper/20 normal-case tracking-normal">optional</span>
           </p>
           <textarea
             value={form.description}
