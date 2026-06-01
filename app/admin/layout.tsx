@@ -1,4 +1,7 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
+import { getAdminUser } from "@/lib/auth";
+import AdminHeader from "@/components/admin/AdminHeader";
 
 // /admin is excluded from indexing on every level (robots.ts + middleware + here).
 export const metadata: Metadata = {
@@ -6,6 +9,14 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  return <div className="min-h-screen bg-ink text-paper">{children}</div>;
+export default async function AdminLayout({ children }: { children: React.ReactNode }) {
+  const user = await getAdminUser();
+  if (!user || !user.is_active) redirect("/login");
+
+  return (
+    <div className="min-h-screen bg-ink text-paper">
+      <AdminHeader email={user.email} role={user.role} />
+      {children}
+    </div>
+  );
 }
