@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import Input from "@/components/ui/Input";
 import Textarea from "@/components/ui/Textarea";
+import { tomorrowISO, isValidYMD, isFutureDate, isAfter } from "@/lib/dates";
 import {
   trackVehicleRequest,
   trackVehicleLead,
@@ -43,52 +44,111 @@ type ServiceValue = (typeof SERVICE_OPTIONS)[number]["value"];
 // All service-specific fields are optional; they are serialised into the
 // lead's message field on submit — no DB schema changes required.
 
-const FormSchema = z.object({
-  fullName: z.string().min(2, "Full name required"),
-  email: z.string().email("Valid email required"),
-  phone: z.string().optional(),
-  serviceType: z.enum(SERVICE_OPTIONS.map((o) => o.value) as [ServiceValue, ...ServiceValue[]]),
+const FormSchema = z
+  .object({
+    fullName: z.string().min(2, "Full name required"),
+    email: z.string().email("Valid email required"),
+    phone: z.string().optional(),
+    serviceType: z.enum(SERVICE_OPTIONS.map((o) => o.value) as [ServiceValue, ...ServiceValue[]]),
 
-  // Car / Chauffeur
-  pickupLocation: z.string().optional(),
-  deliveryLocation: z.string().optional(),
-  startDate: z.string().optional(),
-  endDate: z.string().optional(),
-  driverAge: z.string().optional(),
+    // Car / Chauffeur
+    pickupLocation: z.string().optional(),
+    deliveryLocation: z.string().optional(),
+    startDate: z.string().optional(),
+    endDate: z.string().optional(),
+    driverAge: z.string().optional(),
 
-  // Jet
-  departureCity: z.string().optional(),
-  arrivalCity: z.string().optional(),
-  departureDate: z.string().optional(),
-  returnDate: z.string().optional(),
-  passengerCount: z.string().optional(),
+    // Jet
+    departureCity: z.string().optional(),
+    arrivalCity: z.string().optional(),
+    departureDate: z.string().optional(),
+    returnDate: z.string().optional(),
+    passengerCount: z.string().optional(),
 
-  // Yacht / Jet Ski
-  charterDate: z.string().optional(),
-  charterDuration: z.string().optional(),
-  yachtGuestCount: z.string().optional(),
-  preferredMarina: z.string().optional(),
+    // Yacht / Jet Ski
+    charterDate: z.string().optional(),
+    charterDuration: z.string().optional(),
+    yachtGuestCount: z.string().optional(),
+    preferredMarina: z.string().optional(),
 
-  // Residence
-  checkIn: z.string().optional(),
-  checkOut: z.string().optional(),
-  residenceGuestCount: z.string().optional(),
-  bedroomsNeeded: z.string().optional(),
+    // Residence
+    checkIn: z.string().optional(),
+    checkOut: z.string().optional(),
+    residenceGuestCount: z.string().optional(),
+    bedroomsNeeded: z.string().optional(),
 
-  // Concierge / generic
-  requestType: z.string().optional(),
-  conciergeLocation: z.string().optional(),
-  conciergeDate: z.string().optional(),
+    // Concierge / generic
+    requestType: z.string().optional(),
+    conciergeLocation: z.string().optional(),
+    conciergeDate: z.string().optional(),
 
-  // Experience
-  occasionType: z.string().optional(),
-  experienceDate: z.string().optional(),
-  experienceGuestCount: z.string().optional(),
-  experienceLocation: z.string().optional(),
+    // Experience
+    occasionType: z.string().optional(),
+    experienceDate: z.string().optional(),
+    experienceGuestCount: z.string().optional(),
+    experienceLocation: z.string().optional(),
 
-  // Always present
-  notes: z.string().max(2000, "Max 2,000 characters").optional(),
-});
+    // Always present
+    notes: z.string().max(2000, "Max 2,000 characters").optional(),
+  })
+  .superRefine((data, ctx) => {
+    const FUTURE_MSG = "Choose a date from tomorrow onward.";
+    const INVALID_MSG = "Enter a valid date.";
+    const ORDER_MSG = "Must be after the start date.";
+
+    // Validate a single optional date field for validity + future-only.
+    const checkFuture = (field: keyof FormValues) => {
+      const raw = data[field];
+      if (typeof raw !== "string") return;
+      const value = raw.trim();
+      if (!value) return;
+      if (!isValidYMD(value)) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, path: [field], message: INVALID_MSG });
+      } else if (!isFutureDate(value)) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, path: [field], message: FUTURE_MSG });
+      }
+    };
+
+    // Ensure an end date falls strictly after its start date.
+    const checkOrder = (startField: keyof FormValues, endField: keyof FormValues) => {
+      const start = (data[startField] as string | undefined)?.trim();
+      const end = (data[endField] as string | undefined)?.trim();
+      if (start && end && isValidYMD(start) && isValidYMD(end) && !isAfter(end, start)) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, path: [endField], message: ORDER_MSG });
+      }
+    };
+
+    switch (data.serviceType) {
+      case "car":
+      case "chauffeur":
+        checkFuture("startDate");
+        checkFuture("endDate");
+        checkOrder("startDate", "endDate");
+        break;
+      case "jet":
+        checkFuture("departureDate");
+        checkFuture("returnDate");
+        checkOrder("departureDate", "returnDate");
+        break;
+      case "yacht":
+      case "jet_ski":
+        checkFuture("charterDate");
+        break;
+      case "residence":
+        checkFuture("checkIn");
+        checkFuture("checkOut");
+        checkOrder("checkIn", "checkOut");
+        break;
+      case "experience":
+        checkFuture("experienceDate");
+        break;
+      case "restaurant":
+      case "nightlife":
+      case "concierge":
+        checkFuture("conciergeDate");
+        break;
+    }
+  });
 
 type FormValues = z.infer<typeof FormSchema>;
 
@@ -282,7 +342,13 @@ function SelectField({
 
 // ─── Service-specific field blocks ───────────────────────────────────────────
 
-function CarFields({ register }: { register: ReturnType<typeof useForm<FormValues>>["register"] }) {
+type FieldsProps = {
+  register: ReturnType<typeof useForm<FormValues>>["register"];
+  errors: ReturnType<typeof useForm<FormValues>>["formState"]["errors"];
+  minDate: string;
+};
+
+function CarFields({ register, errors, minDate }: FieldsProps) {
   return (
     <>
       <Field label="Pickup Location">
@@ -291,11 +357,11 @@ function CarFields({ register }: { register: ReturnType<typeof useForm<FormValue
       <Field label="Delivery Location">
         <Input {...register("deliveryLocation")} placeholder="Delivery address (if different)" />
       </Field>
-      <Field label="Start Date">
-        <Input {...register("startDate")} type="date" />
+      <Field label="Start Date" error={errors.startDate?.message}>
+        <Input {...register("startDate")} type="date" min={minDate || undefined} />
       </Field>
-      <Field label="End Date">
-        <Input {...register("endDate")} type="date" />
+      <Field label="End Date" error={errors.endDate?.message}>
+        <Input {...register("endDate")} type="date" min={minDate || undefined} />
       </Field>
       <Field label="Driver Age">
         <Input {...register("driverAge")} placeholder="e.g. 28" />
@@ -304,7 +370,7 @@ function CarFields({ register }: { register: ReturnType<typeof useForm<FormValue
   );
 }
 
-function JetFields({ register }: { register: ReturnType<typeof useForm<FormValues>>["register"] }) {
+function JetFields({ register, errors, minDate }: FieldsProps) {
   return (
     <>
       <Field label="Departure City">
@@ -313,11 +379,11 @@ function JetFields({ register }: { register: ReturnType<typeof useForm<FormValue
       <Field label="Arrival City">
         <Input {...register("arrivalCity")} placeholder="e.g. New York" />
       </Field>
-      <Field label="Departure Date">
-        <Input {...register("departureDate")} type="date" />
+      <Field label="Departure Date" error={errors.departureDate?.message}>
+        <Input {...register("departureDate")} type="date" min={minDate || undefined} />
       </Field>
-      <Field label="Return Date">
-        <Input {...register("returnDate")} type="date" />
+      <Field label="Return Date" error={errors.returnDate?.message}>
+        <Input {...register("returnDate")} type="date" min={minDate || undefined} />
       </Field>
       <Field label="Passenger Count">
         <Input {...register("passengerCount")} placeholder="e.g. 6" />
@@ -326,15 +392,11 @@ function JetFields({ register }: { register: ReturnType<typeof useForm<FormValue
   );
 }
 
-function YachtFields({
-  register,
-}: {
-  register: ReturnType<typeof useForm<FormValues>>["register"];
-}) {
+function YachtFields({ register, errors, minDate }: FieldsProps) {
   return (
     <>
-      <Field label="Charter Date">
-        <Input {...register("charterDate")} type="date" />
+      <Field label="Charter Date" error={errors.charterDate?.message}>
+        <Input {...register("charterDate")} type="date" min={minDate || undefined} />
       </Field>
       <Field label="Duration">
         <Input {...register("charterDuration")} placeholder="e.g. Half day, Full day, 3 days" />
@@ -349,18 +411,14 @@ function YachtFields({
   );
 }
 
-function ResidenceFields({
-  register,
-}: {
-  register: ReturnType<typeof useForm<FormValues>>["register"];
-}) {
+function ResidenceFields({ register, errors, minDate }: FieldsProps) {
   return (
     <>
-      <Field label="Check-In">
-        <Input {...register("checkIn")} type="date" />
+      <Field label="Check-In" error={errors.checkIn?.message}>
+        <Input {...register("checkIn")} type="date" min={minDate || undefined} />
       </Field>
-      <Field label="Check-Out">
-        <Input {...register("checkOut")} type="date" />
+      <Field label="Check-Out" error={errors.checkOut?.message}>
+        <Input {...register("checkOut")} type="date" min={minDate || undefined} />
       </Field>
       <Field label="Guest Count">
         <Input {...register("residenceGuestCount")} placeholder="e.g. 4" />
@@ -372,11 +430,7 @@ function ResidenceFields({
   );
 }
 
-function ExperienceFields({
-  register,
-}: {
-  register: ReturnType<typeof useForm<FormValues>>["register"];
-}) {
+function ExperienceFields({ register, errors, minDate }: FieldsProps) {
   return (
     <>
       <Field label="Occasion Type">
@@ -385,8 +439,8 @@ function ExperienceFields({
           placeholder="e.g. Birthday, Art Basel, Supercar Weekend"
         />
       </Field>
-      <Field label="Preferred Date">
-        <Input {...register("experienceDate")} type="date" />
+      <Field label="Preferred Date" error={errors.experienceDate?.message}>
+        <Input {...register("experienceDate")} type="date" min={minDate || undefined} />
       </Field>
       <Field label="Guest Count">
         <Input {...register("experienceGuestCount")} placeholder="e.g. 4" />
@@ -398,11 +452,7 @@ function ExperienceFields({
   );
 }
 
-function ConciergeFields({
-  register,
-}: {
-  register: ReturnType<typeof useForm<FormValues>>["register"];
-}) {
+function ConciergeFields({ register, errors, minDate }: FieldsProps) {
   return (
     <>
       <Field label="Request Type">
@@ -414,22 +464,18 @@ function ConciergeFields({
       <Field label="Location">
         <Input {...register("conciergeLocation")} placeholder="Hotel or area in Miami" />
       </Field>
-      <Field label="Date">
-        <Input {...register("conciergeDate")} type="date" />
+      <Field label="Date" error={errors.conciergeDate?.message}>
+        <Input {...register("conciergeDate")} type="date" min={minDate || undefined} />
       </Field>
     </>
   );
 }
 
-function GenericFields({
-  register,
-}: {
-  register: ReturnType<typeof useForm<FormValues>>["register"];
-}) {
+function GenericFields({ register, errors, minDate }: FieldsProps) {
   return (
     <>
-      <Field label="Date">
-        <Input {...register("conciergeDate")} type="date" />
+      <Field label="Date" error={errors.conciergeDate?.message}>
+        <Input {...register("conciergeDate")} type="date" min={minDate || undefined} />
       </Field>
       <Field label="Location">
         <Input {...register("conciergeLocation")} placeholder="Hotel name, area, or marina" />
@@ -450,6 +496,13 @@ export default function RequestForm({
 }: Props) {
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  // Minimum selectable date = tomorrow (business tz). Set after mount to keep the
+  // server-rendered markup and client hydration in sync.
+  const [minDate, setMinDate] = useState("");
+
+  useEffect(() => {
+    setMinDate(tomorrowISO());
+  }, []);
 
   const assetSlug = vehicleSlug ?? yachtSlug ?? jetSlug ?? residenceSlug ?? experienceSlug;
 
@@ -510,6 +563,13 @@ export default function RequestForm({
           notes: combinedNotes || undefined,
         }),
       });
+
+      if (res.status === 400) {
+        const body = (await res.json().catch(() => null)) as { message?: string } | null;
+        setStatus("error");
+        setErrorMsg(body?.message ?? "Please check your dates and try again.");
+        return;
+      }
       if (!res.ok) throw new Error("server_error");
 
       // Conversion events
@@ -596,17 +656,25 @@ export default function RequestForm({
 
         {/* Service-specific fields */}
         {(serviceType === "car" || serviceType === "chauffeur") && (
-          <CarFields register={register} />
+          <CarFields register={register} errors={errors} minDate={minDate} />
         )}
-        {serviceType === "jet" && <JetFields register={register} />}
+        {serviceType === "jet" && (
+          <JetFields register={register} errors={errors} minDate={minDate} />
+        )}
         {(serviceType === "yacht" || serviceType === "jet_ski") && (
-          <YachtFields register={register} />
+          <YachtFields register={register} errors={errors} minDate={minDate} />
         )}
-        {serviceType === "residence" && <ResidenceFields register={register} />}
-        {serviceType === "experience" && <ExperienceFields register={register} />}
+        {serviceType === "residence" && (
+          <ResidenceFields register={register} errors={errors} minDate={minDate} />
+        )}
+        {serviceType === "experience" && (
+          <ExperienceFields register={register} errors={errors} minDate={minDate} />
+        )}
         {(serviceType === "concierge" ||
           serviceType === "restaurant" ||
-          serviceType === "nightlife") && <ConciergeFields register={register} />}
+          serviceType === "nightlife") && (
+          <ConciergeFields register={register} errors={errors} minDate={minDate} />
+        )}
         {/* Fallback for any unrecognised value */}
         {serviceType !== "car" &&
           serviceType !== "chauffeur" &&
@@ -617,7 +685,9 @@ export default function RequestForm({
           serviceType !== "experience" &&
           serviceType !== "concierge" &&
           serviceType !== "restaurant" &&
-          serviceType !== "nightlife" && <GenericFields register={register} />}
+          serviceType !== "nightlife" && (
+            <GenericFields register={register} errors={errors} minDate={minDate} />
+          )}
 
         {/* Notes — always last, always full width */}
         <Field label="Additional Notes" error={errors.notes?.message} full>

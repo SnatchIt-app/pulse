@@ -3,6 +3,9 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
 import Link from "next/link";
 import QuickAddTask from "@/components/admin/QuickAddTask";
+import { tomorrowISO } from "@/lib/dates";
+
+const MIN_BOOKING_DATE = tomorrowISO();
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -267,6 +270,12 @@ function LeadDrawer({
         return;
       }
 
+      if (res.status === 400) {
+        const data = (await res.json().catch(() => null)) as { message?: string } | null;
+        setConvertError(data?.message ?? "Please check the booking dates and try again.");
+        return;
+      }
+
       if (!res.ok) throw new Error("server_error");
 
       await onStatusChange(lead.id, "booked");
@@ -507,6 +516,7 @@ function LeadDrawer({
                 <ConvertField label="Start Date">
                   <input
                     type="date"
+                    min={MIN_BOOKING_DATE}
                     value={convertData.start_date}
                     onChange={(e) => setConvertData((d) => ({ ...d, start_date: e.target.value }))}
                     className="border-paper/15 focus:border-paper/35 w-full border-b bg-transparent py-2 text-sm text-paper outline-none transition-colors"
@@ -515,6 +525,7 @@ function LeadDrawer({
                 <ConvertField label="End Date">
                   <input
                     type="date"
+                    min={convertData.start_date || MIN_BOOKING_DATE}
                     value={convertData.end_date}
                     onChange={(e) => setConvertData((d) => ({ ...d, end_date: e.target.value }))}
                     className="border-paper/15 focus:border-paper/35 w-full border-b bg-transparent py-2 text-sm text-paper outline-none transition-colors"

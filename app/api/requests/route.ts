@@ -4,6 +4,7 @@ import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { sendLeadNotification } from "@/lib/email";
 import { logActivity } from "@/lib/activity";
 import { createTask } from "@/lib/tasks";
+import { normalizeDate, isValidYMD, isFutureDate } from "@/lib/dates";
 
 const SERVICE_TYPE = z.enum([
   "car",
@@ -50,6 +51,35 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: false, error: "invalid_payload" }, { status: 400 });
   }
 
+  // Normalize + validate the preferred date. Blank/whitespace becomes null so
+  // the date column never receives "". Same-day and past dates are rejected.
+  const preferredDate = normalizeDate(parsed.preferredDate);
+  if (preferredDate !== null) {
+    if (!isValidYMD(preferredDate)) {
+      console.warn(
+        `[requests] Rejected invalid date format — service: ${parsed.serviceType ?? "other"}`,
+      );
+      return NextResponse.json(
+        { ok: false, error: "invalid_date", message: "Please enter a valid date." },
+        { status: 400 },
+      );
+    }
+    if (!isFutureDate(preferredDate)) {
+      console.warn(
+        `[requests] Rejected past/same-day date — service: ${parsed.serviceType ?? "other"}`,
+      );
+      return NextResponse.json(
+        {
+          ok: false,
+          error: "invalid_date",
+          message:
+            "Requested dates must be at least one day in advance. Please choose a date from tomorrow onward.",
+        },
+        { status: 400 },
+      );
+    }
+  }
+
   // Guard: trim catches empty strings (e.g. VAR= with no value in .env.local)
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
@@ -92,7 +122,7 @@ export async function POST(req: Request) {
         email: parsed.email,
         phone: parsed.phone ?? null,
         service_type: DB_SERVICE_MAP[parsed.serviceType ?? ""] ?? parsed.serviceType ?? "other",
-        start_date: parsed.preferredDate ?? null,
+        start_date: preferredDate,
         message: messageParts || null,
         source: "website_request",
         landing_page: parsed.assetSlug ?? "/request",

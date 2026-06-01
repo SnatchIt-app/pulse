@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { logActivity } from "@/lib/activity";
+import { normalizeDate, isValidYMD, isFutureDate, isAfter } from "@/lib/dates";
 
 const Body = z.object({
   lead_id: z.string().uuid().optional(),
@@ -34,15 +35,54 @@ export async function POST(req: Request) {
 
   const supabase = getSupabaseAdmin();
 
+  // Normalize blank dates to null so the date columns never receive "".
+  const startDate = normalizeDate(parsed.start_date);
+  const endDate = normalizeDate(parsed.end_date);
+
+  // Validate dates: same-day/past start is rejected; end must follow start.
+  if (startDate !== null) {
+    if (!isValidYMD(startDate)) {
+      return NextResponse.json(
+        { ok: false, error: "invalid_date", message: "Please enter a valid start date." },
+        { status: 400 },
+      );
+    }
+    if (!isFutureDate(startDate)) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: "invalid_date",
+          message:
+            "Start date must be at least tomorrow — same-day and past dates are not allowed.",
+        },
+        { status: 400 },
+      );
+    }
+  }
+  if (endDate !== null) {
+    if (!isValidYMD(endDate)) {
+      return NextResponse.json(
+        { ok: false, error: "invalid_date", message: "Please enter a valid end date." },
+        { status: 400 },
+      );
+    }
+    if (startDate && !isAfter(endDate, startDate)) {
+      return NextResponse.json(
+        { ok: false, error: "invalid_date", message: "End date must be after the start date." },
+        { status: 400 },
+      );
+    }
+  }
+
   // Conflict detection — only when asset_id + both dates are provided
-  if (parsed.asset_id && parsed.start_date && parsed.end_date) {
+  if (parsed.asset_id && startDate && endDate) {
     const { data: conflicts } = await supabase
       .from("bookings")
       .select("id, client_name, start_date, end_date")
       .eq("asset_id", parsed.asset_id)
       .not("status", "eq", "cancelled")
-      .lte("start_date", parsed.end_date)
-      .gte("end_date", parsed.start_date);
+      .lte("start_date", endDate)
+      .gte("end_date", startDate);
 
     if (conflicts && conflicts.length > 0) {
       const c = conflicts[0]!;
@@ -111,8 +151,8 @@ export async function POST(req: Request) {
       client_name: parsed.client_name,
       phone: parsed.phone ?? null,
       email: parsed.email,
-      start_date: parsed.start_date ?? null,
-      end_date: parsed.end_date ?? null,
+      start_date: startDate,
+      end_date: endDate,
       asset_title: parsed.asset_title ?? null,
       asset_id: parsed.asset_id ?? null,
       notes: parsed.notes ?? null,
