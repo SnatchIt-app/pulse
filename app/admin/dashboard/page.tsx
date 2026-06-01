@@ -15,6 +15,9 @@ const ACTIVITY_DOT: Record<string, string> = {
   booking_status_changed: "bg-sky-300",
   client_created: "bg-emerald-300",
   payment_status_changed: "bg-emerald-400",
+  vendor_assigned: "bg-violet-400",
+  vendor_status_changed: "bg-amber-400",
+  vendor_notes_updated: "bg-paper/40",
 };
 
 function fmtMoney(n: number): string {
@@ -135,7 +138,9 @@ async function getMetrics() {
     supabase.from("tasks").select("id, due_at, status").neq("status", "done"),
     supabase
       .from("bookings")
-      .select("status, created_at, quoted_amount, final_amount, deposit_amount, payment_status")
+      .select(
+        "status, created_at, start_date, quoted_amount, final_amount, deposit_amount, payment_status, vendor_status",
+      )
       .neq("status", "cancelled"),
   ]);
 
@@ -158,10 +163,12 @@ async function getMetrics() {
   const revBookings = (revenueRes.data ?? []) as {
     status: string;
     created_at: string;
+    start_date: string | null;
     quoted_amount: number | null;
     final_amount: number | null;
     deposit_amount: number | null;
     payment_status: string | null;
+    vendor_status: string | null;
   }[];
   const monthBookedValue = revBookings
     .filter((b) => new Date(b.created_at) >= thisMonthStart)
@@ -171,6 +178,18 @@ async function getMetrics() {
       (b) => b.payment_status === "pending" || b.payment_status === "none" || !b.payment_status,
     )
     .reduce((sum, b) => sum + (b.deposit_amount ?? 0), 0);
+
+  // Vendor fulfillment
+  const vendorPending = revBookings.filter((b) => b.vendor_status === "pending").length;
+  const vendorConfirmed = revBookings.filter((b) => b.vendor_status === "confirmed").length;
+  // Issues: vendor still pending and the booking starts within 7 days (or already started).
+  const sevenDaysOut = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+  const vendorIssues = revBookings.filter(
+    (b) =>
+      b.vendor_status === "pending" &&
+      b.start_date &&
+      new Date(b.start_date + "T00:00:00") <= sevenDaysOut,
+  ).length;
 
   return {
     // Status totals
@@ -215,6 +234,10 @@ async function getMetrics() {
     todayTasks,
     monthBookedValue,
     pendingDeposits,
+    // Vendor fulfillment
+    vendorPending,
+    vendorConfirmed,
+    vendorIssues,
   };
 }
 
@@ -326,6 +349,43 @@ export default async function DashboardPage() {
                 </p>
               </div>
             </div>
+          </section>
+
+          {/* Vendor fulfillment */}
+          <section>
+            <div className="mb-3 flex items-baseline justify-between">
+              <p className="text-paper/25 text-[9px] uppercase tracking-[0.22em]">
+                Vendor Fulfillment
+              </p>
+              <Link
+                href="/admin/vendors"
+                className="text-paper/25 text-[9px] uppercase tracking-[0.18em] transition-colors hover:text-paper"
+              >
+                Vendors →
+              </Link>
+            </div>
+            <div className="grid grid-cols-3 gap-3">
+              <SmallCard label="Pending Confirmations" value={m.vendorPending} accent />
+              <SmallCard label="Confirmed" value={m.vendorConfirmed} />
+              <div className="border-paper/10 border p-4">
+                <p className="text-paper/35 text-[9px] uppercase tracking-[0.22em]">
+                  Vendor Issues
+                </p>
+                <p
+                  className={`mt-2 font-display text-3xl ${
+                    m.vendorIssues > 0 ? "text-red-400" : "text-paper"
+                  }`}
+                >
+                  {m.vendorIssues}
+                </p>
+              </div>
+            </div>
+            {m.vendorIssues > 0 && (
+              <p className="mt-2 text-[10px] text-red-400/80">
+                {m.vendorIssues} booking{m.vendorIssues !== 1 ? "s" : ""} start
+                {m.vendorIssues === 1 ? "s" : ""} within 7 days without vendor confirmation.
+              </p>
+            )}
           </section>
 
           {/* Activity periods */}
@@ -440,6 +500,7 @@ export default async function DashboardPage() {
               { href: "/admin/clients", label: "Clients" },
               { href: "/admin/tasks", label: "Tasks" },
               { href: "/admin/revenue", label: "Revenue" },
+              { href: "/admin/vendors", label: "Vendors" },
               { href: "/admin/assets", label: "Assets" },
               { href: "/admin/calendar", label: "Calendar" },
             ].map((link) => (

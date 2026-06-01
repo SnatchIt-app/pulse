@@ -23,7 +23,36 @@ export type Booking = {
   deposit_amount: number | null;
   final_amount: number | null;
   payment_status: string | null;
+  vendor_id: string | null;
+  vendor_status: string | null;
+  vendor_notes: string | null;
   created_at: string;
+};
+
+export type VendorOption = {
+  id: string;
+  name: string;
+  category: string;
+  contact_name: string | null;
+  email: string | null;
+  phone: string | null;
+  status: string;
+};
+
+const VENDOR_STATUSES = ["not_needed", "pending", "confirmed", "cancelled"] as const;
+
+const VENDOR_STATUS_LABELS: Record<string, string> = {
+  not_needed: "Not Needed",
+  pending: "Pending",
+  confirmed: "Confirmed",
+  cancelled: "Cancelled",
+};
+
+const VENDOR_STATUS_COLORS: Record<string, string> = {
+  not_needed: "text-paper/30 border-paper/15",
+  pending: "text-amber-400 border-amber-400/30",
+  confirmed: "text-emerald-400 border-emerald-400/30",
+  cancelled: "text-red-400 border-red-400/25",
 };
 
 const PAYMENT_STATUSES = ["none", "pending", "deposit_paid", "paid", "refunded"] as const;
@@ -129,14 +158,18 @@ function formatCreated(iso: string) {
 
 function BookingDrawer({
   booking,
+  vendors,
   onClose,
   onStatusChange,
   onRevenueChange,
+  onVendorChange,
 }: {
   booking: Booking;
+  vendors: VendorOption[];
   onClose: () => void;
   onStatusChange: (id: string, status: string) => Promise<void>;
   onRevenueChange: (id: string, patch: Partial<Booking>) => void;
+  onVendorChange: (id: string, patch: Partial<Booking>) => void;
 }) {
   const [quoted, setQuoted] = useState(booking.quoted_amount?.toString() ?? "");
   const [deposit, setDeposit] = useState(booking.deposit_amount?.toString() ?? "");
@@ -144,11 +177,24 @@ function BookingDrawer({
   const [savingRevenue, setSavingRevenue] = useState(false);
   const [revenueSaved, setRevenueSaved] = useState(false);
 
+  const [vendorNotes, setVendorNotes] = useState(booking.vendor_notes ?? "");
+  const [savingVendor, setSavingVendor] = useState(false);
+  const [vendorSaved, setVendorSaved] = useState(false);
+
+  const assignedVendor = vendors.find((v) => v.id === booking.vendor_id) ?? null;
+
   useEffect(() => {
     setQuoted(booking.quoted_amount?.toString() ?? "");
     setDeposit(booking.deposit_amount?.toString() ?? "");
     setFinal(booking.final_amount?.toString() ?? "");
-  }, [booking.id, booking.quoted_amount, booking.deposit_amount, booking.final_amount]);
+    setVendorNotes(booking.vendor_notes ?? "");
+  }, [
+    booking.id,
+    booking.quoted_amount,
+    booking.deposit_amount,
+    booking.final_amount,
+    booking.vendor_notes,
+  ]);
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -186,6 +232,29 @@ function BookingDrawer({
       setTimeout(() => setRevenueSaved(false), 2000);
     } finally {
       setSavingRevenue(false);
+    }
+  }
+
+  async function saveVendor(patch: Partial<Booking>) {
+    setSavingVendor(true);
+    setVendorSaved(false);
+    try {
+      const body: Record<string, unknown> = {};
+      if ("vendor_id" in patch) body.vendor_id = patch.vendor_id;
+      if ("vendor_status" in patch) body.vendor_status = patch.vendor_status;
+      if ("vendor_notes" in patch) body.vendor_notes = patch.vendor_notes;
+
+      const res = await fetch(`/api/admin/bookings/${booking.id}/vendor`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) throw new Error("failed");
+      onVendorChange(booking.id, patch);
+      setVendorSaved(true);
+      setTimeout(() => setVendorSaved(false), 2000);
+    } finally {
+      setSavingVendor(false);
     }
   }
 
@@ -345,6 +414,116 @@ function BookingDrawer({
           )}
         </div>
 
+        {/* Vendor / Fulfillment */}
+        <div className="border-paper/10 border-t pt-5">
+          <div className="mb-3 flex items-center justify-between">
+            <p className="text-paper/35 text-[9px] uppercase tracking-[0.22em]">Fulfillment</p>
+            {vendorSaved && (
+              <span className="text-[9px] uppercase tracking-[0.18em] text-emerald-400">Saved</span>
+            )}
+          </div>
+
+          {/* Vendor select */}
+          <div>
+            <p className="text-paper/25 mb-1 text-[8px] uppercase tracking-[0.18em]">Vendor</p>
+            <div className="relative">
+              <select
+                value={booking.vendor_id ?? ""}
+                onChange={(e) => void saveVendor({ vendor_id: e.target.value || null })}
+                className="border-paper/15 focus:border-paper/35 w-full cursor-pointer appearance-none border-b bg-transparent py-2 pr-6 text-sm text-paper outline-none transition-colors"
+              >
+                <option value="" className="text-paper/50 bg-graphite">
+                  — none —
+                </option>
+                {vendors.map((v) => (
+                  <option key={v.id} value={v.id} className="bg-graphite text-paper">
+                    {v.name}
+                  </option>
+                ))}
+              </select>
+              <span className="text-paper/30 pointer-events-none absolute right-1 top-1/2 -translate-y-1/2 text-[8px]">
+                ↓
+              </span>
+            </div>
+          </div>
+
+          {/* Vendor contact info */}
+          {assignedVendor && (
+            <div className="border-paper/10 mt-3 space-y-1 border p-3">
+              {assignedVendor.contact_name && (
+                <p className="text-paper/65 text-[11px]">{assignedVendor.contact_name}</p>
+              )}
+              {assignedVendor.email && (
+                <a
+                  href={`mailto:${assignedVendor.email}`}
+                  className="text-paper/50 block truncate text-[11px] transition-colors hover:text-paper"
+                >
+                  {assignedVendor.email}
+                </a>
+              )}
+              {assignedVendor.phone && (
+                <a
+                  href={`tel:${assignedVendor.phone}`}
+                  className="text-paper/50 block text-[11px] transition-colors hover:text-paper"
+                >
+                  {assignedVendor.phone}
+                </a>
+              )}
+              {!assignedVendor.contact_name && !assignedVendor.email && !assignedVendor.phone && (
+                <p className="text-paper/25 text-[11px]">No contact info on file</p>
+              )}
+            </div>
+          )}
+
+          {/* Vendor status */}
+          <div className="mt-4">
+            <p className="text-paper/25 mb-2 text-[8px] uppercase tracking-[0.18em]">
+              Vendor Status
+            </p>
+            <div className="relative inline-flex items-center">
+              <select
+                value={booking.vendor_status ?? "not_needed"}
+                onChange={(e) => void saveVendor({ vendor_status: e.target.value })}
+                className={`cursor-pointer appearance-none border bg-transparent py-1.5 pl-3 pr-7 text-[10px] uppercase tracking-[0.18em] outline-none transition-colors ${
+                  VENDOR_STATUS_COLORS[booking.vendor_status ?? "not_needed"] ??
+                  "border-paper/10 text-paper/40"
+                }`}
+              >
+                {VENDOR_STATUSES.map((s) => (
+                  <option
+                    key={s}
+                    value={s}
+                    className="bg-graphite text-sm normal-case tracking-normal text-paper"
+                  >
+                    {VENDOR_STATUS_LABELS[s]}
+                  </option>
+                ))}
+              </select>
+              <span className="text-paper/30 pointer-events-none absolute right-2 text-[8px]">
+                ↓
+              </span>
+            </div>
+          </div>
+
+          {/* Vendor notes */}
+          <div className="mt-4">
+            <p className="text-paper/25 mb-2 text-[8px] uppercase tracking-[0.18em]">
+              Vendor Notes
+            </p>
+            <textarea
+              value={vendorNotes}
+              onChange={(e) => setVendorNotes(e.target.value)}
+              onBlur={() => void saveVendor({ vendor_notes: vendorNotes.trim() || null })}
+              rows={2}
+              placeholder="Fulfillment notes…"
+              className="border-paper/15 placeholder:text-paper/20 focus:border-paper/35 w-full resize-none border bg-transparent p-3 text-[12px] leading-relaxed text-paper outline-none transition-colors"
+            />
+          </div>
+          {savingVendor && (
+            <p className="text-paper/30 mt-2 text-[9px] uppercase tracking-[0.18em]">Saving…</p>
+          )}
+        </div>
+
         {/* Follow-up task */}
         <div className="border-paper/10 border-t pt-5">
           <QuickAddTask entityType="booking" entityId={booking.id} />
@@ -383,7 +562,13 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
-export default function BookingsClient({ initialBookings }: { initialBookings: Booking[] }) {
+export default function BookingsClient({
+  initialBookings,
+  vendors,
+}: {
+  initialBookings: Booking[];
+  vendors: VendorOption[];
+}) {
   const [bookings, setBookings] = useState<Booking[]>(initialBookings);
   const [filter, setFilter] = useState<StatusFilter>("all");
   const [search, setSearch] = useState("");
@@ -442,6 +627,11 @@ export default function BookingsClient({ initialBookings }: { initialBookings: B
   );
 
   const handleRevenueChange = useCallback((id: string, patch: Partial<Booking>) => {
+    setBookings((bs) => bs.map((b) => (b.id === id ? { ...b, ...patch } : b)));
+    setSelectedBooking((sb) => (sb?.id === id ? { ...sb, ...patch } : sb));
+  }, []);
+
+  const handleVendorChange = useCallback((id: string, patch: Partial<Booking>) => {
     setBookings((bs) => bs.map((b) => (b.id === id ? { ...b, ...patch } : b)));
     setSelectedBooking((sb) => (sb?.id === id ? { ...sb, ...patch } : sb));
   }, []);
@@ -645,9 +835,11 @@ export default function BookingsClient({ initialBookings }: { initialBookings: B
         {selectedBooking && (
           <BookingDrawer
             booking={selectedBooking}
+            vendors={vendors}
             onClose={closeDrawer}
             onStatusChange={handleStatusChange}
             onRevenueChange={handleRevenueChange}
+            onVendorChange={handleVendorChange}
           />
         )}
       </div>
