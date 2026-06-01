@@ -17,6 +17,10 @@ const Body = z.object({
   status: z
     .enum(["pending", "confirmed", "in_progress", "completed", "cancelled"])
     .default("pending"),
+  quoted_amount: z.number().nonnegative().optional(),
+  deposit_amount: z.number().nonnegative().optional(),
+  final_amount: z.number().nonnegative().optional(),
+  payment_status: z.enum(["none", "pending", "deposit_paid", "paid", "refunded"]).default("none"),
 });
 
 export async function POST(req: Request) {
@@ -113,6 +117,10 @@ export async function POST(req: Request) {
       asset_id: parsed.asset_id ?? null,
       notes: parsed.notes ?? null,
       status: parsed.status,
+      quoted_amount: parsed.quoted_amount ?? null,
+      deposit_amount: parsed.deposit_amount ?? null,
+      final_amount: parsed.final_amount ?? null,
+      payment_status: parsed.payment_status,
     })
     .select("id")
     .single();

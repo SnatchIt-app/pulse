@@ -132,6 +132,30 @@ export default async function AdminPage() {
             Open →
           </p>
         </Link>
+
+        {/* Tasks */}
+        <Link
+          href="/admin/tasks"
+          className="border-paper/10 hover:border-paper/25 group block border p-6 transition-colors duration-[320ms]"
+        >
+          <p className="text-paper/35 text-[9px] uppercase tracking-[0.24em]">Tasks</p>
+          <p className="mt-4 font-display text-2xl text-paper">Follow-ups</p>
+          <p className="text-paper/25 group-hover:text-paper/50 mt-6 text-[10px] uppercase tracking-[0.2em] transition-colors">
+            Open →
+          </p>
+        </Link>
+
+        {/* Revenue */}
+        <Link
+          href="/admin/revenue"
+          className="border-paper/10 hover:border-paper/25 group block border p-6 transition-colors duration-[320ms]"
+        >
+          <p className="text-paper/35 text-[9px] uppercase tracking-[0.24em]">Revenue</p>
+          <p className="mt-4 font-display text-2xl text-paper">Financials</p>
+          <p className="text-paper/25 group-hover:text-paper/50 mt-6 text-[10px] uppercase tracking-[0.2em] transition-colors">
+            Open →
+          </p>
+        </Link>
       </div>
 
       {/* Footer nav */}
@@ -143,6 +167,8 @@ export default async function AdminPage() {
           { href: "/admin/assets", label: "Assets" },
           { href: "/admin/calendar", label: "Calendar" },
           { href: "/admin/clients", label: "Clients" },
+          { href: "/admin/tasks", label: "Tasks" },
+          { href: "/admin/revenue", label: "Revenue" },
           { href: "/admin/dashboard", label: "Dashboard" },
         ].map((link) => (
           <Link

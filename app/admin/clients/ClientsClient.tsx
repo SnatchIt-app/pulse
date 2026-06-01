@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useEffect, useCallback } from "react";
 import type { Client } from "./page";
+import QuickAddTask from "@/components/admin/QuickAddTask";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -329,6 +330,11 @@ function ClientDrawer({
             {savingNotes && (
               <p className="text-paper/30 mt-1 text-[9px] uppercase tracking-[0.18em]">Saving…</p>
             )}
+          </div>
+
+          {/* Follow-up task */}
+          <div className="border-paper/10 border-t pt-5">
+            <QuickAddTask entityType="client" entityId={client.id} />
           </div>
         </div>
       )}

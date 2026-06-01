@@ -3,6 +3,7 @@ import { z } from "zod";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { sendLeadNotification } from "@/lib/email";
 import { logActivity } from "@/lib/activity";
+import { createTask } from "@/lib/tasks";
 
 const SERVICE_TYPE = z.enum([
   "car",
@@ -109,6 +110,17 @@ export async function POST(req: Request) {
 
     if (lead?.id) {
       await logActivity(lead.id, "lead_created", "Lead submitted via website");
+
+      // Follow-up automation: same-day task to respond to the new lead.
+      const due = new Date();
+      due.setHours(23, 0, 0, 0);
+      await createTask({
+        title: `Respond to new lead — ${parsed.fullName}`,
+        description: `New ${parsed.serviceType ?? "other"} inquiry. Reach out today.`,
+        due_at: due.toISOString(),
+        entity_type: "lead",
+        entity_id: lead.id,
+      });
     }
 
     // Fire notification email — never blocks response, never fails the request

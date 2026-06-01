@@ -14,7 +14,17 @@ const ACTIVITY_DOT: Record<string, string> = {
   converted_to_booking: "bg-violet-400",
   booking_status_changed: "bg-sky-300",
   client_created: "bg-emerald-300",
+  payment_status_changed: "bg-emerald-400",
 };
+
+function fmtMoney(n: number): string {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(n);
+}
 
 const SERVICE_LABELS: Record<string, string> = {
   car: "Car",
@@ -79,6 +89,9 @@ async function getMetrics() {
   const d30 = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString();
 
   const todayDate = now.toISOString().split("T")[0]!;
+  const endOfTodayISO = new Date(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 23, 59, 59),
+  ).toISOString();
 
   const [
     leadsRes,
@@ -93,6 +106,8 @@ async function getMetrics() {
     activityRes,
     clientsTotalRes,
     clientsMonthRes,
+    tasksRes,
+    revenueRes,
   ] = await Promise.all([
     supabase.from("leads").select("status"),
     supabase.from("bookings").select("status"),
@@ -117,10 +132,45 @@ async function getMetrics() {
       .limit(8),
     supabase.from("clients").select("id"),
     supabase.from("clients").select("id").gte("created_at", monthISO),
+    supabase.from("tasks").select("id, due_at, status").neq("status", "done"),
+    supabase
+      .from("bookings")
+      .select("status, created_at, quoted_amount, final_amount, deposit_amount, payment_status")
+      .neq("status", "cancelled"),
   ]);
 
   const leads = leadsRes.data ?? [];
   const bookings = bookingsRes.data ?? [];
+
+  // Tasks
+  const openTasks = (tasksRes.data ?? []) as {
+    id: string;
+    due_at: string | null;
+    status: string;
+  }[];
+  const overdueTasks = openTasks.filter((t) => t.due_at && new Date(t.due_at) < todayStart).length;
+  const todayTasks = openTasks.filter(
+    (t) =>
+      t.due_at && new Date(t.due_at) >= todayStart && new Date(t.due_at) <= new Date(endOfTodayISO),
+  ).length;
+
+  // Revenue
+  const revBookings = (revenueRes.data ?? []) as {
+    status: string;
+    created_at: string;
+    quoted_amount: number | null;
+    final_amount: number | null;
+    deposit_amount: number | null;
+    payment_status: string | null;
+  }[];
+  const monthBookedValue = revBookings
+    .filter((b) => new Date(b.created_at) >= thisMonthStart)
+    .reduce((sum, b) => sum + (b.final_amount ?? b.quoted_amount ?? 0), 0);
+  const pendingDeposits = revBookings
+    .filter(
+      (b) => b.payment_status === "pending" || b.payment_status === "none" || !b.payment_status,
+    )
+    .reduce((sum, b) => sum + (b.deposit_amount ?? 0), 0);
 
   return {
     // Status totals
@@ -160,6 +210,11 @@ async function getMetrics() {
     // Clients
     clientsTotal: clientsTotalRes.data?.length ?? 0,
     clientsThisMonth: clientsMonthRes.data?.length ?? 0,
+    // Tasks + revenue
+    overdueTasks,
+    todayTasks,
+    monthBookedValue,
+    pendingDeposits,
   };
 }
 
@@ -233,6 +288,43 @@ export default async function DashboardPage() {
               <SmallCard label="Bookings Today" value={m.bookingsToday} accent />
               <SmallCard label="Total Clients" value={m.clientsTotal} />
               <SmallCard label="Clients This Month" value={m.clientsThisMonth} />
+            </div>
+          </section>
+
+          {/* Tasks + Revenue */}
+          <section>
+            <div className="mb-3 flex items-baseline justify-between">
+              <p className="text-paper/25 text-[9px] uppercase tracking-[0.22em]">
+                Follow-ups & Revenue
+              </p>
+              <Link
+                href="/admin/tasks"
+                className="text-paper/25 text-[9px] uppercase tracking-[0.18em] transition-colors hover:text-paper"
+              >
+                Tasks →
+              </Link>
+            </div>
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+              <SmallCard label="Overdue Tasks" value={m.overdueTasks} accent />
+              <SmallCard label="Due Today" value={m.todayTasks} accent />
+              <div className="border-paper/10 border p-4">
+                <p className="text-paper/35 text-[9px] uppercase tracking-[0.22em]">Month Booked</p>
+                <p className="mt-2 font-display text-2xl text-paper">
+                  {fmtMoney(m.monthBookedValue)}
+                </p>
+              </div>
+              <div className="border-paper/10 border p-4">
+                <p className="text-paper/35 text-[9px] uppercase tracking-[0.22em]">
+                  Pending Deposits
+                </p>
+                <p
+                  className={`mt-2 font-display text-2xl ${
+                    m.pendingDeposits > 0 ? "text-amber-400" : "text-paper"
+                  }`}
+                >
+                  {fmtMoney(m.pendingDeposits)}
+                </p>
+              </div>
             </div>
           </section>
 
@@ -346,6 +438,8 @@ export default async function DashboardPage() {
               { href: "/admin/leads", label: "Leads" },
               { href: "/admin/bookings", label: "Bookings" },
               { href: "/admin/clients", label: "Clients" },
+              { href: "/admin/tasks", label: "Tasks" },
+              { href: "/admin/revenue", label: "Revenue" },
               { href: "/admin/assets", label: "Assets" },
               { href: "/admin/calendar", label: "Calendar" },
             ].map((link) => (

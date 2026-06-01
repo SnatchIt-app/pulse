@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useEffect, useCallback } from "react";
 import Link from "next/link";
+import QuickAddTask from "@/components/admin/QuickAddTask";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -114,6 +115,7 @@ const ACTIVITY_DOT: Record<string, string> = {
   converted_to_booking: "bg-violet-400",
   booking_status_changed: "bg-sky-300",
   client_created: "bg-emerald-300",
+  payment_status_changed: "bg-emerald-400",
 };
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -411,6 +413,11 @@ function LeadDrawer({
           {savingNotes && (
             <p className="text-paper/30 text-[9px] uppercase tracking-[0.18em]">Saving…</p>
           )}
+
+          {/* Follow-up task */}
+          <div className="border-paper/10 border-t pt-5">
+            <QuickAddTask entityType="lead" entityId={lead.id} defaultAssignee={lead.assigned_to} />
+          </div>
         </div>
       )}
 
