@@ -58,10 +58,51 @@ export async function POST(req: Request) {
     }
   }
 
+  // Find or create client by email
+  let clientId: string | null = null;
+  let clientCreated = false;
+  try {
+    const { data: existing } = await supabase
+      .from("clients")
+      .select("id, booking_count")
+      .eq("email", parsed.email)
+      .maybeSingle();
+
+    if (existing) {
+      clientId = existing.id;
+      await supabase
+        .from("clients")
+        .update({
+          booking_count: (existing.booking_count ?? 0) + 1,
+          last_booking_at: new Date().toISOString(),
+        })
+        .eq("id", clientId);
+    } else {
+      const { data: newClient } = await supabase
+        .from("clients")
+        .insert({
+          full_name: parsed.client_name,
+          email: parsed.email,
+          phone: parsed.phone ?? null,
+          booking_count: 1,
+          last_booking_at: new Date().toISOString(),
+        })
+        .select("id")
+        .single();
+      if (newClient) {
+        clientId = newClient.id;
+        clientCreated = true;
+      }
+    }
+  } catch {
+    // Client table may not exist yet — booking proceeds without client_id
+  }
+
   const { data, error } = await supabase
     .from("bookings")
     .insert({
       lead_id: parsed.lead_id ?? null,
+      client_id: clientId,
       service_type: parsed.service_type,
       client_name: parsed.client_name,
       phone: parsed.phone ?? null,
@@ -88,7 +129,14 @@ export async function POST(req: Request) {
       "converted_to_booking",
       `Converted to booking${parsed.asset_title ? ` — ${parsed.asset_title}` : ""}`,
     );
+    if (clientCreated) {
+      await logActivity(
+        parsed.lead_id,
+        "client_created",
+        `Client profile created — ${parsed.client_name}`,
+      );
+    }
   }
 
-  return NextResponse.json({ ok: true, id: data.id }, { status: 201 });
+  return NextResponse.json({ ok: true, id: data.id, client_id: clientId }, { status: 201 });
 }

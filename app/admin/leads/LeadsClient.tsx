@@ -113,6 +113,7 @@ const ACTIVITY_DOT: Record<string, string> = {
   note_updated: "bg-paper/40",
   converted_to_booking: "bg-violet-400",
   booking_status_changed: "bg-sky-300",
+  client_created: "bg-emerald-300",
 };
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────

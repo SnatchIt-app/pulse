@@ -61,6 +61,24 @@ const SERVICE_LABELS: Record<string, string> = {
   other: "Other",
 };
 
+const SERVICE_FILTER_OPTIONS = [
+  { value: "all", label: "All" },
+  { value: "car", label: "Cars" },
+  { value: "jet", label: "Jets" },
+  { value: "yacht", label: "Yachts" },
+  { value: "residence", label: "Residences" },
+  { value: "other", label: "Other" },
+];
+
+const STATUS_FILTER_OPTIONS = [
+  { value: "all", label: "All" },
+  { value: "pending", label: "Pending" },
+  { value: "confirmed", label: "Confirmed" },
+  { value: "in_progress", label: "Active" },
+  { value: "completed", label: "Completed" },
+  { value: "cancelled", label: "Cancelled" },
+];
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function parseLocalDate(s: string): Date {
@@ -114,7 +132,7 @@ function isToday(d: Date) {
   );
 }
 
-// ─── Booking Detail Drawer ────────────────────────────────────────────────────
+// ─── Booking Drawer ───────────────────────────────────────────────────────────
 
 function BookingDrawer({
   booking,
@@ -187,7 +205,9 @@ function BookingDrawer({
             <select
               value={booking.status}
               onChange={(e) => onStatusChange(booking.id, e.target.value)}
-              className={`cursor-pointer appearance-none border bg-transparent py-1.5 pl-3 pr-7 text-[10px] uppercase tracking-[0.18em] outline-none transition-colors ${STATUS_CHIP[booking.status] ?? "border-paper/10 text-paper/40"}`}
+              className={`cursor-pointer appearance-none border bg-transparent py-1.5 pl-3 pr-7 text-[10px] uppercase tracking-[0.18em] outline-none transition-colors ${
+                STATUS_CHIP[booking.status] ?? "border-paper/10 text-paper/40"
+              }`}
             >
               {BOOKING_STATUSES.map((s) => (
                 <option
@@ -209,6 +229,19 @@ function BookingDrawer({
             <p className="text-paper/65 whitespace-pre-wrap text-[11px] leading-relaxed">
               {booking.notes}
             </p>
+          </div>
+        )}
+
+        {(booking.lead_id || booking.client_id) && (
+          <div className="border-paper/10 border-t pt-4">
+            {booking.lead_id && (
+              <p className="text-paper/25 text-[9px] uppercase tracking-[0.18em]">Linked lead</p>
+            )}
+            {booking.client_id && (
+              <p className="text-paper/25 mt-1 text-[9px] uppercase tracking-[0.18em]">
+                Linked client
+              </p>
+            )}
           </div>
         )}
       </div>
@@ -240,24 +273,35 @@ export default function CalendarClient({
   const [bookings, setBookings] = useState<CalendarBooking[]>(initialBookings);
   const [selectedBooking, setSelectedBooking] = useState<CalendarBooking | null>(null);
   const [mobileSelectedDay, setMobileSelectedDay] = useState<Date | null>(null);
+  const [serviceFilter, setServiceFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
 
   function prevMonth() {
     if (month === 0) {
       setMonth(11);
       setYear((y) => y - 1);
-    } else {
-      setMonth((m) => m - 1);
-    }
+    } else setMonth((m) => m - 1);
   }
 
   function nextMonth() {
     if (month === 11) {
       setMonth(0);
       setYear((y) => y + 1);
-    } else {
-      setMonth((m) => m + 1);
-    }
+    } else setMonth((m) => m + 1);
   }
+
+  const filteredBookings = useMemo(() => {
+    let b = bookings;
+    if (serviceFilter !== "all") {
+      if (serviceFilter === "other") {
+        b = b.filter((x) => !["car", "jet", "yacht", "residence"].includes(x.service_type));
+      } else {
+        b = b.filter((x) => x.service_type === serviceFilter);
+      }
+    }
+    if (statusFilter !== "all") b = b.filter((x) => x.status === statusFilter);
+    return b;
+  }, [bookings, serviceFilter, statusFilter]);
 
   const grid = useMemo(() => buildGrid(year, month), [year, month]);
 
@@ -287,14 +331,66 @@ export default function CalendarClient({
   const closeDrawer = useCallback(() => setSelectedBooking(null), []);
 
   const mobileDayBookings = useMemo(
-    () => (mobileSelectedDay ? bookingsForDay(bookings, mobileSelectedDay) : []),
-    [bookings, mobileSelectedDay],
+    () => (mobileSelectedDay ? bookingsForDay(filteredBookings, mobileSelectedDay) : []),
+    [filteredBookings, mobileSelectedDay],
   );
+
+  const activeFilterCount = (serviceFilter !== "all" ? 1 : 0) + (statusFilter !== "all" ? 1 : 0);
 
   return (
     <div>
+      {/* Filters */}
+      <div className="mt-6 space-y-2">
+        {/* Service filter */}
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5">
+          <p className="text-paper/25 w-12 shrink-0 text-[9px] uppercase tracking-[0.18em]">Type</p>
+          {SERVICE_FILTER_OPTIONS.map((f) => (
+            <button
+              key={f.value}
+              type="button"
+              onClick={() => setServiceFilter(f.value)}
+              className={`text-[9px] uppercase tracking-[0.18em] transition-colors ${
+                serviceFilter === f.value ? "text-paper" : "text-paper/30 hover:text-paper/60"
+              }`}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
+        {/* Status filter */}
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5">
+          <p className="text-paper/25 w-12 shrink-0 text-[9px] uppercase tracking-[0.18em]">
+            Status
+          </p>
+          {STATUS_FILTER_OPTIONS.map((f) => (
+            <button
+              key={f.value}
+              type="button"
+              onClick={() => setStatusFilter(f.value)}
+              className={`text-[9px] uppercase tracking-[0.18em] transition-colors ${
+                statusFilter === f.value ? "text-paper" : "text-paper/30 hover:text-paper/60"
+              }`}
+            >
+              {f.label}
+            </button>
+          ))}
+          {activeFilterCount > 0 && (
+            <button
+              type="button"
+              onClick={() => {
+                setServiceFilter("all");
+                setStatusFilter("all");
+              }}
+              className="text-paper/20 hover:text-paper/60 text-[9px] uppercase tracking-[0.18em] transition-colors"
+            >
+              Clear
+            </button>
+          )}
+        </div>
+      </div>
+
       {/* Month nav */}
-      <div className="mt-8 flex items-center gap-4">
+      <div className="mt-6 flex items-center gap-4">
         <button
           type="button"
           onClick={prevMonth}
@@ -322,10 +418,13 @@ export default function CalendarClient({
         >
           Today
         </button>
+        {activeFilterCount > 0 && (
+          <span className="text-paper/30 text-[9px]">{filteredBookings.length} shown</span>
+        )}
       </div>
 
       {/* Calendar grid */}
-      <div className="mt-6">
+      <div className="mt-4">
         {/* Weekday headers */}
         <div className="border-paper/10 grid grid-cols-7 border-b pb-2">
           {WEEKDAYS.map((d) => (
@@ -339,7 +438,7 @@ export default function CalendarClient({
         <div className="grid grid-cols-7">
           {grid.map((day, i) => {
             const isCurrentMonth = day.getMonth() === month;
-            const dayBookings = bookingsForDay(bookings, day);
+            const dayBookings = bookingsForDay(filteredBookings, day);
             const today_ = isToday(day);
 
             return (
@@ -364,7 +463,7 @@ export default function CalendarClient({
                   )}
                 </p>
 
-                {/* Mobile: dots only */}
+                {/* Mobile: dots */}
                 <div
                   className="flex flex-wrap gap-0.5 md:hidden"
                   onClick={() =>
@@ -381,16 +480,23 @@ export default function CalendarClient({
                   ))}
                 </div>
 
-                {/* Desktop: text chips */}
+                {/* Desktop: chips */}
                 <div className="hidden space-y-0.5 md:block">
                   {dayBookings.slice(0, 2).map((b) => (
                     <button
                       key={b.id}
                       type="button"
                       onClick={() => setSelectedBooking(b)}
-                      className={`w-full truncate border px-1.5 py-0.5 text-left text-[9px] leading-tight transition-opacity hover:opacity-75 ${STATUS_CHIP[b.status] ?? "border-paper/10 text-paper/40"}`}
+                      className={`w-full truncate border px-1.5 py-0.5 text-left text-[9px] leading-tight transition-opacity hover:opacity-75 ${
+                        STATUS_CHIP[b.status] ?? "border-paper/10 text-paper/40"
+                      }`}
                     >
-                      {b.asset_title || b.client_name}
+                      <span className="block truncate">{b.asset_title || b.client_name}</span>
+                      {b.asset_title && (
+                        <span className="block truncate text-[8px] opacity-60">
+                          {b.client_name}
+                        </span>
+                      )}
                     </button>
                   ))}
                   {dayBookings.length > 2 && (
@@ -419,7 +525,9 @@ export default function CalendarClient({
                 key={b.id}
                 type="button"
                 onClick={() => setSelectedBooking(b)}
-                className={`w-full border p-3 text-left transition-opacity hover:opacity-75 ${STATUS_CHIP[b.status] ?? "border-paper/10"}`}
+                className={`w-full border p-3 text-left transition-opacity hover:opacity-75 ${
+                  STATUS_CHIP[b.status] ?? "border-paper/10"
+                }`}
               >
                 <p className="text-[11px] font-medium text-paper">
                   {b.asset_title || b.client_name}
@@ -428,6 +536,7 @@ export default function CalendarClient({
                   {SERVICE_LABELS[b.service_type] ?? b.service_type} ·{" "}
                   {STATUS_LABELS[b.status] ?? b.status}
                 </p>
+                {b.asset_title && <p className="text-paper/35 text-[10px]">{b.client_name}</p>}
               </button>
             ))}
           </div>

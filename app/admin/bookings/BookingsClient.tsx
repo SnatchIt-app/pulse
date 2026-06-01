@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export type Booking = {
   id: string;
   lead_id: string | null;
+  client_id: string | null;
   service_type: string;
   client_name: string;
   phone: string | null;
@@ -14,6 +15,7 @@ export type Booking = {
   start_date: string | null;
   end_date: string | null;
   asset_title: string | null;
+  asset_id: string | null;
   notes: string | null;
   status: string;
   created_at: string;
@@ -95,13 +97,151 @@ function truncate(str: string | null, max = 80) {
   return str.length > max ? str.slice(0, max) + "…" : str;
 }
 
-// ─── Component ────────────────────────────────────────────────────────────────
+// ─── Booking Drawer ───────────────────────────────────────────────────────────
+
+function BookingDrawer({
+  booking,
+  onClose,
+  onStatusChange,
+}: {
+  booking: Booking;
+  onClose: () => void;
+  onStatusChange: (id: string, status: string) => Promise<void>;
+}) {
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") onClose();
+    }
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  return (
+    <div className="flex h-full flex-col overflow-y-auto p-6 md:p-8">
+      {/* Header */}
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <p className="text-paper/40 text-[9px] uppercase tracking-[0.24em]">Booking</p>
+          <h2 className="mt-1 font-display text-2xl text-paper">{booking.client_name}</h2>
+        </div>
+        <button
+          type="button"
+          onClick={onClose}
+          className="text-paper/40 mt-1 shrink-0 text-lg transition-opacity hover:text-paper"
+        >
+          ✕
+        </button>
+      </div>
+
+      <div className="mt-8 space-y-5">
+        {/* Contact */}
+        <Row label="Email">
+          <a href={`mailto:${booking.email}`} className="text-paper/80 hover:text-paper">
+            {booking.email}
+          </a>
+        </Row>
+        {booking.phone && (
+          <Row label="Phone">
+            <a href={`tel:${booking.phone}`} className="text-paper/80 hover:text-paper">
+              {booking.phone}
+            </a>
+          </Row>
+        )}
+
+        {/* Booking details */}
+        <Row label="Service">{SERVICE_LABELS[booking.service_type] ?? booking.service_type}</Row>
+        {booking.asset_title && <Row label="Asset">{booking.asset_title}</Row>}
+        <Row label="Dates">
+          {booking.start_date ? (
+            <>
+              {formatDate(booking.start_date)}
+              {booking.end_date && (
+                <>
+                  <span className="text-paper/30 mx-2">→</span>
+                  {formatDate(booking.end_date)}
+                </>
+              )}
+            </>
+          ) : (
+            "—"
+          )}
+        </Row>
+        <Row label="Created">{formatCreated(booking.created_at)}</Row>
+
+        {/* Status */}
+        <div>
+          <p className="text-paper/35 mb-2 text-[9px] uppercase tracking-[0.22em]">Status</p>
+          <div className="relative inline-flex items-center">
+            <select
+              value={booking.status}
+              onChange={(e) => void onStatusChange(booking.id, e.target.value)}
+              className={`cursor-pointer appearance-none border bg-transparent py-1.5 pl-3 pr-7 text-[10px] uppercase tracking-[0.18em] outline-none transition-colors ${
+                STATUS_COLORS[booking.status] ?? "border-paper/10 text-paper/40"
+              }`}
+            >
+              {STATUSES.map((s) => (
+                <option
+                  key={s}
+                  value={s}
+                  className="bg-graphite text-sm normal-case tracking-normal text-paper"
+                >
+                  {STATUS_LABELS[s]}
+                </option>
+              ))}
+            </select>
+            <span className="text-paper/30 pointer-events-none absolute right-2 text-[8px]">↓</span>
+          </div>
+        </div>
+
+        {/* Notes */}
+        {booking.notes && (
+          <div>
+            <p className="text-paper/35 mb-2 text-[9px] uppercase tracking-[0.22em]">Notes</p>
+            <p className="text-paper/65 whitespace-pre-wrap text-[11px] leading-relaxed">
+              {booking.notes}
+            </p>
+          </div>
+        )}
+
+        {/* Links */}
+        {(booking.lead_id || booking.client_id) && (
+          <div className="border-paper/10 border-t pt-4">
+            <div className="space-y-2">
+              {booking.lead_id && (
+                <p className="text-paper/25 text-[9px] uppercase tracking-[0.18em]">Linked lead</p>
+              )}
+              {booking.client_id && (
+                <p className="text-paper/25 text-[9px] uppercase tracking-[0.18em]">
+                  Linked client
+                </p>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function Row({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="flex items-baseline gap-3">
+      <span className="text-paper/35 w-16 shrink-0 text-[9px] uppercase tracking-[0.2em]">
+        {label}
+      </span>
+      <span className="text-paper/80 text-[12px] leading-relaxed">{children}</span>
+    </div>
+  );
+}
+
+// ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function BookingsClient({ initialBookings }: { initialBookings: Booking[] }) {
   const [bookings, setBookings] = useState<Booking[]>(initialBookings);
   const [filter, setFilter] = useState<StatusFilter>("all");
   const [search, setSearch] = useState("");
   const [updateError, setUpdateError] = useState<string | null>(null);
+  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
 
   const counts = useMemo(
     () =>
@@ -129,25 +269,32 @@ export default function BookingsClient({ initialBookings }: { initialBookings: B
     return rows;
   }, [bookings, filter, search]);
 
-  async function handleStatusChange(id: string, next: string) {
-    const prev = bookings.find((b) => b.id === id)?.status;
-    if (!prev || prev === next) return;
+  const handleStatusChange = useCallback(
+    async (id: string, next: string) => {
+      const prev = bookings.find((b) => b.id === id)?.status;
+      if (!prev || prev === next) return;
 
-    setBookings((bs) => bs.map((b) => (b.id === id ? { ...b, status: next } : b)));
-    setUpdateError(null);
+      setBookings((bs) => bs.map((b) => (b.id === id ? { ...b, status: next } : b)));
+      setSelectedBooking((sb) => (sb?.id === id ? { ...sb, status: next } : sb));
+      setUpdateError(null);
 
-    try {
-      const res = await fetch(`/api/admin/bookings/${id}/status`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: next }),
-      });
-      if (!res.ok) throw new Error("failed");
-    } catch {
-      setBookings((bs) => bs.map((b) => (b.id === id ? { ...b, status: prev } : b)));
-      setUpdateError("Status update failed — reverted.");
-    }
-  }
+      try {
+        const res = await fetch(`/api/admin/bookings/${id}/status`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status: next }),
+        });
+        if (!res.ok) throw new Error("failed");
+      } catch {
+        setBookings((bs) => bs.map((b) => (b.id === id ? { ...b, status: prev } : b)));
+        setSelectedBooking((sb) => (sb?.id === id ? { ...sb, status: prev } : sb));
+        setUpdateError("Status update failed — reverted.");
+      }
+    },
+    [bookings],
+  );
+
+  const closeDrawer = useCallback(() => setSelectedBooking(null), []);
 
   return (
     <div>
@@ -178,7 +325,7 @@ export default function BookingsClient({ initialBookings }: { initialBookings: B
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search client, email, or asset…"
-          className="placeholder:text-paper/25 border-paper/20 focus:border-paper/50 w-full border-b bg-transparent py-2 text-sm text-paper outline-none transition-colors sm:max-w-sm"
+          className="border-paper/20 placeholder:text-paper/25 focus:border-paper/50 w-full border-b bg-transparent py-2 text-sm text-paper outline-none transition-colors sm:max-w-sm"
         />
       </div>
 
@@ -211,17 +358,19 @@ export default function BookingsClient({ initialBookings }: { initialBookings: B
       {/* Table */}
       {visible.length > 0 ? (
         <div className="mt-6 overflow-x-auto">
-          <table className="w-full min-w-[960px] border-collapse text-left text-sm">
+          <table className="w-full min-w-[1000px] border-collapse text-left text-sm">
             <thead>
               <tr className="border-paper/10 border-b">
-                {["Created", "Client", "Service", "Asset", "Dates", "Status", "Notes"].map((h) => (
-                  <th
-                    key={h}
-                    className="text-paper/35 pb-3 pr-6 text-[9px] font-normal uppercase tracking-[0.22em]"
-                  >
-                    {h}
-                  </th>
-                ))}
+                {["Created", "Client", "Service", "Asset", "Dates", "Status", "Notes", ""].map(
+                  (h) => (
+                    <th
+                      key={h}
+                      className="text-paper/35 pb-3 pr-6 text-[9px] font-normal uppercase tracking-[0.22em]"
+                    >
+                      {h}
+                    </th>
+                  ),
+                )}
               </tr>
             </thead>
             <tbody>
@@ -230,11 +379,9 @@ export default function BookingsClient({ initialBookings }: { initialBookings: B
                   key={booking.id}
                   className="border-paper/[0.06] hover:bg-paper/[0.03] border-b transition-colors"
                 >
-                  {/* Created */}
                   <td className="text-paper/50 whitespace-nowrap py-4 pr-6 text-[11px]">
                     {formatCreated(booking.created_at)}
                   </td>
-                  {/* Client */}
                   <td className="py-4 pr-6">
                     <p className="whitespace-nowrap font-display text-base text-paper">
                       {booking.client_name}
@@ -242,17 +389,14 @@ export default function BookingsClient({ initialBookings }: { initialBookings: B
                     <p className="text-paper/45 mt-0.5 text-[10px]">{booking.email}</p>
                     {booking.phone && <p className="text-paper/40 text-[10px]">{booking.phone}</p>}
                   </td>
-                  {/* Service */}
                   <td className="whitespace-nowrap py-4 pr-6">
                     <span className="text-paper/50 text-[9px] uppercase tracking-[0.18em]">
                       {SERVICE_LABELS[booking.service_type] ?? booking.service_type}
                     </span>
                   </td>
-                  {/* Asset */}
                   <td className="text-paper/65 whitespace-nowrap py-4 pr-6 text-[11px]">
                     {booking.asset_title ?? "—"}
                   </td>
-                  {/* Dates */}
                   <td className="text-paper/55 whitespace-nowrap py-4 pr-6 text-[11px]">
                     {booking.start_date ? (
                       <>
@@ -264,13 +408,14 @@ export default function BookingsClient({ initialBookings }: { initialBookings: B
                       "—"
                     )}
                   </td>
-                  {/* Status */}
                   <td className="whitespace-nowrap py-4 pr-6">
                     <div className="relative inline-flex items-center">
                       <select
                         value={booking.status}
-                        onChange={(e) => handleStatusChange(booking.id, e.target.value)}
-                        className={`cursor-pointer appearance-none border bg-transparent py-1 pl-2 pr-6 text-[9px] uppercase tracking-[0.18em] outline-none transition-colors ${STATUS_COLORS[booking.status] ?? "border-paper/10 text-paper/40"}`}
+                        onChange={(e) => void handleStatusChange(booking.id, e.target.value)}
+                        className={`cursor-pointer appearance-none border bg-transparent py-1 pl-2 pr-6 text-[9px] uppercase tracking-[0.18em] outline-none transition-colors ${
+                          STATUS_COLORS[booking.status] ?? "border-paper/10 text-paper/40"
+                        }`}
                       >
                         {STATUSES.map((s) => (
                           <option
@@ -287,9 +432,17 @@ export default function BookingsClient({ initialBookings }: { initialBookings: B
                       </span>
                     </div>
                   </td>
-                  {/* Notes */}
-                  <td className="text-paper/55 max-w-[200px] py-4 pr-6 text-[11px] leading-relaxed">
+                  <td className="text-paper/55 max-w-[180px] py-4 pr-6 text-[11px] leading-relaxed">
                     {truncate(booking.notes)}
+                  </td>
+                  <td className="whitespace-nowrap py-4 pr-2">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedBooking(booking)}
+                      className="text-paper/30 text-[9px] uppercase tracking-[0.18em] transition-colors hover:text-paper"
+                    >
+                      Details →
+                    </button>
                   </td>
                 </tr>
               ))}
@@ -301,6 +454,32 @@ export default function BookingsClient({ initialBookings }: { initialBookings: B
           {search.trim() || filter !== "all" ? "No matching bookings." : "No bookings yet."}
         </p>
       )}
+
+      {/* Backdrop */}
+      <div
+        aria-hidden="true"
+        className={`bg-ink/70 fixed inset-0 z-40 transition-opacity duration-[360ms] ${
+          selectedBooking ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
+        }`}
+        onClick={closeDrawer}
+      />
+
+      {/* Drawer */}
+      <div
+        role="dialog"
+        aria-modal="true"
+        className={`fixed right-0 top-0 z-50 h-screen w-full overflow-hidden bg-graphite shadow-2xl transition-transform duration-[360ms] ease-[cubic-bezier(0.16,1,0.3,1)] sm:w-[480px] ${
+          selectedBooking ? "translate-x-0" : "translate-x-full"
+        }`}
+      >
+        {selectedBooking && (
+          <BookingDrawer
+            booking={selectedBooking}
+            onClose={closeDrawer}
+            onStatusChange={handleStatusChange}
+          />
+        )}
+      </div>
     </div>
   );
 }

@@ -4,6 +4,8 @@ import CalendarClient from "./CalendarClient";
 
 export type CalendarBooking = {
   id: string;
+  lead_id: string | null;
+  client_id: string | null;
   client_name: string;
   email: string;
   phone: string | null;
@@ -36,7 +38,7 @@ export default async function CalendarPage() {
   const { data: bookings, error } = await supabase
     .from("bookings")
     .select(
-      "id, client_name, email, phone, service_type, asset_title, asset_id, start_date, end_date, status, notes",
+      "id, lead_id, client_id, client_name, email, phone, service_type, asset_title, asset_id, start_date, end_date, status, notes",
     )
     .not("start_date", "is", null)
     .order("start_date", { ascending: true });
