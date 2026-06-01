@@ -60,3 +60,40 @@ export function isFutureDate(value: string, tz: string = BUSINESS_TZ): boolean {
 export function isAfter(end: string, start: string): boolean {
   return end > start;
 }
+
+// ─── Spec-named aliases / combined validator ───────────────────────────────────
+
+/** Tomorrow as YYYY-MM-DD in the business timezone (min selectable date). */
+export function getTomorrowDateString(tz: string = BUSINESS_TZ): string {
+  return tomorrowISO(tz);
+}
+
+/** Trim + coerce blank/whitespace to null so date columns never receive "". */
+export function normalizeDateOrNull(value: string | null | undefined): string | null {
+  return normalizeDate(value);
+}
+
+/**
+ * Validate a start/end date pair. Returns a user-friendly error message, or null
+ * when valid. Each present date must be a real calendar date in the future
+ * (tomorrow or later), and end must fall strictly after start.
+ * Used by both the public form and the API so the rules cannot diverge.
+ */
+export function validateDateRange(
+  start: string | null,
+  end: string | null,
+  tz: string = BUSINESS_TZ,
+): string | null {
+  if (start !== null) {
+    if (!isValidYMD(start)) return "Please select a valid date.";
+    if (!isFutureDate(start, tz)) return "Please select a future date.";
+  }
+  if (end !== null) {
+    if (!isValidYMD(end)) return "Please select a valid date.";
+    if (!isFutureDate(end, tz)) return "Please select a future date.";
+  }
+  if (start !== null && end !== null && !isAfter(end, start)) {
+    return "End date must be after the start date.";
+  }
+  return null;
+}

@@ -4,7 +4,7 @@ import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { sendLeadNotification } from "@/lib/email";
 import { logActivity } from "@/lib/activity";
 import { createTask } from "@/lib/tasks";
-import { normalizeDate, isValidYMD, isFutureDate } from "@/lib/dates";
+import { normalizeDateOrNull, validateDateRange } from "@/lib/dates";
 
 const SERVICE_TYPE = z.enum([
   "car",
@@ -34,6 +34,7 @@ const Body = z.object({
   assetSlug: z.string().optional(),
   assetTitle: z.string().optional(),
   preferredDate: z.string().optional(),
+  preferredEndDate: z.string().optional(),
   preferredTime: z.string().optional(),
   location: z.string().optional(),
   notes: z.string().max(2000).optional(),
@@ -51,33 +52,18 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: false, error: "invalid_payload" }, { status: 400 });
   }
 
-  // Normalize + validate the preferred date. Blank/whitespace becomes null so
-  // the date column never receives "". Same-day and past dates are rejected.
-  const preferredDate = normalizeDate(parsed.preferredDate);
-  if (preferredDate !== null) {
-    if (!isValidYMD(preferredDate)) {
-      console.warn(
-        `[requests] Rejected invalid date format — service: ${parsed.serviceType ?? "other"}`,
-      );
-      return NextResponse.json(
-        { ok: false, error: "invalid_date", message: "Please enter a valid date." },
-        { status: 400 },
-      );
-    }
-    if (!isFutureDate(preferredDate)) {
-      console.warn(
-        `[requests] Rejected past/same-day date — service: ${parsed.serviceType ?? "other"}`,
-      );
-      return NextResponse.json(
-        {
-          ok: false,
-          error: "invalid_date",
-          message:
-            "Requested dates must be at least one day in advance. Please choose a date from tomorrow onward.",
-        },
-        { status: 400 },
-      );
-    }
+  // Normalize + validate dates for EVERY service. Blank/whitespace becomes null
+  // so date columns never receive "". Past and same-day dates are rejected, and
+  // an end date (when present) must fall after the start date.
+  const preferredDate = normalizeDateOrNull(parsed.preferredDate);
+  const preferredEndDate = normalizeDateOrNull(parsed.preferredEndDate);
+  const dateError = validateDateRange(preferredDate, preferredEndDate);
+  if (dateError) {
+    console.warn(`[requests] Rejected date — service: ${parsed.serviceType ?? "other"}`);
+    return NextResponse.json(
+      { ok: false, error: "invalid_date", message: dateError },
+      { status: 400 },
+    );
   }
 
   // Guard: trim catches empty strings (e.g. VAR= with no value in .env.local)

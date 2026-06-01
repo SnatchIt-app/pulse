@@ -6,7 +6,14 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import Input from "@/components/ui/Input";
 import Textarea from "@/components/ui/Textarea";
-import { tomorrowISO, isValidYMD, isFutureDate, isAfter } from "@/lib/dates";
+import {
+  getTomorrowDateString,
+  isValidYMD,
+  isFutureDate,
+  isAfter,
+  normalizeDateOrNull,
+  validateDateRange,
+} from "@/lib/dates";
 import {
   trackVehicleRequest,
   trackVehicleLead,
@@ -254,6 +261,21 @@ function getPrimaryDate(data: FormValues): string | undefined {
   }
 }
 
+/** Returns the canonical secondary (end) date for services that have a range. */
+function getSecondaryDate(data: FormValues): string | undefined {
+  switch (data.serviceType) {
+    case "car":
+    case "chauffeur":
+      return data.endDate;
+    case "jet":
+      return data.returnDate;
+    case "residence":
+      return data.checkOut;
+    default:
+      return undefined;
+  }
+}
+
 /** Returns the canonical primary location for the lead record. */
 function getPrimaryLocation(data: FormValues): string | undefined {
   switch (data.serviceType) {
@@ -496,13 +518,9 @@ export default function RequestForm({
 }: Props) {
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  // Minimum selectable date = tomorrow (business tz). Set after mount to keep the
-  // server-rendered markup and client hydration in sync.
-  const [minDate, setMinDate] = useState("");
-
-  useEffect(() => {
-    setMinDate(tomorrowISO());
-  }, []);
+  // Minimum selectable date = tomorrow (business tz). Computed synchronously so the
+  // `min` attribute is present on the very first paint, not just after mount.
+  const [minDate] = useState(() => getTomorrowDateString());
 
   const assetSlug = vehicleSlug ?? yachtSlug ?? jetSlug ?? residenceSlug ?? experienceSlug;
 
@@ -540,6 +558,16 @@ export default function RequestForm({
   const serviceType = watch("serviceType");
 
   async function onSubmit(data: FormValues) {
+    // Submit-time guard — runs regardless of input `min` support or resolver state.
+    const primaryDate = normalizeDateOrNull(getPrimaryDate(data));
+    const secondaryDate = normalizeDateOrNull(getSecondaryDate(data));
+    const dateError = validateDateRange(primaryDate, secondaryDate);
+    if (dateError) {
+      setStatus("error");
+      setErrorMsg(dateError);
+      return;
+    }
+
     setStatus("loading");
     setErrorMsg(null);
     trackFormSubmit(data.serviceType);
@@ -558,7 +586,8 @@ export default function RequestForm({
           serviceType: data.serviceType,
           assetSlug,
           assetTitle,
-          preferredDate: getPrimaryDate(data),
+          preferredDate: primaryDate ?? undefined,
+          preferredEndDate: secondaryDate ?? undefined,
           location: getPrimaryLocation(data),
           notes: combinedNotes || undefined,
         }),
