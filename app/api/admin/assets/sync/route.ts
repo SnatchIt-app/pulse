@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
+import { requireWriteAccess } from "@/lib/auth";
 import { cars } from "@/data/inventory/cars";
 import { jets } from "@/data/inventory/jets";
 import { yachts } from "@/data/inventory/yachts";
@@ -86,6 +87,9 @@ function buildSeedRows(): AssetRow[] {
 }
 
 export async function POST() {
+  const denied = await requireWriteAccess();
+  if (denied) return denied;
+
   const supabase = getSupabaseAdmin();
   const seedRows = buildSeedRows();
 

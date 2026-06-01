@@ -16,7 +16,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   if (!id) return NextResponse.json({ ok: false, error: "missing_id" }, { status: 400 });
 
   const me = await getAdminUser();
-  if (!me || !canManageUsers(me.role)) {
+  if (!me || !me.is_active || !canManageUsers(me.role)) {
     return NextResponse.json({ ok: false, error: "forbidden" }, { status: 403 });
   }
 
@@ -56,7 +56,7 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
   if (!id) return NextResponse.json({ ok: false, error: "missing_id" }, { status: 400 });
 
   const me = await getAdminUser();
-  if (!me || !canManageUsers(me.role)) {
+  if (!me || !me.is_active || !canManageUsers(me.role)) {
     return NextResponse.json({ ok: false, error: "forbidden" }, { status: 403 });
   }
   if (id === me.id) {

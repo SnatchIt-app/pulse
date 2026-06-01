@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { logActivity } from "@/lib/activity";
+import { requireWriteAccess } from "@/lib/auth";
 
 // Full enum — includes legacy values (qualified, completed, lost) for backward compat
 const VALID_STATUSES = [
@@ -19,6 +20,9 @@ const VALID_STATUSES = [
 const Body = z.object({ status: z.enum(VALID_STATUSES) });
 
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const denied = await requireWriteAccess();
+  if (denied) return denied;
+
   const { id } = await params;
 
   if (!id) {

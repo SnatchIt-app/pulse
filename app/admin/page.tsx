@@ -182,7 +182,6 @@ export default async function AdminPage() {
           { href: "/admin/tasks", label: "Tasks" },
           { href: "/admin/revenue", label: "Revenue" },
           { href: "/admin/vendors", label: "Vendors" },
-          { href: "/admin/dashboard", label: "Dashboard" },
         ].map((link) => (
           <Link
             key={link.href}

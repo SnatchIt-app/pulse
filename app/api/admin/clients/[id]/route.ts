@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
+import { requireWriteAccess } from "@/lib/auth";
 
 const PatchBody = z.object({
   full_name: z.string().min(1).max(200).optional(),
@@ -11,6 +12,9 @@ const PatchBody = z.object({
 });
 
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const denied = await requireWriteAccess();
+  if (denied) return denied;
+
   const { id } = await params;
   if (!id) return NextResponse.json({ ok: false, error: "missing_id" }, { status: 400 });
 
@@ -31,6 +35,9 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
 }
 
 export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const denied = await requireWriteAccess();
+  if (denied) return denied;
+
   const { id } = await params;
   if (!id) return NextResponse.json({ ok: false, error: "missing_id" }, { status: 400 });
 

@@ -1,4 +1,5 @@
 import "server-only";
+import { NextResponse } from "next/server";
 import { getSupabaseServer } from "@/lib/supabase/server";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 
@@ -63,4 +64,30 @@ export function canManageUsers(role: AdminRole): boolean {
 
 export function canWrite(role: AdminRole): boolean {
   return role !== "viewer";
+}
+
+/**
+ * In-handler authorization guard for admin mutation routes. Defense-in-depth so
+ * authorization never rests solely on middleware. Returns a NextResponse to
+ * return early when denied, or null when the caller may proceed.
+ *
+ * opts.manageUsers — require owner/admin (team management surface).
+ */
+export async function requireWriteAccess(opts?: {
+  manageUsers?: boolean;
+}): Promise<NextResponse | null> {
+  const user = await getAdminUser();
+  if (!user || !user.is_active) {
+    return NextResponse.json({ ok: false, error: "unauthorized" }, { status: 401 });
+  }
+  if (opts?.manageUsers) {
+    if (!canManageUsers(user.role)) {
+      return NextResponse.json({ ok: false, error: "forbidden" }, { status: 403 });
+    }
+    return null;
+  }
+  if (!canWrite(user.role)) {
+    return NextResponse.json({ ok: false, error: "read_only" }, { status: 403 });
+  }
+  return null;
 }

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
+import { requireWriteAccess } from "@/lib/auth";
 
 const ENTITY_TYPES = ["lead", "booking", "client", "asset"] as const;
 
@@ -29,6 +30,9 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
+  const denied = await requireWriteAccess();
+  if (denied) return denied;
+
   let parsed: z.infer<typeof CreateBody>;
   try {
     parsed = CreateBody.parse(await req.json());

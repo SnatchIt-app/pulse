@@ -108,6 +108,7 @@ function ClientDrawer({
   const [showTagInput, setShowTagInput] = useState(false);
   const [savingNotes, setSavingNotes] = useState(false);
   const [notesSaved, setNotesSaved] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [historyBookings, setHistoryBookings] = useState<HistoryBooking[] | null>(null);
   const [historyLeads, setHistoryLeads] = useState<HistoryLead[] | null>(null);
@@ -152,22 +153,36 @@ function ClientDrawer({
     };
   }, [activeTab, client.id, historyBookings]);
 
-  async function savePatch(patch: Partial<Pick<Client, "tags" | "notes">>) {
-    await fetch(`/api/admin/clients/${client.id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(patch),
-    });
-    onUpdate(client.id, patch);
+  async function savePatch(patch: Partial<Pick<Client, "tags" | "notes">>): Promise<boolean> {
+    setSaveError(null);
+    try {
+      const res = await fetch(`/api/admin/clients/${client.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(patch),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setSaveError(data.error === "read_only" ? "Read-only access." : "Could not save.");
+        return false;
+      }
+      onUpdate(client.id, patch);
+      return true;
+    } catch {
+      setSaveError("Could not save.");
+      return false;
+    }
   }
 
   async function saveNotes() {
     setSavingNotes(true);
     setNotesSaved(false);
     try {
-      await savePatch({ notes: notes.trim() || null });
-      setNotesSaved(true);
-      setTimeout(() => setNotesSaved(false), 2000);
+      const ok = await savePatch({ notes: notes.trim() || null });
+      if (ok) {
+        setNotesSaved(true);
+        setTimeout(() => setNotesSaved(false), 2000);
+      }
     } finally {
       setSavingNotes(false);
     }
@@ -184,13 +199,16 @@ function ClientDrawer({
     setTags(next);
     setNewTag("");
     setShowTagInput(false);
-    await savePatch({ tags: next });
+    const ok = await savePatch({ tags: next });
+    if (!ok) setTags(tags); // revert
   }
 
   async function removeTag(tag: string) {
+    const prev = tags;
     const next = tags.filter((t) => t !== tag);
     setTags(next);
-    await savePatch({ tags: next });
+    const ok = await savePatch({ tags: next });
+    if (!ok) setTags(prev); // revert
   }
 
   return (
@@ -330,6 +348,7 @@ function ClientDrawer({
             {savingNotes && (
               <p className="text-paper/30 mt-1 text-[9px] uppercase tracking-[0.18em]">Saving…</p>
             )}
+            {saveError && <p className="mt-1 text-[11px] text-red-400">{saveError}</p>}
           </div>
 
           {/* Follow-up task */}

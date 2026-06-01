@@ -168,6 +168,7 @@ function LeadDrawer({
   const [assigned, setAssigned] = useState(lead.assigned_to ?? "");
   const [savingNotes, setSavingNotes] = useState(false);
   const [notesSaved, setNotesSaved] = useState(false);
+  const [notesError, setNotesError] = useState<string | null>(null);
 
   const [convertData, setConvertData] = useState<ConvertData>({
     asset_title: "",
@@ -225,15 +226,23 @@ function LeadDrawer({
   const saveNotes = useCallback(async () => {
     setSavingNotes(true);
     setNotesSaved(false);
+    setNotesError(null);
     try {
-      await fetch(`/api/admin/leads/${lead.id}/notes`, {
+      const res = await fetch(`/api/admin/leads/${lead.id}/notes`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ admin_notes: notes, assigned_to: assigned }),
       });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setNotesError(data.error === "read_only" ? "Read-only access." : "Could not save.");
+        return;
+      }
       onLeadUpdate(lead.id, { admin_notes: notes, assigned_to: assigned });
       setNotesSaved(true);
       setTimeout(() => setNotesSaved(false), 2000);
+    } catch {
+      setNotesError("Could not save.");
     } finally {
       setSavingNotes(false);
     }
@@ -422,6 +431,7 @@ function LeadDrawer({
           {savingNotes && (
             <p className="text-paper/30 text-[9px] uppercase tracking-[0.18em]">Saving…</p>
           )}
+          {notesError && <p className="text-[11px] text-red-400">{notesError}</p>}
 
           {/* Follow-up task */}
           <div className="border-paper/10 border-t pt-5">

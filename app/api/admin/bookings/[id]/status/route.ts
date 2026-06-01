@@ -3,12 +3,16 @@ import { z } from "zod";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { logActivity } from "@/lib/activity";
 import { createTask } from "@/lib/tasks";
+import { requireWriteAccess } from "@/lib/auth";
 
 const VALID_STATUSES = ["pending", "confirmed", "in_progress", "completed", "cancelled"] as const;
 
 const Body = z.object({ status: z.enum(VALID_STATUSES) });
 
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const denied = await requireWriteAccess();
+  if (denied) return denied;
+
   const { id } = await params;
   if (!id) return NextResponse.json({ ok: false, error: "missing_id" }, { status: 400 });
 

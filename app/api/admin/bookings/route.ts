@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { logActivity } from "@/lib/activity";
+import { requireWriteAccess } from "@/lib/auth";
 import { normalizeDate, isValidYMD, isFutureDate, isAfter } from "@/lib/dates";
 
 const Body = z.object({
@@ -25,6 +26,9 @@ const Body = z.object({
 });
 
 export async function POST(req: Request) {
+  const denied = await requireWriteAccess();
+  if (denied) return denied;
+
   let parsed: z.infer<typeof Body>;
   try {
     parsed = Body.parse(await req.json());

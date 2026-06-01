@@ -176,10 +176,12 @@ function BookingDrawer({
   const [final, setFinal] = useState(booking.final_amount?.toString() ?? "");
   const [savingRevenue, setSavingRevenue] = useState(false);
   const [revenueSaved, setRevenueSaved] = useState(false);
+  const [revenueError, setRevenueError] = useState<string | null>(null);
 
   const [vendorNotes, setVendorNotes] = useState(booking.vendor_notes ?? "");
   const [savingVendor, setSavingVendor] = useState(false);
   const [vendorSaved, setVendorSaved] = useState(false);
+  const [vendorError, setVendorError] = useState<string | null>(null);
 
   const assignedVendor = vendors.find((v) => v.id === booking.vendor_id) ?? null;
 
@@ -214,6 +216,7 @@ function BookingDrawer({
   async function saveRevenue(patch: Partial<Booking>) {
     setSavingRevenue(true);
     setRevenueSaved(false);
+    setRevenueError(null);
     try {
       const body: Record<string, unknown> = {};
       if ("quoted_amount" in patch) body.quoted_amount = patch.quoted_amount;
@@ -226,10 +229,16 @@ function BookingDrawer({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
-      if (!res.ok) throw new Error("failed");
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setRevenueError(data.error === "read_only" ? "Read-only access." : "Could not save.");
+        return;
+      }
       onRevenueChange(booking.id, patch);
       setRevenueSaved(true);
       setTimeout(() => setRevenueSaved(false), 2000);
+    } catch {
+      setRevenueError("Could not save.");
     } finally {
       setSavingRevenue(false);
     }
@@ -238,6 +247,7 @@ function BookingDrawer({
   async function saveVendor(patch: Partial<Booking>) {
     setSavingVendor(true);
     setVendorSaved(false);
+    setVendorError(null);
     try {
       const body: Record<string, unknown> = {};
       if ("vendor_id" in patch) body.vendor_id = patch.vendor_id;
@@ -249,10 +259,16 @@ function BookingDrawer({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
-      if (!res.ok) throw new Error("failed");
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setVendorError(data.error === "read_only" ? "Read-only access." : "Could not save.");
+        return;
+      }
       onVendorChange(booking.id, patch);
       setVendorSaved(true);
       setTimeout(() => setVendorSaved(false), 2000);
+    } catch {
+      setVendorError("Could not save.");
     } finally {
       setSavingVendor(false);
     }
@@ -412,6 +428,7 @@ function BookingDrawer({
           {savingRevenue && (
             <p className="text-paper/30 mt-2 text-[9px] uppercase tracking-[0.18em]">Saving…</p>
           )}
+          {revenueError && <p className="mt-2 text-[11px] text-red-400">{revenueError}</p>}
         </div>
 
         {/* Vendor / Fulfillment */}
@@ -522,6 +539,7 @@ function BookingDrawer({
           {savingVendor && (
             <p className="text-paper/30 mt-2 text-[9px] uppercase tracking-[0.18em]">Saving…</p>
           )}
+          {vendorError && <p className="mt-2 text-[11px] text-red-400">{vendorError}</p>}
         </div>
 
         {/* Follow-up task */}

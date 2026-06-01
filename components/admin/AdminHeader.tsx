@@ -21,10 +21,11 @@ export default function AdminHeader({ email, role }: { email: string; role: Admi
     setSigningOut(true);
     try {
       await getSupabaseBrowser().auth.signOut();
+    } catch {
+      // Even if the network sign-out fails, route away so the user is not stranded.
+    } finally {
       router.push("/login");
       router.refresh();
-    } catch {
-      setSigningOut(false);
     }
   }
 
@@ -51,8 +52,14 @@ export default function AdminHeader({ email, role }: { email: string; role: Admi
         <span className="text-paper/35 hidden text-[9px] uppercase tracking-[0.18em] sm:inline">
           {email}
         </span>
-        <span className="border-paper/20 text-paper/50 border px-2 py-0.5 text-[8px] uppercase tracking-[0.18em]">
-          {ROLE_LABELS[role]}
+        <span
+          className={`border px-2 py-0.5 text-[8px] uppercase tracking-[0.18em] ${
+            role === "viewer"
+              ? "border-amber-400/40 text-amber-400"
+              : "border-paper/20 text-paper/50"
+          }`}
+        >
+          {role === "viewer" ? "Viewer · Read-only" : ROLE_LABELS[role]}
         </span>
         <button
           type="button"

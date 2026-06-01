@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { logActivity } from "@/lib/activity";
+import { requireWriteAccess } from "@/lib/auth";
 
 const VENDOR_STATUSES = ["not_needed", "pending", "confirmed", "cancelled"] as const;
 
@@ -12,6 +13,9 @@ const Body = z.object({
 });
 
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const denied = await requireWriteAccess();
+  if (denied) return denied;
+
   const { id } = await params;
   if (!id) return NextResponse.json({ ok: false, error: "missing_id" }, { status: 400 });
 

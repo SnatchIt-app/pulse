@@ -13,7 +13,7 @@ const CreateBody = z.object({
 
 export async function GET() {
   const me = await getAdminUser();
-  if (!me || !canManageUsers(me.role)) {
+  if (!me || !me.is_active || !canManageUsers(me.role)) {
     return NextResponse.json({ ok: false, error: "forbidden" }, { status: 403 });
   }
 
@@ -32,7 +32,7 @@ export async function GET() {
 
 export async function POST(req: Request) {
   const me = await getAdminUser();
-  if (!me || !canManageUsers(me.role)) {
+  if (!me || !me.is_active || !canManageUsers(me.role)) {
     return NextResponse.json({ ok: false, error: "forbidden" }, { status: 403 });
   }
 
