@@ -142,10 +142,10 @@ export default function Nav() {
             </Link>
             <div className="space-y-1.5">
               <a
-                href="tel:+17869188895"
+                href="tel:+17868624436"
                 className="text-ink/50 block text-[11px] tracking-[0.14em] transition-opacity hover:text-ink"
               >
-                (786) 918-8895
+                (786) 862-4436
               </a>
               <a
                 href="mailto:pulsexotics@exoticsinfo.com"

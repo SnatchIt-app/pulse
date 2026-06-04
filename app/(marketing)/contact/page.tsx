@@ -44,10 +44,10 @@ export default function ContactPage() {
                 <div className="border-ink/10 border-t pt-8">
                   <p className="text-ink/45 text-[10px] uppercase tracking-[0.26em]">Phone</p>
                   <a
-                    href="tel:+17869188895"
+                    href="tel:+17868624436"
                     className="mt-3 block font-display text-3xl leading-tight transition-opacity hover:opacity-60 sm:text-4xl"
                   >
-                    (786) 918-8895
+                    (786) 862-4436
                   </a>
                 </div>
 

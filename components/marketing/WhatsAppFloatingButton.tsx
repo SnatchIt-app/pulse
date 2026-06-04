@@ -4,7 +4,7 @@ import { useCallback } from "react";
 import { trackWhatsAppClick } from "@/lib/analytics";
 
 const WA_HREF =
-  "https://wa.me/17869188895?text=" +
+  "https://wa.me/17868624436?text=" +
   encodeURIComponent("Hi Pulse, I’m interested in arranging a luxury experience.");
 
 const ARIA_LABEL = "Chat with Pulse on WhatsApp";
