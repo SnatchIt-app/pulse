@@ -2,6 +2,9 @@
 
 import { useState, useMemo, useCallback, useEffect } from "react";
 import QuickAddTask from "@/components/admin/QuickAddTask";
+import { tomorrowISO } from "@/lib/dates";
+
+const MIN_BOOKING_DATE = tomorrowISO();
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -37,6 +40,19 @@ export type VendorOption = {
   email: string | null;
   phone: string | null;
   status: string;
+};
+
+export type AssetOption = {
+  id: string;
+  name: string;
+  service_type: string;
+};
+
+export type ClientOption = {
+  id: string;
+  full_name: string;
+  email: string | null;
+  phone: string | null;
 };
 
 const VENDOR_STATUSES = ["not_needed", "pending", "confirmed", "cancelled"] as const;
@@ -578,20 +594,484 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
   );
 }
 
+// ─── Add Booking Drawer ───────────────────────────────────────────────────────
+
+const BOOKING_SERVICE_OPTIONS = [
+  "car",
+  "yacht",
+  "jet",
+  "jet_ski",
+  "chauffeur",
+  "restaurant",
+  "nightlife",
+  "residence",
+  "concierge",
+  "other",
+] as const;
+
+function AddBookingDrawer({
+  vendors,
+  assets,
+  clients,
+  onClose,
+  onCreated,
+}: {
+  vendors: VendorOption[];
+  assets: AssetOption[];
+  clients: ClientOption[];
+  onClose: () => void;
+  onCreated: (booking: Booking) => void;
+}) {
+  const [clientId, setClientId] = useState("");
+  const [clientName, setClientName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [serviceType, setServiceType] = useState<string>("car");
+  const [assetId, setAssetId] = useState("");
+  const [assetTitle, setAssetTitle] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [status, setStatus] = useState("pending");
+  const [notes, setNotes] = useState("");
+  const [vendorId, setVendorId] = useState("");
+  const [vendorStatus, setVendorStatus] = useState("not_needed");
+  const [quoted, setQuoted] = useState("");
+  const [deposit, setDeposit] = useState("");
+  const [final, setFinal] = useState("");
+  const [paymentStatus, setPaymentStatus] = useState("none");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") onClose();
+    }
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  function selectClient(id: string) {
+    setClientId(id);
+    const c = clients.find((x) => x.id === id);
+    if (c) {
+      setClientName(c.full_name);
+      setEmail(c.email ?? "");
+      setPhone(c.phone ?? "");
+    }
+  }
+
+  function selectAsset(id: string) {
+    setAssetId(id);
+    const a = assets.find((x) => x.id === id);
+    if (a) {
+      setAssetTitle(a.name);
+      setServiceType(a.service_type);
+    }
+  }
+
+  function toNum(s: string): number | undefined {
+    const t = s.trim();
+    if (!t) return undefined;
+    const n = Number(t);
+    return Number.isFinite(n) && n >= 0 ? n : undefined;
+  }
+
+  async function handleSave() {
+    if (!clientName.trim()) {
+      setError("Client name is required.");
+      return;
+    }
+    if (!email.trim()) {
+      setError("Email is required.");
+      return;
+    }
+    setSaving(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/admin/bookings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          service_type: serviceType,
+          client_name: clientName.trim(),
+          email: email.trim(),
+          phone: phone.trim() || undefined,
+          asset_id: assetId || undefined,
+          asset_title: assetTitle.trim() || undefined,
+          start_date: startDate || undefined,
+          end_date: endDate || undefined,
+          status,
+          notes: notes.trim() || undefined,
+          vendor_id: vendorId || undefined,
+          vendor_status: vendorStatus,
+          quoted_amount: toNum(quoted),
+          deposit_amount: toNum(deposit),
+          final_amount: toNum(final),
+          payment_status: paymentStatus,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.status === 409) {
+        const c = data.conflict;
+        setError(
+          `Conflict: "${c?.client_name}" has this asset from ${c?.start_date} to ${c?.end_date}. Choose different dates or asset.`,
+        );
+        return;
+      }
+      if (!res.ok) {
+        setError(
+          data.error === "read_only"
+            ? "Read-only access."
+            : (data.message ?? "Could not create booking. Please try again."),
+        );
+        return;
+      }
+      onCreated(data.booking as Booking);
+    } catch {
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div className="flex h-full flex-col overflow-y-auto p-6 md:p-8">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <p className="text-paper/40 text-[9px] uppercase tracking-[0.24em]">New Booking</p>
+          <h2 className="mt-1 font-display text-2xl text-paper">Add Booking</h2>
+        </div>
+        <button
+          type="button"
+          onClick={onClose}
+          className="text-paper/40 mt-1 shrink-0 text-lg transition-opacity hover:text-paper"
+        >
+          ✕
+        </button>
+      </div>
+
+      <div className="mt-6 space-y-5">
+        {/* Client */}
+        {clients.length > 0 && (
+          <AddField label="Existing Client">
+            <div className="relative">
+              <select
+                value={clientId}
+                onChange={(e) => selectClient(e.target.value)}
+                className="border-paper/15 focus:border-paper/35 w-full cursor-pointer appearance-none border-b bg-transparent py-2 pr-6 text-sm text-paper outline-none transition-colors"
+              >
+                <option value="" className="text-paper/50 bg-graphite">
+                  — new client —
+                </option>
+                {clients.map((c) => (
+                  <option key={c.id} value={c.id} className="bg-graphite text-paper">
+                    {c.full_name}
+                    {c.email ? ` · ${c.email}` : ""}
+                  </option>
+                ))}
+              </select>
+              <span className="text-paper/30 pointer-events-none absolute right-1 top-1/2 -translate-y-1/2 text-[8px]">
+                ↓
+              </span>
+            </div>
+          </AddField>
+        )}
+
+        <AddField label="Client Name">
+          <input
+            type="text"
+            value={clientName}
+            onChange={(e) => setClientName(e.target.value)}
+            placeholder="First & last name"
+            className="border-paper/15 placeholder:text-paper/20 focus:border-paper/35 w-full border-b bg-transparent py-2 text-sm text-paper outline-none transition-colors"
+          />
+        </AddField>
+
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <AddField label="Email">
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="name@example.com"
+              className="border-paper/15 placeholder:text-paper/20 focus:border-paper/35 w-full border-b bg-transparent py-2 text-sm text-paper outline-none transition-colors"
+            />
+          </AddField>
+          <AddField label="Phone">
+            <input
+              type="tel"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              placeholder="+1 …"
+              className="border-paper/15 placeholder:text-paper/20 focus:border-paper/35 w-full border-b bg-transparent py-2 text-sm text-paper outline-none transition-colors"
+            />
+          </AddField>
+        </div>
+
+        {/* Asset */}
+        {assets.length > 0 && (
+          <AddField label="Asset — enables conflict detection">
+            <div className="relative">
+              <select
+                value={assetId}
+                onChange={(e) => selectAsset(e.target.value)}
+                className="border-paper/15 focus:border-paper/35 w-full cursor-pointer appearance-none border-b bg-transparent py-2 pr-6 text-sm text-paper outline-none transition-colors"
+              >
+                <option value="" className="text-paper/50 bg-graphite">
+                  — no asset —
+                </option>
+                {assets.map((a) => (
+                  <option key={a.id} value={a.id} className="bg-graphite text-paper">
+                    {a.name}
+                  </option>
+                ))}
+              </select>
+              <span className="text-paper/30 pointer-events-none absolute right-1 top-1/2 -translate-y-1/2 text-[8px]">
+                ↓
+              </span>
+            </div>
+          </AddField>
+        )}
+
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <AddField label="Service">
+            <div className="relative">
+              <select
+                value={serviceType}
+                onChange={(e) => setServiceType(e.target.value)}
+                className="border-paper/15 focus:border-paper/35 w-full cursor-pointer appearance-none border-b bg-transparent py-2 pr-6 text-sm text-paper outline-none transition-colors"
+              >
+                {BOOKING_SERVICE_OPTIONS.map((s) => (
+                  <option key={s} value={s} className="bg-graphite text-paper">
+                    {SERVICE_LABELS[s] ?? s}
+                  </option>
+                ))}
+              </select>
+              <span className="text-paper/30 pointer-events-none absolute right-1 top-1/2 -translate-y-1/2 text-[8px]">
+                ↓
+              </span>
+            </div>
+          </AddField>
+          <AddField label="Asset Label">
+            <input
+              type="text"
+              value={assetTitle}
+              onChange={(e) => setAssetTitle(e.target.value)}
+              placeholder="e.g. Lamborghini Urus"
+              className="border-paper/15 placeholder:text-paper/20 focus:border-paper/35 w-full border-b bg-transparent py-2 text-sm text-paper outline-none transition-colors"
+            />
+          </AddField>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <AddField label="Start Date">
+            <input
+              type="date"
+              min={MIN_BOOKING_DATE}
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              className="border-paper/15 focus:border-paper/35 w-full border-b bg-transparent py-2 text-sm text-paper outline-none transition-colors"
+            />
+          </AddField>
+          <AddField label="End Date">
+            <input
+              type="date"
+              min={startDate || MIN_BOOKING_DATE}
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              className="border-paper/15 focus:border-paper/35 w-full border-b bg-transparent py-2 text-sm text-paper outline-none transition-colors"
+            />
+          </AddField>
+        </div>
+
+        <AddField label="Status">
+          <div className="relative inline-flex items-center">
+            <select
+              value={status}
+              onChange={(e) => setStatus(e.target.value)}
+              className={`cursor-pointer appearance-none border bg-transparent py-1.5 pl-3 pr-7 text-[10px] uppercase tracking-[0.18em] outline-none transition-colors ${
+                STATUS_COLORS[status] ?? "border-paper/10 text-paper/40"
+              }`}
+            >
+              {STATUSES.map((s) => (
+                <option
+                  key={s}
+                  value={s}
+                  className="bg-graphite text-sm normal-case tracking-normal text-paper"
+                >
+                  {STATUS_LABELS[s]}
+                </option>
+              ))}
+            </select>
+            <span className="text-paper/30 pointer-events-none absolute right-2 text-[8px]">↓</span>
+          </div>
+        </AddField>
+
+        {/* Vendor */}
+        {vendors.length > 0 && (
+          <div className="border-paper/10 grid grid-cols-1 gap-4 border-t pt-5 sm:grid-cols-2">
+            <AddField label="Vendor">
+              <div className="relative">
+                <select
+                  value={vendorId}
+                  onChange={(e) => setVendorId(e.target.value)}
+                  className="border-paper/15 focus:border-paper/35 w-full cursor-pointer appearance-none border-b bg-transparent py-2 pr-6 text-sm text-paper outline-none transition-colors"
+                >
+                  <option value="" className="text-paper/50 bg-graphite">
+                    — none —
+                  </option>
+                  {vendors.map((v) => (
+                    <option key={v.id} value={v.id} className="bg-graphite text-paper">
+                      {v.name}
+                    </option>
+                  ))}
+                </select>
+                <span className="text-paper/30 pointer-events-none absolute right-1 top-1/2 -translate-y-1/2 text-[8px]">
+                  ↓
+                </span>
+              </div>
+            </AddField>
+            <AddField label="Vendor Status">
+              <div className="relative">
+                <select
+                  value={vendorStatus}
+                  onChange={(e) => setVendorStatus(e.target.value)}
+                  className="border-paper/15 focus:border-paper/35 w-full cursor-pointer appearance-none border-b bg-transparent py-2 pr-6 text-sm text-paper outline-none transition-colors"
+                >
+                  {VENDOR_STATUSES.map((s) => (
+                    <option key={s} value={s} className="bg-graphite text-paper">
+                      {VENDOR_STATUS_LABELS[s]}
+                    </option>
+                  ))}
+                </select>
+                <span className="text-paper/30 pointer-events-none absolute right-1 top-1/2 -translate-y-1/2 text-[8px]">
+                  ↓
+                </span>
+              </div>
+            </AddField>
+          </div>
+        )}
+
+        {/* Revenue */}
+        <div className="border-paper/10 border-t pt-5">
+          <p className="text-paper/25 mb-3 text-[8px] uppercase tracking-[0.18em]">
+            Revenue (optional)
+          </p>
+          <div className="grid grid-cols-3 gap-3">
+            {[
+              { label: "Quoted", value: quoted, set: setQuoted },
+              { label: "Deposit", value: deposit, set: setDeposit },
+              { label: "Final", value: final, set: setFinal },
+            ].map((f) => (
+              <div key={f.label}>
+                <p className="text-paper/25 mb-1 text-[8px] uppercase tracking-[0.18em]">
+                  {f.label}
+                </p>
+                <div className="border-paper/15 focus-within:border-paper/35 flex items-center border-b transition-colors">
+                  <span className="text-paper/30 text-[11px]">$</span>
+                  <input
+                    type="number"
+                    min="0"
+                    value={f.value}
+                    onChange={(e) => f.set(e.target.value)}
+                    placeholder="0"
+                    className="placeholder:text-paper/20 w-full bg-transparent py-1.5 pl-1 text-[12px] text-paper outline-none"
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="mt-4">
+            <p className="text-paper/25 mb-2 text-[8px] uppercase tracking-[0.18em]">
+              Payment Status
+            </p>
+            <div className="relative inline-flex items-center">
+              <select
+                value={paymentStatus}
+                onChange={(e) => setPaymentStatus(e.target.value)}
+                className={`cursor-pointer appearance-none border bg-transparent py-1.5 pl-3 pr-7 text-[10px] uppercase tracking-[0.18em] outline-none transition-colors ${
+                  PAYMENT_COLORS[paymentStatus] ?? "border-paper/10 text-paper/40"
+                }`}
+              >
+                {PAYMENT_STATUSES.map((s) => (
+                  <option
+                    key={s}
+                    value={s}
+                    className="bg-graphite text-sm normal-case tracking-normal text-paper"
+                  >
+                    {PAYMENT_LABELS[s]}
+                  </option>
+                ))}
+              </select>
+              <span className="text-paper/30 pointer-events-none absolute right-2 text-[8px]">
+                ↓
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <AddField label="Notes">
+          <textarea
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            rows={3}
+            placeholder="Internal booking notes…"
+            className="border-paper/15 placeholder:text-paper/20 focus:border-paper/35 w-full resize-none border bg-transparent p-3 text-[12px] leading-relaxed text-paper outline-none transition-colors"
+          />
+        </AddField>
+
+        {error && (
+          <p className="border border-red-400/20 bg-red-400/5 p-3 text-[11px] leading-relaxed text-red-400">
+            {error}
+          </p>
+        )}
+
+        <button
+          type="button"
+          onClick={handleSave}
+          disabled={saving}
+          className="w-full bg-paper py-3 text-[10px] uppercase tracking-[0.24em] text-ink transition-opacity hover:opacity-80 disabled:opacity-50"
+        >
+          {saving ? "Creating…" : "Add Booking"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function AddField({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <p className="text-paper/35 mb-2 text-[9px] uppercase tracking-[0.22em]">{label}</p>
+      {children}
+    </div>
+  );
+}
+
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function BookingsClient({
   initialBookings,
   vendors,
+  assets,
+  clients,
 }: {
   initialBookings: Booking[];
   vendors: VendorOption[];
+  assets: AssetOption[];
+  clients: ClientOption[];
 }) {
   const [bookings, setBookings] = useState<Booking[]>(initialBookings);
   const [filter, setFilter] = useState<StatusFilter>("all");
   const [search, setSearch] = useState("");
   const [updateError, setUpdateError] = useState<string | null>(null);
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
+  const [showAdd, setShowAdd] = useState(false);
+
+  const handleBookingCreated = useCallback((booking: Booking) => {
+    setBookings((bs) => [booking, ...bs]);
+    setShowAdd(false);
+  }, []);
 
   const counts = useMemo(
     () =>
@@ -678,8 +1158,8 @@ export default function BookingsClient({
         ))}
       </div>
 
-      {/* Search */}
-      <div className="mt-8">
+      {/* Search + Add */}
+      <div className="mt-8 flex flex-wrap items-center gap-3">
         <input
           type="search"
           value={search}
@@ -687,6 +1167,13 @@ export default function BookingsClient({
           placeholder="Search client, email, or asset…"
           className="border-paper/20 placeholder:text-paper/25 focus:border-paper/50 w-full border-b bg-transparent py-2 text-sm text-paper outline-none transition-colors sm:max-w-sm"
         />
+        <button
+          type="button"
+          onClick={() => setShowAdd(true)}
+          className="border-paper/25 text-paper/70 hover:border-paper/50 ml-auto border px-4 py-2 text-[10px] uppercase tracking-[0.2em] transition-colors hover:text-paper"
+        >
+          + Add Booking
+        </button>
       </div>
 
       {/* Filter tabs */}
@@ -832,6 +1319,33 @@ export default function BookingsClient({
           {search.trim() || filter !== "all" ? "No matching bookings." : "No bookings yet."}
         </p>
       )}
+
+      {/* Add Booking drawer */}
+      <div
+        aria-hidden="true"
+        className={`bg-ink/70 fixed inset-0 z-40 transition-opacity duration-[360ms] ${
+          showAdd ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
+        }`}
+        onClick={() => setShowAdd(false)}
+      />
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label="Add booking"
+        className={`fixed right-0 top-0 z-50 h-screen w-full overflow-hidden bg-graphite shadow-2xl transition-transform duration-[360ms] ease-[cubic-bezier(0.16,1,0.3,1)] sm:w-[520px] ${
+          showAdd ? "translate-x-0" : "translate-x-full"
+        }`}
+      >
+        {showAdd && (
+          <AddBookingDrawer
+            vendors={vendors}
+            assets={assets}
+            clients={clients}
+            onClose={() => setShowAdd(false)}
+            onCreated={handleBookingCreated}
+          />
+        )}
+      </div>
 
       {/* Backdrop */}
       <div

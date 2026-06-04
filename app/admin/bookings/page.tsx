@@ -19,19 +19,26 @@ export default async function BookingsPage() {
   }
 
   const supabase = getSupabaseAdmin();
-  const [{ data: bookings, error }, { data: vendors }] = await Promise.all([
-    supabase
-      .from("bookings")
-      .select(
-        "id, lead_id, client_id, service_type, client_name, phone, email, start_date, end_date, asset_title, asset_id, notes, status, quoted_amount, deposit_amount, final_amount, payment_status, vendor_id, vendor_status, vendor_notes, created_at",
-      )
-      .order("created_at", { ascending: false }),
-    supabase
-      .from("vendors")
-      .select("id, name, category, contact_name, email, phone, status")
-      .order("status", { ascending: true })
-      .order("name"),
-  ]);
+  const [{ data: bookings, error }, { data: vendors }, { data: assets }, { data: clients }] =
+    await Promise.all([
+      supabase
+        .from("bookings")
+        .select(
+          "id, lead_id, client_id, service_type, client_name, phone, email, start_date, end_date, asset_title, asset_id, notes, status, quoted_amount, deposit_amount, final_amount, payment_status, vendor_id, vendor_status, vendor_notes, created_at",
+        )
+        .order("created_at", { ascending: false }),
+      supabase
+        .from("vendors")
+        .select("id, name, category, contact_name, email, phone, status")
+        .order("status", { ascending: true })
+        .order("name"),
+      supabase
+        .from("assets")
+        .select("id, name, service_type")
+        .order("source_inventory_type", { nullsFirst: false })
+        .order("name"),
+      supabase.from("clients").select("id, full_name, email, phone").order("full_name"),
+    ]);
 
   return (
     <main className="min-h-screen px-6 pb-24 pt-16 md:px-12">
@@ -50,7 +57,14 @@ export default async function BookingsPage() {
 
       {error && <p className="mt-8 text-sm text-red-400">Database error: {error.message}</p>}
 
-      {!error && <BookingsClient initialBookings={bookings ?? []} vendors={vendors ?? []} />}
+      {!error && (
+        <BookingsClient
+          initialBookings={bookings ?? []}
+          vendors={vendors ?? []}
+          assets={assets ?? []}
+          clients={clients ?? []}
+        />
+      )}
     </main>
   );
 }

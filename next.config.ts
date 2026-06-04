@@ -4,8 +4,13 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
   images: {
     formats: ["image/avif", "image/webp"],
-    // Supabase Storage remotePatterns added once project URL is set.
-    remotePatterns: [],
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "aihgejwdvkvngjwttxij.supabase.co",
+        pathname: "/storage/v1/object/public/**",
+      },
+    ],
   },
   async redirects() {
     return [

@@ -623,6 +623,261 @@ function ConvertField({ label, children }: { label: string; children: React.Reac
   );
 }
 
+// ─── Add Lead Drawer ──────────────────────────────────────────────────────────
+
+const LEAD_SERVICE_OPTIONS = [
+  "car",
+  "yacht",
+  "jet",
+  "jet_ski",
+  "chauffeur",
+  "restaurant",
+  "nightlife",
+  "residence",
+  "experience",
+  "concierge",
+  "other",
+] as const;
+
+const SOURCE_OPTIONS: { value: string; label: string }[] = [
+  { value: "manual", label: "Manual Entry" },
+  { value: "phone", label: "Phone Call" },
+  { value: "whatsapp", label: "WhatsApp" },
+  { value: "instagram", label: "Instagram" },
+  { value: "referral", label: "Referral" },
+  { value: "website", label: "Website" },
+  { value: "other", label: "Other" },
+];
+
+const ADD_STATUS_OPTIONS = ["new", "contacted", "qualified", "quoted"] as const;
+
+function AddLeadDrawer({
+  onClose,
+  onCreated,
+}: {
+  onClose: () => void;
+  onCreated: (lead: Lead) => void;
+}) {
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [serviceType, setServiceType] = useState<string>("car");
+  const [startDate, setStartDate] = useState("");
+  const [notes, setNotes] = useState("");
+  const [source, setSource] = useState("manual");
+  const [assignedTo, setAssignedTo] = useState("");
+  const [status, setStatus] = useState("new");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") onClose();
+    }
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  async function handleSave() {
+    if (!fullName.trim()) {
+      setError("Full name is required.");
+      return;
+    }
+    if (!email.trim()) {
+      setError("Email is required.");
+      return;
+    }
+    setSaving(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/admin/leads", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          full_name: fullName.trim(),
+          email: email.trim(),
+          phone: phone.trim() || undefined,
+          service_type: serviceType,
+          start_date: startDate || undefined,
+          notes: notes.trim() || undefined,
+          source,
+          assigned_to: assignedTo.trim() || undefined,
+          status,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(
+          data.error === "read_only"
+            ? "Read-only access."
+            : (data.message ?? "Could not add lead. Please try again."),
+        );
+        return;
+      }
+      onCreated(data.lead as Lead);
+    } catch {
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div className="flex h-full flex-col overflow-y-auto p-6 md:p-8">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <p className="text-paper/40 text-[9px] uppercase tracking-[0.24em]">New Lead</p>
+          <h2 className="mt-1 font-display text-2xl text-paper">Add Lead</h2>
+        </div>
+        <button
+          type="button"
+          onClick={onClose}
+          className="text-paper/40 mt-1 shrink-0 text-lg transition-opacity hover:text-paper"
+        >
+          ✕
+        </button>
+      </div>
+
+      <p className="text-paper/45 mt-3 text-[11px] leading-relaxed">
+        For inquiries from phone, WhatsApp, Instagram, referrals, or direct conversations.
+      </p>
+
+      <div className="mt-6 space-y-5">
+        <ConvertField label="Full Name">
+          <input
+            type="text"
+            value={fullName}
+            onChange={(e) => setFullName(e.target.value)}
+            placeholder="First & last name"
+            className="border-paper/15 placeholder:text-paper/20 focus:border-paper/35 w-full border-b bg-transparent py-2 text-sm text-paper outline-none transition-colors"
+          />
+        </ConvertField>
+
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <ConvertField label="Email">
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="name@example.com"
+              className="border-paper/15 placeholder:text-paper/20 focus:border-paper/35 w-full border-b bg-transparent py-2 text-sm text-paper outline-none transition-colors"
+            />
+          </ConvertField>
+          <ConvertField label="Phone">
+            <input
+              type="tel"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              placeholder="+1 …"
+              className="border-paper/15 placeholder:text-paper/20 focus:border-paper/35 w-full border-b bg-transparent py-2 text-sm text-paper outline-none transition-colors"
+            />
+          </ConvertField>
+        </div>
+
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <ConvertField label="Service">
+            <div className="relative">
+              <select
+                value={serviceType}
+                onChange={(e) => setServiceType(e.target.value)}
+                className="border-paper/15 focus:border-paper/35 w-full cursor-pointer appearance-none border-b bg-transparent py-2 pr-6 text-sm text-paper outline-none transition-colors"
+              >
+                {LEAD_SERVICE_OPTIONS.map((s) => (
+                  <option key={s} value={s} className="bg-graphite text-paper">
+                    {SERVICE_LABELS[s] ?? s}
+                  </option>
+                ))}
+              </select>
+              <span className="text-paper/30 pointer-events-none absolute right-1 top-1/2 -translate-y-1/2 text-[8px]">
+                ↓
+              </span>
+            </div>
+          </ConvertField>
+          <ConvertField label="Source">
+            <div className="relative">
+              <select
+                value={source}
+                onChange={(e) => setSource(e.target.value)}
+                className="border-paper/15 focus:border-paper/35 w-full cursor-pointer appearance-none border-b bg-transparent py-2 pr-6 text-sm text-paper outline-none transition-colors"
+              >
+                {SOURCE_OPTIONS.map((s) => (
+                  <option key={s.value} value={s.value} className="bg-graphite text-paper">
+                    {s.label}
+                  </option>
+                ))}
+              </select>
+              <span className="text-paper/30 pointer-events-none absolute right-1 top-1/2 -translate-y-1/2 text-[8px]">
+                ↓
+              </span>
+            </div>
+          </ConvertField>
+        </div>
+
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <ConvertField label="Requested Date">
+            <input
+              type="date"
+              min={MIN_BOOKING_DATE}
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              className="border-paper/15 focus:border-paper/35 w-full border-b bg-transparent py-2 text-sm text-paper outline-none transition-colors"
+            />
+          </ConvertField>
+          <ConvertField label="Status">
+            <div className="relative">
+              <select
+                value={status}
+                onChange={(e) => setStatus(e.target.value)}
+                className="border-paper/15 focus:border-paper/35 w-full cursor-pointer appearance-none border-b bg-transparent py-2 pr-6 text-sm text-paper outline-none transition-colors"
+              >
+                {ADD_STATUS_OPTIONS.map((s) => (
+                  <option key={s} value={s} className="bg-graphite text-paper">
+                    {STATUS_LABELS[s] ?? s}
+                  </option>
+                ))}
+              </select>
+              <span className="text-paper/30 pointer-events-none absolute right-1 top-1/2 -translate-y-1/2 text-[8px]">
+                ↓
+              </span>
+            </div>
+          </ConvertField>
+        </div>
+
+        <ConvertField label="Assigned Specialist">
+          <input
+            type="text"
+            value={assignedTo}
+            onChange={(e) => setAssignedTo(e.target.value)}
+            placeholder="Specialist name…"
+            className="border-paper/15 placeholder:text-paper/20 focus:border-paper/35 w-full border-b bg-transparent py-2 text-sm text-paper outline-none transition-colors"
+          />
+        </ConvertField>
+
+        <ConvertField label="Notes">
+          <textarea
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            rows={3}
+            placeholder="What is the client looking for?"
+            className="border-paper/15 placeholder:text-paper/20 focus:border-paper/35 w-full resize-none border bg-transparent p-3 text-[12px] leading-relaxed text-paper outline-none transition-colors"
+          />
+        </ConvertField>
+
+        {error && <p className="text-[11px] text-red-400">{error}</p>}
+
+        <button
+          type="button"
+          onClick={handleSave}
+          disabled={saving}
+          className="w-full bg-paper py-3 text-[10px] uppercase tracking-[0.24em] text-ink transition-opacity hover:opacity-80 disabled:opacity-50"
+        >
+          {saving ? "Adding…" : "Add Lead"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function LeadsClient({
@@ -637,6 +892,12 @@ export default function LeadsClient({
   const [search, setSearch] = useState("");
   const [updateError, setUpdateError] = useState<string | null>(null);
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
+  const [showAdd, setShowAdd] = useState(false);
+
+  const handleLeadCreated = useCallback((lead: Lead) => {
+    setLeads((ls) => [lead, ...ls]);
+    setShowAdd(false);
+  }, []);
 
   const counts = useMemo(
     () =>
@@ -718,8 +979,8 @@ export default function LeadsClient({
         ))}
       </div>
 
-      {/* Search */}
-      <div className="mt-8">
+      {/* Search + Add */}
+      <div className="mt-8 flex flex-wrap items-center gap-3">
         <input
           type="search"
           value={search}
@@ -727,6 +988,13 @@ export default function LeadsClient({
           placeholder="Search name, email, or phone…"
           className="placeholder:text-paper/25 border-paper/20 focus:border-paper/50 w-full border-b bg-transparent py-2 text-sm text-paper outline-none transition-colors sm:max-w-sm"
         />
+        <button
+          type="button"
+          onClick={() => setShowAdd(true)}
+          className="border-paper/25 text-paper/70 hover:border-paper/50 ml-auto border px-4 py-2 text-[10px] uppercase tracking-[0.2em] transition-colors hover:text-paper"
+        >
+          + Add Lead
+        </button>
       </div>
 
       {/* Filter tabs */}
@@ -838,6 +1106,27 @@ export default function LeadsClient({
           {search.trim() || filter !== "all" ? "No matching leads." : "No leads yet."}
         </p>
       )}
+
+      {/* ── Add Lead drawer ───────────────────────────────────────────────────── */}
+      <div
+        aria-hidden="true"
+        className={`bg-ink/70 fixed inset-0 z-40 transition-opacity duration-[360ms] ${
+          showAdd ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
+        }`}
+        onClick={() => setShowAdd(false)}
+      />
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label="Add lead"
+        className={`fixed right-0 top-0 z-50 h-screen w-full overflow-hidden bg-graphite shadow-2xl transition-transform duration-[360ms] ease-[cubic-bezier(0.16,1,0.3,1)] sm:w-[520px] ${
+          showAdd ? "translate-x-0" : "translate-x-full"
+        }`}
+      >
+        {showAdd && (
+          <AddLeadDrawer onClose={() => setShowAdd(false)} onCreated={handleLeadCreated} />
+        )}
+      </div>
 
       {/* ── Backdrop ──────────────────────────────────────────────────────────── */}
       <div

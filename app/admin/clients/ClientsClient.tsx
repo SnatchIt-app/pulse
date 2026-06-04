@@ -458,12 +458,202 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
   );
 }
 
+// ─── Add Client Drawer ────────────────────────────────────────────────────────
+
+function AddClientDrawer({
+  onClose,
+  onCreated,
+}: {
+  onClose: () => void;
+  onCreated: (client: Client) => void;
+}) {
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [tags, setTags] = useState<string[]>([]);
+  const [newTag, setNewTag] = useState("");
+  const [notes, setNotes] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") onClose();
+    }
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  function commitTag() {
+    const t = newTag.trim().toLowerCase();
+    if (t && !tags.includes(t)) setTags((prev) => [...prev, t]);
+    setNewTag("");
+  }
+
+  async function handleSave() {
+    if (!fullName.trim()) {
+      setError("Full name is required.");
+      return;
+    }
+    setSaving(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/admin/clients", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          full_name: fullName.trim(),
+          email: email.trim() || undefined,
+          phone: phone.trim() || undefined,
+          tags,
+          notes: notes.trim() || undefined,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(
+          data.error === "read_only"
+            ? "Read-only access."
+            : data.error === "email_taken"
+              ? "A client with that email already exists."
+              : "Could not add client. Please try again.",
+        );
+        return;
+      }
+      onCreated({
+        id: String(data.id),
+        full_name: fullName.trim(),
+        email: email.trim() || null,
+        phone: phone.trim() || null,
+        tags,
+        notes: notes.trim() || null,
+        booking_count: 0,
+        last_booking_at: null,
+        created_at: new Date().toISOString(),
+      });
+    } catch {
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div className="flex h-full flex-col overflow-y-auto p-6 md:p-8">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <p className="text-paper/40 text-[9px] uppercase tracking-[0.24em]">New Client</p>
+          <h2 className="mt-1 font-display text-2xl text-paper">Add Client</h2>
+        </div>
+        <button
+          type="button"
+          onClick={onClose}
+          className="text-paper/40 mt-1 shrink-0 text-lg transition-opacity hover:text-paper"
+        >
+          ✕
+        </button>
+      </div>
+
+      <div className="mt-6 space-y-5">
+        <div>
+          <p className="text-paper/35 mb-2 text-[9px] uppercase tracking-[0.22em]">Full Name</p>
+          <input
+            type="text"
+            value={fullName}
+            onChange={(e) => setFullName(e.target.value)}
+            placeholder="First & last name"
+            className="border-paper/15 placeholder:text-paper/20 focus:border-paper/35 w-full border-b bg-transparent py-2 text-sm text-paper outline-none transition-colors"
+          />
+        </div>
+
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div>
+            <p className="text-paper/35 mb-2 text-[9px] uppercase tracking-[0.22em]">Email</p>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="name@example.com"
+              className="border-paper/15 placeholder:text-paper/20 focus:border-paper/35 w-full border-b bg-transparent py-2 text-sm text-paper outline-none transition-colors"
+            />
+          </div>
+          <div>
+            <p className="text-paper/35 mb-2 text-[9px] uppercase tracking-[0.22em]">Phone</p>
+            <input
+              type="tel"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              placeholder="+1 …"
+              className="border-paper/15 placeholder:text-paper/20 focus:border-paper/35 w-full border-b bg-transparent py-2 text-sm text-paper outline-none transition-colors"
+            />
+          </div>
+        </div>
+
+        <div>
+          <p className="text-paper/35 mb-2 text-[9px] uppercase tracking-[0.22em]">Tags</p>
+          <div className="flex flex-wrap items-center gap-2">
+            {tags.map((tag) => (
+              <TagPill
+                key={tag}
+                tag={tag}
+                onRemove={() => setTags((prev) => prev.filter((t) => t !== tag))}
+              />
+            ))}
+            <input
+              type="text"
+              value={newTag}
+              onChange={(e) => setNewTag(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === ",") {
+                  e.preventDefault();
+                  commitTag();
+                }
+              }}
+              onBlur={commitTag}
+              placeholder="e.g. vip"
+              className="border-paper/15 placeholder:text-paper/20 focus:border-paper/35 w-24 border-b bg-transparent py-0.5 text-[11px] text-paper outline-none transition-colors"
+            />
+          </div>
+        </div>
+
+        <div>
+          <p className="text-paper/35 mb-2 text-[9px] uppercase tracking-[0.22em]">Notes</p>
+          <textarea
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            rows={3}
+            placeholder="Internal notes — not visible to the client."
+            className="border-paper/15 placeholder:text-paper/20 focus:border-paper/35 w-full resize-none border bg-transparent p-3 text-[12px] leading-relaxed text-paper outline-none transition-colors"
+          />
+        </div>
+
+        {error && <p className="text-[11px] text-red-400">{error}</p>}
+
+        <button
+          type="button"
+          onClick={handleSave}
+          disabled={saving}
+          className="w-full bg-paper py-3 text-[10px] uppercase tracking-[0.24em] text-ink transition-opacity hover:opacity-80 disabled:opacity-50"
+        >
+          {saving ? "Adding…" : "Add Client"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function ClientsClient({ initialClients }: { initialClients: Client[] }) {
   const [clients, setClients] = useState<Client[]>(initialClients);
   const [search, setSearch] = useState("");
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+  const [showAdd, setShowAdd] = useState(false);
+
+  const handleCreated = useCallback((client: Client) => {
+    setClients((cs) => [client, ...cs]);
+    setShowAdd(false);
+  }, []);
 
   const visible = useMemo(() => {
     if (!search.trim()) return clients;
@@ -508,8 +698,8 @@ export default function ClientsClient({ initialClients }: { initialClients: Clie
         ))}
       </div>
 
-      {/* Search */}
-      <div className="mt-8">
+      {/* Search + Add */}
+      <div className="mt-8 flex flex-wrap items-center gap-3">
         <input
           type="search"
           value={search}
@@ -517,6 +707,13 @@ export default function ClientsClient({ initialClients }: { initialClients: Clie
           placeholder="Search name, email, or phone…"
           className="border-paper/20 placeholder:text-paper/25 focus:border-paper/50 w-full border-b bg-transparent py-2 text-sm text-paper outline-none transition-colors sm:max-w-sm"
         />
+        <button
+          type="button"
+          onClick={() => setShowAdd(true)}
+          className="border-paper/25 text-paper/70 hover:border-paper/50 ml-auto border px-4 py-2 text-[10px] uppercase tracking-[0.2em] transition-colors hover:text-paper"
+        >
+          + Add Client
+        </button>
       </div>
 
       {/* Table */}
@@ -596,6 +793,25 @@ export default function ClientsClient({ initialClients }: { initialClients: Clie
             : "No clients yet. Clients are created automatically when leads are converted to bookings."}
         </p>
       )}
+
+      {/* Add Client drawer */}
+      <div
+        aria-hidden="true"
+        className={`bg-ink/70 fixed inset-0 z-40 transition-opacity duration-[360ms] ${
+          showAdd ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
+        }`}
+        onClick={() => setShowAdd(false)}
+      />
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label="Add client"
+        className={`fixed right-0 top-0 z-50 h-screen w-full overflow-hidden bg-graphite shadow-2xl transition-transform duration-[360ms] ease-[cubic-bezier(0.16,1,0.3,1)] sm:w-[480px] ${
+          showAdd ? "translate-x-0" : "translate-x-full"
+        }`}
+      >
+        {showAdd && <AddClientDrawer onClose={() => setShowAdd(false)} onCreated={handleCreated} />}
+      </div>
 
       {/* Backdrop */}
       <div

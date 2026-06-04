@@ -23,6 +23,9 @@ const Body = z.object({
   deposit_amount: z.number().nonnegative().optional(),
   final_amount: z.number().nonnegative().optional(),
   payment_status: z.enum(["none", "pending", "deposit_paid", "paid", "refunded"]).default("none"),
+  vendor_id: z.string().uuid().optional(),
+  vendor_status: z.enum(["not_needed", "pending", "confirmed", "cancelled"]).default("not_needed"),
+  vendor_notes: z.string().max(4000).optional(),
 });
 
 export async function POST(req: Request) {
@@ -165,8 +168,13 @@ export async function POST(req: Request) {
       deposit_amount: parsed.deposit_amount ?? null,
       final_amount: parsed.final_amount ?? null,
       payment_status: parsed.payment_status,
+      vendor_id: parsed.vendor_id ?? null,
+      vendor_status: parsed.vendor_status,
+      vendor_notes: parsed.vendor_notes ?? null,
     })
-    .select("id")
+    .select(
+      "id, lead_id, client_id, service_type, client_name, phone, email, start_date, end_date, asset_title, asset_id, notes, status, quoted_amount, deposit_amount, final_amount, payment_status, vendor_id, vendor_status, vendor_notes, created_at",
+    )
     .single();
 
   if (error) {
@@ -190,5 +198,8 @@ export async function POST(req: Request) {
     }
   }
 
-  return NextResponse.json({ ok: true, id: data.id, client_id: clientId }, { status: 201 });
+  return NextResponse.json(
+    { ok: true, id: data.id, client_id: clientId, booking: data },
+    { status: 201 },
+  );
 }

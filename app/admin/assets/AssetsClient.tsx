@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useRef } from "react";
 import Image from "next/image";
 import type { Asset } from "./page";
 
@@ -215,21 +215,59 @@ function AssetDrawer({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Image UI local state
-  const [showCoverInput, setShowCoverInput] = useState(false);
-  const [newGalleryPath, setNewGalleryPath] = useState("");
-  const [showGalleryInput, setShowGalleryInput] = useState(false);
+  // Image upload state
+  const [coverUploading, setCoverUploading] = useState(false);
+  const [galleryUploading, setGalleryUploading] = useState(false);
+  const [imageError, setImageError] = useState<string | null>(null);
+  const coverInputRef = useRef<HTMLInputElement>(null);
 
   function setField<K extends keyof FormData>(key: K, value: FormData[K]) {
     setForm((f) => ({ ...f, [key]: value }));
   }
 
-  function addGalleryImage() {
-    const path = newGalleryPath.trim();
-    if (!path) return;
-    setField("gallery", [...form.gallery, path]);
-    setNewGalleryPath("");
-    setShowGalleryInput(false);
+  async function uploadFile(file: File): Promise<string> {
+    const body = new FormData();
+    body.append("file", file);
+    const res = await fetch("/api/admin/assets/upload", { method: "POST", body });
+    if (!res.ok) throw new Error("upload_failed");
+    const json = await res.json();
+    if (!json?.url) throw new Error("upload_failed");
+    return json.url as string;
+  }
+
+  async function handleCoverFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    setImageError(null);
+    setCoverUploading(true);
+    try {
+      const url = await uploadFile(file);
+      setField("cover_image", url);
+    } catch {
+      setImageError("Image upload failed. Please try again.");
+    } finally {
+      setCoverUploading(false);
+    }
+  }
+
+  async function handleGalleryFiles(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(e.target.files ?? []);
+    e.target.value = "";
+    if (files.length === 0) return;
+    setImageError(null);
+    setGalleryUploading(true);
+    try {
+      const urls: string[] = [];
+      for (const file of files) {
+        urls.push(await uploadFile(file));
+      }
+      setForm((f) => ({ ...f, gallery: [...f.gallery, ...urls] }));
+    } catch {
+      setImageError("One or more images failed to upload. Please try again.");
+    } finally {
+      setGalleryUploading(false);
+    }
   }
 
   function removeGalleryImage(index: number) {
@@ -321,14 +359,11 @@ function AssetDrawer({
         </button>
       </div>
 
-      {/* Inventory source badge */}
+      {/* Inventory asset note (no slugs/paths) */}
       {isInventoryAsset && (
         <div className="border-paper/10 mt-5 border p-3">
           <p className="text-paper/35 text-[9px] uppercase tracking-[0.18em]">
-            Inventory asset ·{" "}
-            <span className="text-paper/20 normal-case tracking-normal">
-              {asset?.source_inventory_type} / {asset?.source_slug}
-            </span>
+            Synced from inventory
           </p>
         </div>
       )}
@@ -396,32 +431,40 @@ function AssetDrawer({
         <div>
           <div className="mb-3 flex items-center justify-between">
             <p className="text-paper/35 text-[9px] uppercase tracking-[0.22em]">Cover Image</p>
-            {form.cover_image && !showCoverInput && (
+            {form.cover_image && (
               <div className="flex gap-4">
                 <button
                   type="button"
-                  onClick={() => setShowCoverInput(true)}
-                  className="text-paper/35 text-[9px] uppercase tracking-[0.18em] transition-colors hover:text-paper"
+                  onClick={() => coverInputRef.current?.click()}
+                  disabled={coverUploading}
+                  className="text-paper/35 text-[9px] uppercase tracking-[0.18em] transition-colors hover:text-paper disabled:opacity-40"
                 >
-                  Change
+                  {coverUploading ? "Uploading…" : "Change Image"}
                 </button>
                 <button
                   type="button"
-                  onClick={() => {
-                    setField("cover_image", "");
-                    setShowCoverInput(false);
-                  }}
-                  className="text-paper/20 text-[9px] uppercase tracking-[0.18em] transition-colors hover:text-red-400"
+                  onClick={() => setField("cover_image", "")}
+                  disabled={coverUploading}
+                  className="text-paper/20 text-[9px] uppercase tracking-[0.18em] transition-colors hover:text-red-400 disabled:opacity-40"
                 >
-                  Remove
+                  Remove Image
                 </button>
               </div>
             )}
           </div>
 
+          {/* Hidden input shared by Upload / Change */}
+          <input
+            ref={coverInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handleCoverFile}
+            className="hidden"
+          />
+
           {/* Thumbnail preview */}
-          {form.cover_image && (
-            <div className="relative mb-3 h-32 w-full overflow-hidden bg-ink">
+          {form.cover_image ? (
+            <div className="relative mb-1 h-32 w-full overflow-hidden bg-ink">
               <Image
                 src={form.cover_image}
                 alt="Cover preview"
@@ -430,46 +473,15 @@ function AssetDrawer({
                 className="object-cover"
               />
             </div>
-          )}
-
-          {/* Path input — shown when no image or changing */}
-          {(!form.cover_image || showCoverInput) && (
-            <div className="flex items-center gap-3">
-              <input
-                type="text"
-                value={form.cover_image}
-                onChange={(e) => setField("cover_image", e.target.value)}
-                onBlur={() => {
-                  if (form.cover_image.trim()) setShowCoverInput(false);
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === "Escape") setShowCoverInput(false);
-                }}
-                placeholder="/fleet/slug/cover.jpg"
-                autoFocus={showCoverInput}
-                className="border-paper/15 text-paper/70 focus:border-paper/35 flex-1 border-b bg-transparent py-2 font-mono text-[11px] outline-none transition-colors focus:text-paper"
-              />
-              {showCoverInput && (
-                <button
-                  type="button"
-                  onClick={() => setShowCoverInput(false)}
-                  className="text-paper/30 shrink-0 text-[9px] uppercase tracking-[0.16em] transition-colors hover:text-paper"
-                >
-                  Done
-                </button>
-              )}
-            </div>
-          )}
-
-          {/* Placeholder — no image and input hidden */}
-          {!form.cover_image && !showCoverInput && (
-            <button
-              type="button"
-              onClick={() => setShowCoverInput(true)}
-              className="border-paper/15 text-paper/25 hover:border-paper/30 hover:text-paper/50 flex w-full items-center justify-center border py-6 text-[10px] uppercase tracking-[0.2em] transition-colors"
+          ) : (
+            <label
+              className={`border-paper/15 text-paper/25 hover:border-paper/30 hover:text-paper/50 flex w-full cursor-pointer items-center justify-center border py-8 text-[10px] uppercase tracking-[0.2em] transition-colors ${
+                coverUploading ? "pointer-events-none opacity-50" : ""
+              }`}
             >
-              + Set Cover Image
-            </button>
+              {coverUploading ? "Uploading…" : "Upload Image"}
+              <input type="file" accept="image/*" onChange={handleCoverFile} className="hidden" />
+            </label>
           )}
         </div>
 
@@ -485,12 +497,12 @@ function AssetDrawer({
           </div>
 
           {/* Thumbnails grid */}
-          {form.gallery.length > 0 && (
+          {form.gallery.length > 0 ? (
             <div className="mb-3 grid grid-cols-3 gap-2">
-              {form.gallery.map((path, i) => (
+              {form.gallery.map((url, i) => (
                 <div key={i} className="group relative">
                   <div className="relative aspect-[4/3] overflow-hidden bg-ink">
-                    <Image src={path} alt="" fill sizes="160px" className="object-cover" />
+                    <Image src={url} alt="" fill sizes="160px" className="object-cover" />
                   </div>
                   <button
                     type="button"
@@ -502,54 +514,28 @@ function AssetDrawer({
                 </div>
               ))}
             </div>
+          ) : (
+            <p className="text-paper/20 mb-3 text-[10px]">No gallery images yet.</p>
           )}
 
-          {/* Add image input */}
-          {showGalleryInput ? (
-            <div className="flex items-center gap-3">
-              <input
-                type="text"
-                value={newGalleryPath}
-                onChange={(e) => setNewGalleryPath(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") addGalleryImage();
-                  if (e.key === "Escape") {
-                    setNewGalleryPath("");
-                    setShowGalleryInput(false);
-                  }
-                }}
-                placeholder="/fleet/slug/photo.jpg"
-                autoFocus
-                className="border-paper/15 text-paper/70 focus:border-paper/35 flex-1 border-b bg-transparent py-2 font-mono text-[11px] outline-none transition-colors focus:text-paper"
-              />
-              <button
-                type="button"
-                onClick={addGalleryImage}
-                className="text-paper/40 shrink-0 text-[9px] uppercase tracking-[0.16em] transition-colors hover:text-paper"
-              >
-                Add
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setNewGalleryPath("");
-                  setShowGalleryInput(false);
-                }}
-                className="text-paper/20 shrink-0 text-[9px] uppercase tracking-[0.16em] transition-colors hover:text-paper"
-              >
-                Cancel
-              </button>
-            </div>
-          ) : (
-            <button
-              type="button"
-              onClick={() => setShowGalleryInput(true)}
-              className="text-paper/25 hover:text-paper/60 text-[9px] uppercase tracking-[0.18em] transition-colors"
-            >
-              + Add Image
-            </button>
-          )}
+          {/* Add images */}
+          <label
+            className={`text-paper/35 inline-flex cursor-pointer text-[9px] uppercase tracking-[0.18em] transition-colors hover:text-paper ${
+              galleryUploading ? "pointer-events-none opacity-50" : ""
+            }`}
+          >
+            {galleryUploading ? "Uploading…" : "+ Add Images"}
+            <input
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={handleGalleryFiles}
+              className="hidden"
+            />
+          </label>
         </div>
+
+        {imageError && <p className="text-[11px] text-red-400">{imageError}</p>}
 
         {/* ── Notes ───────────────────────────────────────────────────── */}
         <DrawerField label="Notes">
