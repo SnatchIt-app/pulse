@@ -229,9 +229,14 @@ function AssetDrawer({
     const body = new FormData();
     body.append("file", file);
     const res = await fetch("/api/admin/assets/upload", { method: "POST", body });
-    if (!res.ok) throw new Error("upload_failed");
-    const json = await res.json();
-    if (!json?.url) throw new Error("upload_failed");
+    const json = await res.json().catch(() => ({}) as { url?: string; message?: string });
+    if (!res.ok || !json?.url) {
+      throw new Error(
+        res.status === 403
+          ? "You do not have permission to upload images."
+          : (json?.message ?? "Image upload failed. Please try again."),
+      );
+    }
     return json.url as string;
   }
 
@@ -244,8 +249,8 @@ function AssetDrawer({
     try {
       const url = await uploadFile(file);
       setField("cover_image", url);
-    } catch {
-      setImageError("Image upload failed. Please try again.");
+    } catch (err) {
+      setImageError(err instanceof Error ? err.message : "Image upload failed. Please try again.");
     } finally {
       setCoverUploading(false);
     }
@@ -263,8 +268,8 @@ function AssetDrawer({
         urls.push(await uploadFile(file));
       }
       setForm((f) => ({ ...f, gallery: [...f.gallery, ...urls] }));
-    } catch {
-      setImageError("One or more images failed to upload. Please try again.");
+    } catch (err) {
+      setImageError(err instanceof Error ? err.message : "Image upload failed. Please try again.");
     } finally {
       setGalleryUploading(false);
     }
@@ -311,7 +316,15 @@ function AssetDrawer({
         });
       }
 
-      if (!res.ok) throw new Error("server_error");
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}) as { error?: string; message?: string });
+        setError(
+          data.error === "read_only"
+            ? "Read-only access — you cannot save changes."
+            : (data.message ?? "Could not save the asset. Please try again."),
+        );
+        return; // keep the drawer open with all typed values intact
+      }
 
       let savedAsset: Asset;
       if (mode === "create") {
