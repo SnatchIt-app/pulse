@@ -26,15 +26,45 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   try {
     parsed = PatchBody.parse(await req.json());
   } catch {
-    return NextResponse.json({ ok: false, error: "invalid_payload" }, { status: 400 });
+    return NextResponse.json(
+      { ok: false, error: "invalid_payload", message: "Some fields are invalid. Please review." },
+      { status: 400 },
+    );
+  }
+
+  // Normalize: empty strings → null; gallery always a clean string array when present.
+  const clean = (v: string | undefined | null) => {
+    if (v === undefined) return undefined;
+    const t = (v ?? "").trim();
+    return t.length > 0 ? t : null;
+  };
+  const patch: Record<string, unknown> = {};
+  if (parsed.name !== undefined) patch.name = parsed.name.trim();
+  if (parsed.service_type !== undefined) patch.service_type = parsed.service_type.trim();
+  if (parsed.status !== undefined) patch.status = parsed.status;
+  if (parsed.description !== undefined) patch.description = clean(parsed.description);
+  if (parsed.cover_image !== undefined) patch.cover_image = clean(parsed.cover_image);
+  if (parsed.public_url !== undefined) patch.public_url = clean(parsed.public_url);
+  if (parsed.gallery !== undefined) {
+    patch.gallery = Array.isArray(parsed.gallery)
+      ? parsed.gallery.filter((s) => !!s && s.trim())
+      : [];
   }
 
   const supabase = getSupabaseAdmin();
-  const { error } = await supabase.from("assets").update(parsed).eq("id", id);
+  const { error } = await supabase.from("assets").update(patch).eq("id", id);
 
   if (error) {
-    console.error("[assets/patch] Update error:", error.message);
-    return NextResponse.json({ ok: false, error: "db_error" }, { status: 500 });
+    console.error("[assets/patch] update error", {
+      message: error.message,
+      code: error.code,
+      details: error.details,
+      hint: error.hint,
+    });
+    return NextResponse.json(
+      { ok: false, error: "db_error", message: error.message },
+      { status: 500 },
+    );
   }
   return NextResponse.json({ ok: true });
 }
