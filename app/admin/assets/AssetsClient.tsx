@@ -317,17 +317,18 @@ function AssetDrawer({
       }
 
       if (!res.ok) {
-        const data = await res.json().catch(
-          () =>
-            ({}) as {
-              error?: string;
-              message?: string;
-              issues?: { path: string; message: string }[];
-            },
-        );
+        type ApiError = {
+          error?: string;
+          message?: string;
+          issues?: Array<{ path: string; message: string }>;
+        };
+        const empty: ApiError = {};
+        const data: ApiError = await res.json().catch(() => empty);
         const detail =
           data.issues && data.issues.length > 0
-            ? data.issues.map((i) => `${i.path}: ${i.message}`).join("; ")
+            ? data.issues
+                .map((i: { path: string; message: string }) => `${i.path}: ${i.message}`)
+                .join("; ")
             : null;
         setError(
           data.error === "read_only"
