@@ -609,18 +609,20 @@ export default function AssetsClient({ initialAssets }: { initialAssets: Asset[]
   const [syncing, setSyncing] = useState(false);
   const [syncMsg, setSyncMsg] = useState<{ ok: boolean; text: string } | null>(null);
 
+  // Category filter is keyed on service_type (canonical, populated for BOTH
+  // manual rows and synced rows). source_inventory_type is set only by sync.
   const visible = useMemo(() => {
     if (filter === "all") return assets;
-    return assets.filter((a) => a.source_inventory_type === filter);
+    return assets.filter((a) => a.service_type === filter);
   }, [assets, filter]);
 
   const counts = useMemo(
     () => ({
       all: assets.length,
-      car: assets.filter((a) => a.source_inventory_type === "car").length,
-      jet: assets.filter((a) => a.source_inventory_type === "jet").length,
-      yacht: assets.filter((a) => a.source_inventory_type === "yacht").length,
-      residence: assets.filter((a) => a.source_inventory_type === "residence").length,
+      car: assets.filter((a) => a.service_type === "car").length,
+      jet: assets.filter((a) => a.service_type === "jet").length,
+      yacht: assets.filter((a) => a.service_type === "yacht").length,
+      residence: assets.filter((a) => a.service_type === "residence").length,
     }),
     [assets],
   );
@@ -749,6 +751,12 @@ export default function AssetsClient({ initialAssets }: { initialAssets: Asset[]
           </button>
         </div>
       </div>
+
+      {/* Admin-only note — CRM assets are internal */}
+      <p className="text-paper/30 mt-3 text-[10px] leading-relaxed">
+        CRM assets are used for bookings and operations. Public website inventory is managed
+        separately.
+      </p>
 
       {deleteError && <p className="mt-3 text-[11px] text-red-400">{deleteError}</p>}
 
