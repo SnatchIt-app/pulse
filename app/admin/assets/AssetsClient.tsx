@@ -317,11 +317,22 @@ function AssetDrawer({
       }
 
       if (!res.ok) {
-        const data = await res.json().catch(() => ({}) as { error?: string; message?: string });
+        const data = await res.json().catch(
+          () =>
+            ({}) as {
+              error?: string;
+              message?: string;
+              issues?: { path: string; message: string }[];
+            },
+        );
+        const detail =
+          data.issues && data.issues.length > 0
+            ? data.issues.map((i) => `${i.path}: ${i.message}`).join("; ")
+            : null;
         setError(
           data.error === "read_only"
             ? "Read-only access — you cannot save changes."
-            : (data.message ?? "Could not save the asset. Please try again."),
+            : (detail ?? data.message ?? "Could not save the asset. Please try again."),
         );
         return; // keep the drawer open with all typed values intact
       }
