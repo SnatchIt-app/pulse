@@ -2,9 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import type { PublishedAsset, PublishedServiceType } from "@/lib/inventory/published-assets";
 
-// Maps service_type → request-form param + display label + image aspect.
-// Aspect ratio matches the existing typed cards so a CRM-published asset
-// visually blends into the listing alongside CarCard / JetCard / etc.
+// Maps service_type → request-form param + display label.
 const REQUEST_PARAM: Record<PublishedServiceType, string> = {
   car: "vehicle",
   jet: "jet",
@@ -19,21 +17,11 @@ const SERVICE_LABEL: Record<PublishedServiceType, string> = {
   residence: "Residence",
 };
 
-const ASPECT: Record<PublishedServiceType, string> = {
-  car: "aspect-[4/5]",
-  jet: "aspect-[4/5]",
-  yacht: "aspect-[4/5]",
-  residence: "aspect-[3/2]",
-};
-
 /**
- * Public card for a CRM-published asset. Three-line layout that matches the
- * existing flat-file cards (CarCard / JetCard / YachtCard / ResidenceCard):
- *
- *   eyebrow — public_brand (uppercase, tracked); falls back to service label.
- *   name    — asset.name in display serif, 2xl.
- *   details — public_details (preferred) or legacy subtitle/description, in
- *             the same all-caps tracked treatment used by CarCard's subtitle.
+ * Public card for a CRM-published asset. Image strategy matches CarCard /
+ * ResidenceCard exactly: intrinsic-aspect via `width/height` hint + `h-auto
+ * w-full` so the photo renders at its real aspect ratio (no crop, no forced
+ * 4:5 / 3:2 mismatch). Three-line text layout matches the flat-file cards.
  *
  * No internal notes, vendor, source, or status data is ever rendered here.
  * Clicks through directly to the prefilled request form.
@@ -55,17 +43,20 @@ export default function PublishedAssetCard({ asset }: { asset: PublishedAsset })
       aria-label={`${asset.name} — request`}
       data-testid="published-asset-card"
     >
-      <div className={`relative ${ASPECT[asset.service_type]} overflow-hidden bg-graphite`}>
+      <div className="overflow-hidden">
         {asset.cover_image ? (
           <Image
             src={asset.cover_image}
             alt={asset.name}
-            fill
+            width={1600}
+            height={1067}
             sizes="(min-width:1024px) 33vw, (min-width:640px) 50vw, 100vw"
-            className="object-cover transition-opacity duration-[480ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:opacity-90"
+            className="block h-auto w-full transition-opacity duration-[480ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:opacity-90"
           />
         ) : (
-          <div className="from-graphite/60 absolute inset-0 bg-gradient-to-t via-transparent to-transparent" />
+          <div className="relative aspect-[3/2] bg-graphite">
+            <div className="from-graphite/60 absolute inset-0 bg-gradient-to-t via-transparent to-transparent" />
+          </div>
         )}
       </div>
       <div className="mt-4">

@@ -5,16 +5,12 @@ import { MotionStagger, MotionStaggerItem } from "@/components/shared/MotionStag
 import CarCard from "./CarCard";
 import PublishedAssetCard from "./PublishedAssetCard";
 import { cars } from "@/data/inventory/cars";
-import {
-  dedupeAgainstFlatFile,
-  getPublishedAssetsByService,
-  type PublishedAsset,
-} from "@/lib/inventory/published-assets";
+import { getPublishedAssetsByService, type PublishedAsset } from "@/lib/inventory/published-assets";
 
-// Flat-file fallback. Only used when the CRM has NO cars flagged
-// `is_public = true AND show_on_homepage = true` (e.g. on a fresh deploy before
-// admin populates anything). Once CRM has at least one homepage car, the CRM
-// is the control layer and this list is ignored.
+// Flat-file fallback. ONLY used when the CRM has zero rows where
+// `is_public = true AND show_on_homepage = true`. Once at least one CRM row is
+// flagged for homepage, CRM is the single source of truth and this list is
+// ignored. NO dedupe between CRM and fallback — CRM rows render verbatim.
 const FALLBACK_SLUGS = [
   "Lamborghini-Urus-GreyBrown",
   "Lamborghini-Huracan-Spyder-BlackBlack",
@@ -49,16 +45,19 @@ type MergedItem =
 export default async function FeaturedFleet() {
   const homepageCars = await getPublishedAssetsByService("car", { homepageOnly: true });
 
+  if (process.env.NODE_ENV !== "production") {
+    console.log("[homepage-fleet]", {
+      count: homepageCars.length,
+      names: homepageCars.map((c) => c.name),
+    });
+  }
+
   let merged: MergedItem[];
   if (homepageCars.length > 0) {
-    // CRM is in control. Dedupe against the flat-file fallback so that even if
-    // an admin seeds a CRM row with source_slug pointing at a fallback slug,
-    // we don't render it twice.
-    const deduped = dedupeAgainstFlatFile(
-      homepageCars,
-      fallback.map((c) => c.slug),
-    );
-    merged = deduped.map<MergedItem>((p) => ({
+    // CRM is in control. Render EVERY eligible CRM row — including synced rows
+    // whose source_slug matches a flat-file fallback. No silent dedupe; the
+    // admin's toggles in /admin/assets are the only switch.
+    merged = homepageCars.map<MergedItem>((p) => ({
       kind: "published",
       key: `p-${p.id}`,
       data: p,
@@ -67,8 +66,8 @@ export default async function FeaturedFleet() {
       name: p.name,
     }));
   } else {
-    // Fresh deploy / CRM not yet populated. Render the flat-file fallback so
-    // the homepage rail is never empty.
+    // CRM not yet populated. Render the flat-file fallback so the rail isn't
+    // empty on a fresh deploy.
     merged = fallback.map<MergedItem>((c) => ({
       kind: "flatfile",
       key: `f-${c.slug}`,
