@@ -19,11 +19,56 @@ export const metadata: Metadata = buildMetadata({ route: "/fleet", path: "/fleet
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
+type CarItem = (typeof cars)[number];
+type MergedCar =
+  | {
+      kind: "flatfile";
+      key: string;
+      data: CarItem;
+      featured: boolean;
+      sortOrder: number;
+      name: string;
+    }
+  | {
+      kind: "published";
+      key: string;
+      data: Awaited<ReturnType<typeof getPublishedAssetsByService>>[number];
+      featured: boolean;
+      sortOrder: number;
+      name: string;
+    };
+
 export default async function FleetPage() {
   const published = dedupeAgainstFlatFile(
     await getPublishedAssetsByService("car"),
     cars.map((c) => c.slug),
   );
+
+  // Merge flat-file inventory + CRM-published assets, then sort the combined
+  // dataset by featured DESC, public_sort_order ASC, name ASC.
+  const merged: MergedCar[] = [
+    ...cars.map<MergedCar>((c) => ({
+      kind: "flatfile",
+      key: `f-${c.slug}`,
+      data: c,
+      featured: false,
+      sortOrder: 0,
+      name: `${c.make} ${c.model}`,
+    })),
+    ...published.map<MergedCar>((p) => ({
+      kind: "published",
+      key: `p-${p.id}`,
+      data: p,
+      featured: p.public_featured,
+      sortOrder: p.public_sort_order,
+      name: p.name,
+    })),
+  ].sort((a, b) => {
+    const f = Number(b.featured) - Number(a.featured);
+    if (f !== 0) return f;
+    if (a.sortOrder !== b.sortOrder) return a.sortOrder - b.sortOrder;
+    return a.name.localeCompare(b.name);
+  });
   return (
     <>
       {/* Hero — tight bottom so the grid arrives quickly */}
@@ -49,14 +94,13 @@ export default async function FleetPage() {
       <Section className="bg-paper pb-24 pt-6 md:pb-32 md:pt-8">
         <Container>
           <MotionStagger className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 lg:gap-10">
-            {cars.map((car) => (
-              <MotionStaggerItem key={car.slug}>
-                <CarCard car={car} />
-              </MotionStaggerItem>
-            ))}
-            {published.map((asset) => (
-              <MotionStaggerItem key={asset.id}>
-                <PublishedAssetCard asset={asset} />
+            {merged.map((item) => (
+              <MotionStaggerItem key={item.key}>
+                {item.kind === "flatfile" ? (
+                  <CarCard car={item.data} />
+                ) : (
+                  <PublishedAssetCard asset={item.data} />
+                )}
               </MotionStaggerItem>
             ))}
           </MotionStagger>

@@ -18,9 +18,12 @@ const CreateBody = z.object({
   source_slug: z.string().max(200).nullable().optional(),
   // Public publishing
   is_public: z.boolean().optional(),
+  public_brand: z.string().max(200).nullable().optional(),
+  public_subtitle: z.string().max(500).nullable().optional(),
   public_description: z.string().max(2000).nullable().optional(),
   public_sort_order: z.number().int().optional(),
   public_featured: z.boolean().optional(),
+  show_on_homepage: z.boolean().optional(),
 });
 
 function slugify(input: string): string {
@@ -37,7 +40,7 @@ export async function GET() {
   const { data, error } = await supabase
     .from("assets")
     .select(
-      "id, name, service_type, status, description, slug, cover_image, gallery, public_url, source_inventory_type, source_slug, created_at, is_public, public_description, public_sort_order, public_featured",
+      "id, name, service_type, status, description, slug, cover_image, gallery, public_url, source_inventory_type, source_slug, created_at, is_public, public_brand, public_subtitle, public_description, public_sort_order, public_featured, show_on_homepage",
     )
     .order("source_inventory_type", { nullsFirst: false })
     .order("name");
@@ -94,9 +97,12 @@ export async function POST(req: Request) {
     source_inventory_type: clean(parsed.source_inventory_type),
     source_slug: clean(parsed.source_slug),
     is_public: parsed.is_public ?? false,
+    public_brand: clean(parsed.public_brand),
+    public_subtitle: clean(parsed.public_subtitle),
     public_description: clean(parsed.public_description),
     public_sort_order: parsed.public_sort_order ?? 0,
     public_featured: parsed.public_featured ?? false,
+    show_on_homepage: parsed.show_on_homepage ?? false,
   };
 
   const supabase = getSupabaseAdmin();

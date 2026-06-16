@@ -30,11 +30,55 @@ const jsonLd = [
   buildFaqPageJsonLd(SERVICE_FAQS.residences),
 ];
 
+type ResidenceItem = (typeof residences)[number];
+type MergedResidence =
+  | {
+      kind: "flatfile";
+      key: string;
+      data: ResidenceItem;
+      featured: boolean;
+      sortOrder: number;
+      name: string;
+    }
+  | {
+      kind: "published";
+      key: string;
+      data: Awaited<ReturnType<typeof getPublishedAssetsByService>>[number];
+      featured: boolean;
+      sortOrder: number;
+      name: string;
+    };
+
 export default async function ResidencesPage() {
   const published = dedupeAgainstFlatFile(
     await getPublishedAssetsByService("residence"),
     residences.map((r) => r.slug),
   );
+
+  const merged: MergedResidence[] = [
+    ...residences.map<MergedResidence>((r) => ({
+      kind: "flatfile",
+      key: `f-${r.slug}`,
+      data: r,
+      featured: false,
+      sortOrder: 0,
+      name: r.title,
+    })),
+    ...published.map<MergedResidence>((p) => ({
+      kind: "published",
+      key: `p-${p.id}`,
+      data: p,
+      featured: p.public_featured,
+      sortOrder: p.public_sort_order,
+      name: p.name,
+    })),
+  ].sort((a, b) => {
+    const f = Number(b.featured) - Number(a.featured);
+    if (f !== 0) return f;
+    if (a.sortOrder !== b.sortOrder) return a.sortOrder - b.sortOrder;
+    return a.name.localeCompare(b.name);
+  });
+
   return (
     <>
       <Section className="bg-paper pb-4 pt-28 md:pb-6 md:pt-32">
@@ -58,14 +102,13 @@ export default async function ResidencesPage() {
       <Section className="bg-paper pb-24 pt-6 md:pb-32 md:pt-8">
         <Container>
           <MotionStagger className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 lg:gap-10">
-            {residences.map((r) => (
-              <MotionStaggerItem key={r.slug}>
-                <ResidenceCard residence={r} />
-              </MotionStaggerItem>
-            ))}
-            {published.map((asset) => (
-              <MotionStaggerItem key={asset.id}>
-                <PublishedAssetCard asset={asset} />
+            {merged.map((item) => (
+              <MotionStaggerItem key={item.key}>
+                {item.kind === "flatfile" ? (
+                  <ResidenceCard residence={item.data} />
+                ) : (
+                  <PublishedAssetCard asset={item.data} />
+                )}
               </MotionStaggerItem>
             ))}
           </MotionStagger>

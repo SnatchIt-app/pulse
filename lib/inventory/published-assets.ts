@@ -11,13 +11,20 @@ export type PublishedAsset = {
   service_type: PublishedServiceType;
   cover_image: string | null;
   gallery: string[];
+  public_brand: string | null;
+  public_subtitle: string | null;
   public_description: string | null;
   public_featured: boolean;
   public_sort_order: number;
+  show_on_homepage: boolean;
   source_slug: string | null; // used only for dedupe against flat-file inventory
 };
 
 export type PublishedServiceType = "car" | "jet" | "yacht" | "residence";
+
+export type PublishedFetchOptions = {
+  homepageOnly?: boolean;
+};
 
 /**
  * Server-only fetcher. Uses the admin client because all Supabase reads in this
@@ -29,6 +36,7 @@ export type PublishedServiceType = "car" | "jet" | "yacht" | "residence";
  */
 export async function getPublishedAssetsByService(
   serviceType: PublishedServiceType,
+  options: PublishedFetchOptions = {},
 ): Promise<PublishedAsset[]> {
   if (
     !process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() ||
@@ -39,14 +47,18 @@ export async function getPublishedAssetsByService(
 
   try {
     const supabase = getSupabaseAdmin();
-    const { data, error } = await supabase
+    let query = supabase
       .from("assets")
       .select(
-        "id, slug, name, service_type, cover_image, gallery, public_description, public_featured, public_sort_order, source_slug",
+        "id, slug, name, service_type, cover_image, gallery, public_brand, public_subtitle, public_description, public_featured, public_sort_order, show_on_homepage, source_slug",
       )
       .eq("is_public", true)
       .eq("service_type", serviceType)
-      .neq("status", "inactive")
+      .neq("status", "inactive");
+    if (options.homepageOnly) {
+      query = query.eq("show_on_homepage", true);
+    }
+    const { data, error } = await query
       .order("public_featured", { ascending: false })
       .order("public_sort_order", { ascending: true })
       .order("name", { ascending: true });
@@ -76,9 +88,12 @@ export async function getPublishedAssetsByService(
         service_type: serviceType,
         cover_image: a.cover_image ?? null,
         gallery: Array.isArray(a.gallery) ? (a.gallery as string[]) : [],
+        public_brand: a.public_brand ?? null,
+        public_subtitle: a.public_subtitle ?? null,
         public_description: a.public_description ?? null,
         public_featured: Boolean(a.public_featured),
         public_sort_order: typeof a.public_sort_order === "number" ? a.public_sort_order : 0,
+        show_on_homepage: Boolean(a.show_on_homepage),
         source_slug: a.source_slug ?? null,
       } satisfies PublishedAsset;
     });

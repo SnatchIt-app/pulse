@@ -11,6 +11,10 @@ import ConciergeCTA from "@/components/marketing/ConciergeCTA";
 
 export const metadata: Metadata = buildMetadata({ route: "/", path: "/" });
 
+// FeaturedFleet now pulls CRM-published homepage cars at request time.
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 // Order: cars primary (Hero → Marquee → FeaturedFleet), then services,
 // trust, editorial moment, residences secondary, concierge close.
 export default function HomePage() {

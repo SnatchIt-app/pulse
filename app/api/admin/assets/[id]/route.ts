@@ -14,9 +14,12 @@ const PatchBody = z.object({
   gallery: z.array(z.string()).optional(),
   public_url: z.string().max(500).nullable().optional(),
   is_public: z.boolean().optional(),
+  public_brand: z.string().max(200).nullable().optional(),
+  public_subtitle: z.string().max(500).nullable().optional(),
   public_description: z.string().max(2000).nullable().optional(),
   public_sort_order: z.number().int().optional(),
   public_featured: z.boolean().optional(),
+  show_on_homepage: z.boolean().optional(),
 });
 
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -55,10 +58,13 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
       : [];
   }
   if (parsed.is_public !== undefined) patch.is_public = parsed.is_public;
+  if (parsed.public_brand !== undefined) patch.public_brand = clean(parsed.public_brand);
+  if (parsed.public_subtitle !== undefined) patch.public_subtitle = clean(parsed.public_subtitle);
   if (parsed.public_description !== undefined)
     patch.public_description = clean(parsed.public_description);
   if (parsed.public_sort_order !== undefined) patch.public_sort_order = parsed.public_sort_order;
   if (parsed.public_featured !== undefined) patch.public_featured = parsed.public_featured;
+  if (parsed.show_on_homepage !== undefined) patch.show_on_homepage = parsed.show_on_homepage;
 
   const supabase = getSupabaseAdmin();
   const { error } = await supabase.from("assets").update(patch).eq("id", id);

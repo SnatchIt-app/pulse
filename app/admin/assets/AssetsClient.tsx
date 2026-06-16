@@ -61,9 +61,12 @@ type FormData = {
   gallery: string[];
   public_url: string;
   is_public: boolean;
+  public_brand: string;
+  public_subtitle: string;
   public_description: string;
   public_sort_order: number;
   public_featured: boolean;
+  show_on_homepage: boolean;
 };
 
 const EMPTY_FORM: FormData = {
@@ -75,9 +78,12 @@ const EMPTY_FORM: FormData = {
   gallery: [],
   public_url: "",
   is_public: false,
+  public_brand: "",
+  public_subtitle: "",
   public_description: "",
   public_sort_order: 0,
   public_featured: false,
+  show_on_homepage: false,
 };
 
 function assetToForm(a: Asset): FormData {
@@ -90,9 +96,12 @@ function assetToForm(a: Asset): FormData {
     gallery: a.gallery,
     public_url: a.public_url ?? "",
     is_public: Boolean(a.is_public),
+    public_brand: a.public_brand ?? "",
+    public_subtitle: a.public_subtitle ?? "",
     public_description: a.public_description ?? "",
     public_sort_order: typeof a.public_sort_order === "number" ? a.public_sort_order : 0,
     public_featured: Boolean(a.public_featured),
+    show_on_homepage: Boolean(a.show_on_homepage),
   };
 }
 
@@ -311,9 +320,12 @@ function AssetDrawer({
       gallery: form.gallery,
       public_url: form.public_url.trim() || null,
       is_public: form.is_public,
+      public_brand: form.public_brand.trim() || null,
+      public_subtitle: form.public_subtitle.trim() || null,
       public_description: form.public_description.trim() || null,
       public_sort_order: Number.isFinite(form.public_sort_order) ? form.public_sort_order : 0,
       public_featured: form.public_featured,
+      show_on_homepage: form.show_on_homepage,
     };
 
     try {
@@ -629,6 +641,59 @@ function AssetDrawer({
               </span>
             </span>
           </label>
+
+          {/* Show on homepage toggle */}
+          <label className="mt-4 flex cursor-pointer items-start gap-3">
+            <input
+              type="checkbox"
+              checked={form.show_on_homepage}
+              disabled={!form.is_public}
+              onChange={(e) => setField("show_on_homepage", e.target.checked)}
+              className="mt-0.5 h-4 w-4 cursor-pointer accent-paper disabled:opacity-30"
+            />
+            <span>
+              <span className={`block text-sm ${form.is_public ? "text-paper" : "text-paper/30"}`}>
+                Show on homepage fleet preview
+              </span>
+              <span className="text-paper/35 mt-0.5 block text-[10px]">
+                Include this asset in the homepage fleet preview rail.
+              </span>
+            </span>
+          </label>
+
+          {/* Public brand (eyebrow) */}
+          <div className="mt-5">
+            <DrawerField label="Public Brand (eyebrow)">
+              <input
+                type="text"
+                value={form.public_brand}
+                onChange={(e) => setField("public_brand", e.target.value)}
+                disabled={!form.is_public}
+                placeholder="e.g. CHEVROLET, LAMBORGHINI, FERRETTI"
+                className="border-paper/15 placeholder:text-paper/20 focus:border-paper/35 w-full border-b bg-transparent py-2 text-sm text-paper outline-none transition-colors disabled:opacity-40"
+              />
+              <p className="text-paper/30 mt-1 text-[10px]">
+                Small all-caps label above the asset name on the public card.
+              </p>
+            </DrawerField>
+          </div>
+
+          {/* Public subtitle */}
+          <div className="mt-5">
+            <DrawerField label="Public Subtitle">
+              <input
+                type="text"
+                value={form.public_subtitle}
+                onChange={(e) => setField("public_subtitle", e.target.value)}
+                disabled={!form.is_public}
+                placeholder="e.g. White / Red Coupé · 4 seats"
+                className="border-paper/15 placeholder:text-paper/20 focus:border-paper/35 w-full border-b bg-transparent py-2 text-sm text-paper outline-none transition-colors disabled:opacity-40"
+              />
+              <p className="text-paper/30 mt-1 text-[10px]">
+                Secondary line shown between name and description.
+              </p>
+            </DrawerField>
+          </div>
 
           {/* Public description */}
           <div className="mt-5">
