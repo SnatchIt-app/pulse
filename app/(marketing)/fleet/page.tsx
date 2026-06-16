@@ -14,6 +14,11 @@ import {
 
 export const metadata: Metadata = buildMetadata({ route: "/fleet", path: "/fleet" });
 
+// Server-render on every request so toggling Publish in the CRM reflects
+// immediately on the public listing.
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export default async function FleetPage() {
   const published = dedupeAgainstFlatFile(
     await getPublishedAssetsByService("car"),

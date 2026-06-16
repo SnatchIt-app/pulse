@@ -17,6 +17,9 @@ import {
 
 export const metadata: Metadata = buildMetadata({ route: "/residences", path: "/residences" });
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 const jsonLd = [
   buildLodgingBusinessJsonLd(),
   buildServiceJsonLd({

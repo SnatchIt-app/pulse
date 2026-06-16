@@ -14,6 +14,9 @@ import {
 
 export const metadata: Metadata = buildMetadata({ route: "/yachts", path: "/yachts" });
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export default async function YachtsPage() {
   const published = dedupeAgainstFlatFile(
     await getPublishedAssetsByService("yacht"),

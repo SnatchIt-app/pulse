@@ -51,19 +51,27 @@ export async function getPublishedAssetsByService(
       .order("public_sort_order", { ascending: true })
       .order("name", { ascending: true });
 
-    if (error || !data) return [];
+    if (error) {
+      console.warn("[published-assets] db error", { serviceType, message: error.message });
+      return [];
+    }
+    if (!data) return [];
 
-    return data
-      .filter(
-        (
-          a,
-        ): a is { slug: string } & Omit<PublishedAsset, "slug" | "service_type"> & {
-            service_type: string;
-          } => typeof a.slug === "string" && a.slug.length > 0,
-      )
-      .map((a) => ({
+    const items = data.map((a) => {
+      // Defensive slug fallback: if DB slug is null/blank, derive from name so
+      // the asset still appears and the request CTA still works.
+      const rawSlug = typeof a.slug === "string" ? a.slug.trim() : "";
+      const derived =
+        rawSlug.length > 0
+          ? rawSlug
+          : (a.name ?? "")
+              .toLowerCase()
+              .replace(/[^a-z0-9]+/g, "-")
+              .replace(/^-+|-+$/g, "")
+              .slice(0, 200) || String(a.id);
+      return {
         id: String(a.id),
-        slug: a.slug,
+        slug: derived,
         name: a.name,
         service_type: serviceType,
         cover_image: a.cover_image ?? null,
@@ -72,9 +80,21 @@ export async function getPublishedAssetsByService(
         public_featured: Boolean(a.public_featured),
         public_sort_order: typeof a.public_sort_order === "number" ? a.public_sort_order : 0,
         source_slug: a.source_slug ?? null,
-      }));
-  } catch {
+      } satisfies PublishedAsset;
+    });
+
+    if (process.env.NODE_ENV !== "production") {
+      console.log("[published-assets]", {
+        serviceType,
+        count: items.length,
+        names: items.map((i) => i.name),
+      });
+    }
+
+    return items;
+  } catch (e) {
     // Defensive: never crash a public page due to CRM/DB issues.
+    console.warn("[published-assets] exception", e);
     return [];
   }
 }
