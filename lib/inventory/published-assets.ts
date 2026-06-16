@@ -14,6 +14,7 @@ export type PublishedAsset = {
   public_brand: string | null;
   public_subtitle: string | null;
   public_description: string | null;
+  public_details: string | null;
   public_featured: boolean;
   public_sort_order: number;
   show_on_homepage: boolean;
@@ -50,7 +51,7 @@ export async function getPublishedAssetsByService(
     let query = supabase
       .from("assets")
       .select(
-        "id, slug, name, service_type, cover_image, gallery, public_brand, public_subtitle, public_description, public_featured, public_sort_order, show_on_homepage, source_slug",
+        "id, slug, name, service_type, cover_image, gallery, public_brand, public_subtitle, public_description, public_details, public_featured, public_sort_order, show_on_homepage, source_slug",
       )
       .eq("is_public", true)
       .eq("service_type", serviceType)
@@ -91,6 +92,7 @@ export async function getPublishedAssetsByService(
         public_brand: a.public_brand ?? null,
         public_subtitle: a.public_subtitle ?? null,
         public_description: a.public_description ?? null,
+        public_details: a.public_details ?? null,
         public_featured: Boolean(a.public_featured),
         public_sort_order: typeof a.public_sort_order === "number" ? a.public_sort_order : 0,
         show_on_homepage: Boolean(a.show_on_homepage),

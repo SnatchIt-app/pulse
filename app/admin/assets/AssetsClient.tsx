@@ -62,8 +62,7 @@ type FormData = {
   public_url: string;
   is_public: boolean;
   public_brand: string;
-  public_subtitle: string;
-  public_description: string;
+  public_details: string;
   public_sort_order: number;
   public_featured: boolean;
   show_on_homepage: boolean;
@@ -79,14 +78,19 @@ const EMPTY_FORM: FormData = {
   public_url: "",
   is_public: false,
   public_brand: "",
-  public_subtitle: "",
-  public_description: "",
+  public_details: "",
   public_sort_order: 0,
   public_featured: false,
   show_on_homepage: false,
 };
 
 function assetToForm(a: Asset): FormData {
+  // public_details replaces the legacy public_subtitle/public_description pair.
+  // Read order: new column → subtitle → description (back-compat for older rows).
+  const details =
+    (a.public_details ?? "").trim() ||
+    (a.public_subtitle ?? "").trim() ||
+    (a.public_description ?? "").trim();
   return {
     name: a.name,
     service_type: a.service_type,
@@ -97,8 +101,7 @@ function assetToForm(a: Asset): FormData {
     public_url: a.public_url ?? "",
     is_public: Boolean(a.is_public),
     public_brand: a.public_brand ?? "",
-    public_subtitle: a.public_subtitle ?? "",
-    public_description: a.public_description ?? "",
+    public_details: details,
     public_sort_order: typeof a.public_sort_order === "number" ? a.public_sort_order : 0,
     public_featured: Boolean(a.public_featured),
     show_on_homepage: Boolean(a.show_on_homepage),
@@ -139,14 +142,26 @@ function AssetCard({
             <p className="text-paper/15 text-[9px] uppercase tracking-[0.22em]">No Image</p>
           </div>
         )}
-        {/* Status badge */}
-        <span
-          className={`absolute right-3 top-3 border px-2 py-0.5 text-[8px] uppercase tracking-[0.15em] backdrop-blur-sm ${
-            STATUS_COLORS[asset.status] ?? "border-paper/10 text-paper/30"
-          } bg-ink/60`}
-        >
-          {STATUS_LABELS[asset.status] ?? asset.status}
-        </span>
+        {/* Status + publishing badges (top-right stack) */}
+        <div className="absolute right-3 top-3 flex flex-col items-end gap-1">
+          <span
+            className={`border px-2 py-0.5 text-[8px] uppercase tracking-[0.15em] backdrop-blur-sm ${
+              STATUS_COLORS[asset.status] ?? "border-paper/10 text-paper/30"
+            } bg-ink/60`}
+          >
+            {STATUS_LABELS[asset.status] ?? asset.status}
+          </span>
+          {asset.is_public && (
+            <span className="bg-ink/60 border border-emerald-400/40 px-2 py-0.5 text-[8px] uppercase tracking-[0.15em] text-emerald-300 backdrop-blur-sm">
+              Public
+            </span>
+          )}
+          {asset.show_on_homepage && (
+            <span className="bg-ink/60 border-brass/60 border px-2 py-0.5 text-[8px] uppercase tracking-[0.15em] text-brass backdrop-blur-sm">
+              On Homepage
+            </span>
+          )}
+        </div>
       </div>
 
       {/* Card body */}
@@ -321,8 +336,7 @@ function AssetDrawer({
       public_url: form.public_url.trim() || null,
       is_public: form.is_public,
       public_brand: form.public_brand.trim() || null,
-      public_subtitle: form.public_subtitle.trim() || null,
-      public_description: form.public_description.trim() || null,
+      public_details: form.public_details.trim() || null,
       public_sort_order: Number.isFinite(form.public_sort_order) ? form.public_sort_order : 0,
       public_featured: form.public_featured,
       show_on_homepage: form.show_on_homepage,
@@ -663,7 +677,7 @@ function AssetDrawer({
 
           {/* Public brand (eyebrow) */}
           <div className="mt-5">
-            <DrawerField label="Public Brand (eyebrow)">
+            <DrawerField label="Public Brand">
               <input
                 type="text"
                 value={form.public_brand}
@@ -678,34 +692,20 @@ function AssetDrawer({
             </DrawerField>
           </div>
 
-          {/* Public subtitle */}
+          {/* Public details (single combined field) */}
           <div className="mt-5">
-            <DrawerField label="Public Subtitle">
+            <DrawerField label="Public Details">
               <input
                 type="text"
-                value={form.public_subtitle}
-                onChange={(e) => setField("public_subtitle", e.target.value)}
+                value={form.public_details}
+                onChange={(e) => setField("public_details", e.target.value)}
                 disabled={!form.is_public}
                 placeholder="e.g. White / Red Coupé · 4 seats"
                 className="border-paper/15 placeholder:text-paper/20 focus:border-paper/35 w-full border-b bg-transparent py-2 text-sm text-paper outline-none transition-colors disabled:opacity-40"
               />
               <p className="text-paper/30 mt-1 text-[10px]">
-                Secondary line shown between name and description.
+                Secondary detail line shown below the asset name on the public card.
               </p>
-            </DrawerField>
-          </div>
-
-          {/* Public description */}
-          <div className="mt-5">
-            <DrawerField label="Public Description">
-              <textarea
-                value={form.public_description}
-                onChange={(e) => setField("public_description", e.target.value)}
-                rows={3}
-                disabled={!form.is_public}
-                placeholder="Short description shown on the public card. Keep neutral and brand-aligned."
-                className="border-paper/15 placeholder:text-paper/20 focus:border-paper/35 w-full resize-none border bg-transparent p-3 text-[12px] leading-relaxed text-paper outline-none transition-colors disabled:opacity-40"
-              />
             </DrawerField>
           </div>
 

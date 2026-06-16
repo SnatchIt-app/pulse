@@ -11,19 +11,19 @@ import {
   type PublishedAsset,
 } from "@/lib/inventory/published-assets";
 
-// Pinned flat-file cars on the homepage rail. Always rendered (slugs must
-// exist in data/inventory/cars.ts). CRM-published cars with
-// `show_on_homepage = true` are merged in and the combined set is sorted by
-// featured DESC, public_sort_order ASC, name ASC.
-const PINNED_SLUGS = [
+// Flat-file fallback. Only used when the CRM has NO cars flagged
+// `is_public = true AND show_on_homepage = true` (e.g. on a fresh deploy before
+// admin populates anything). Once CRM has at least one homepage car, the CRM
+// is the control layer and this list is ignored.
+const FALLBACK_SLUGS = [
   "Lamborghini-Urus-GreyBrown",
   "Lamborghini-Huracan-Spyder-BlackBlack",
   "McLaren-GT-GreenBlack",
 ] as const;
 
-const pinned = PINNED_SLUGS.map((slug) => {
+const fallback = FALLBACK_SLUGS.map((slug) => {
   const car = cars.find((c) => c.slug === slug);
-  if (!car) throw new Error(`[FeaturedFleet] slug not found in inventory: ${slug}`);
+  if (!car) throw new Error(`[FeaturedFleet] fallback slug not found in inventory: ${slug}`);
   return car;
 });
 
@@ -47,29 +47,39 @@ type MergedItem =
     };
 
 export default async function FeaturedFleet() {
-  const homepageCars = dedupeAgainstFlatFile(
-    await getPublishedAssetsByService("car", { homepageOnly: true }),
-    pinned.map((c) => c.slug),
-  );
+  const homepageCars = await getPublishedAssetsByService("car", { homepageOnly: true });
 
-  const merged: MergedItem[] = [
-    ...pinned.map<MergedItem>((c) => ({
-      kind: "flatfile",
-      key: `f-${c.slug}`,
-      data: c,
-      featured: false,
-      sortOrder: 0,
-      name: `${c.make} ${c.model}`,
-    })),
-    ...homepageCars.map<MergedItem>((p) => ({
+  let merged: MergedItem[];
+  if (homepageCars.length > 0) {
+    // CRM is in control. Dedupe against the flat-file fallback so that even if
+    // an admin seeds a CRM row with source_slug pointing at a fallback slug,
+    // we don't render it twice.
+    const deduped = dedupeAgainstFlatFile(
+      homepageCars,
+      fallback.map((c) => c.slug),
+    );
+    merged = deduped.map<MergedItem>((p) => ({
       kind: "published",
       key: `p-${p.id}`,
       data: p,
       featured: p.public_featured,
       sortOrder: p.public_sort_order,
       name: p.name,
-    })),
-  ].sort((a, b) => {
+    }));
+  } else {
+    // Fresh deploy / CRM not yet populated. Render the flat-file fallback so
+    // the homepage rail is never empty.
+    merged = fallback.map<MergedItem>((c) => ({
+      kind: "flatfile",
+      key: `f-${c.slug}`,
+      data: c,
+      featured: false,
+      sortOrder: 0,
+      name: `${c.make} ${c.model}`,
+    }));
+  }
+
+  merged.sort((a, b) => {
     const f = Number(b.featured) - Number(a.featured);
     if (f !== 0) return f;
     if (a.sortOrder !== b.sortOrder) return a.sortOrder - b.sortOrder;

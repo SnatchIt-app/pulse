@@ -17,6 +17,7 @@ const PatchBody = z.object({
   public_brand: z.string().max(200).nullable().optional(),
   public_subtitle: z.string().max(500).nullable().optional(),
   public_description: z.string().max(2000).nullable().optional(),
+  public_details: z.string().max(2000).nullable().optional(),
   public_sort_order: z.number().int().optional(),
   public_featured: z.boolean().optional(),
   show_on_homepage: z.boolean().optional(),
@@ -62,6 +63,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   if (parsed.public_subtitle !== undefined) patch.public_subtitle = clean(parsed.public_subtitle);
   if (parsed.public_description !== undefined)
     patch.public_description = clean(parsed.public_description);
+  if (parsed.public_details !== undefined) patch.public_details = clean(parsed.public_details);
   if (parsed.public_sort_order !== undefined) patch.public_sort_order = parsed.public_sort_order;
   if (parsed.public_featured !== undefined) patch.public_featured = parsed.public_featured;
   if (parsed.show_on_homepage !== undefined) patch.show_on_homepage = parsed.show_on_homepage;
