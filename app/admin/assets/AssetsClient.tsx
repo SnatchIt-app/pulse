@@ -60,6 +60,10 @@ type FormData = {
   cover_image: string;
   gallery: string[];
   public_url: string;
+  is_public: boolean;
+  public_description: string;
+  public_sort_order: number;
+  public_featured: boolean;
 };
 
 const EMPTY_FORM: FormData = {
@@ -70,6 +74,10 @@ const EMPTY_FORM: FormData = {
   cover_image: "",
   gallery: [],
   public_url: "",
+  is_public: false,
+  public_description: "",
+  public_sort_order: 0,
+  public_featured: false,
 };
 
 function assetToForm(a: Asset): FormData {
@@ -81,6 +89,10 @@ function assetToForm(a: Asset): FormData {
     cover_image: a.cover_image ?? "",
     gallery: a.gallery,
     public_url: a.public_url ?? "",
+    is_public: Boolean(a.is_public),
+    public_description: a.public_description ?? "",
+    public_sort_order: typeof a.public_sort_order === "number" ? a.public_sort_order : 0,
+    public_featured: Boolean(a.public_featured),
   };
 }
 
@@ -298,6 +310,10 @@ function AssetDrawer({
       cover_image: form.cover_image.trim() || null,
       gallery: form.gallery,
       public_url: form.public_url.trim() || null,
+      is_public: form.is_public,
+      public_description: form.public_description.trim() || null,
+      public_sort_order: Number.isFinite(form.public_sort_order) ? form.public_sort_order : 0,
+      public_featured: form.public_featured,
     };
 
     try {
@@ -348,7 +364,7 @@ function AssetDrawer({
           source_inventory_type: null,
           source_slug: null,
           created_at: new Date().toISOString(),
-        };
+        } as Asset;
       } else {
         savedAsset = { ...asset!, ...payload };
       }
@@ -562,16 +578,89 @@ function AssetDrawer({
 
         {imageError && <p className="text-[11px] text-red-400">{imageError}</p>}
 
-        {/* ── Notes ───────────────────────────────────────────────────── */}
-        <DrawerField label="Notes">
+        {/* ── Notes (internal) ────────────────────────────────────────── */}
+        <DrawerField label="Internal Notes">
           <textarea
             value={form.description}
             onChange={(e) => setField("description", e.target.value)}
             rows={3}
-            placeholder="Internal notes about this asset…"
+            placeholder="Internal notes about this asset. Not shown to clients."
             className="border-paper/15 placeholder:text-paper/20 focus:border-paper/35 w-full resize-none border bg-transparent p-3 text-[12px] leading-relaxed text-paper outline-none transition-colors"
           />
         </DrawerField>
+
+        {/* ── Public website publishing ───────────────────────────────── */}
+        <div className="border-paper/10 mt-2 border-t pt-6">
+          <p className="text-paper/40 mb-4 text-[9px] uppercase tracking-[0.24em]">
+            Public Website
+          </p>
+
+          {/* Publish toggle */}
+          <label className="flex cursor-pointer items-start gap-3">
+            <input
+              type="checkbox"
+              checked={form.is_public}
+              onChange={(e) => setField("is_public", e.target.checked)}
+              className="mt-0.5 h-4 w-4 cursor-pointer accent-paper"
+            />
+            <span>
+              <span className="block text-sm text-paper">Publish on website</span>
+              <span className="text-paper/35 mt-0.5 block text-[10px]">
+                Show this asset on the matching public listing page.
+              </span>
+            </span>
+          </label>
+
+          {/* Featured toggle */}
+          <label className="mt-4 flex cursor-pointer items-start gap-3">
+            <input
+              type="checkbox"
+              checked={form.public_featured}
+              disabled={!form.is_public}
+              onChange={(e) => setField("public_featured", e.target.checked)}
+              className="mt-0.5 h-4 w-4 cursor-pointer accent-paper disabled:opacity-30"
+            />
+            <span>
+              <span className={`block text-sm ${form.is_public ? "text-paper" : "text-paper/30"}`}>
+                Featured
+              </span>
+              <span className="text-paper/35 mt-0.5 block text-[10px]">
+                Featured assets appear first on the public listing.
+              </span>
+            </span>
+          </label>
+
+          {/* Public description */}
+          <div className="mt-5">
+            <DrawerField label="Public Description">
+              <textarea
+                value={form.public_description}
+                onChange={(e) => setField("public_description", e.target.value)}
+                rows={3}
+                disabled={!form.is_public}
+                placeholder="Short description shown on the public card. Keep neutral and brand-aligned."
+                className="border-paper/15 placeholder:text-paper/20 focus:border-paper/35 w-full resize-none border bg-transparent p-3 text-[12px] leading-relaxed text-paper outline-none transition-colors disabled:opacity-40"
+              />
+            </DrawerField>
+          </div>
+
+          {/* Sort order */}
+          <div className="mt-5">
+            <DrawerField label="Public Sort Order">
+              <input
+                type="number"
+                value={form.public_sort_order}
+                onChange={(e) =>
+                  setField("public_sort_order", Number.parseInt(e.target.value || "0", 10))
+                }
+                disabled={!form.is_public}
+                placeholder="0"
+                className="border-paper/15 placeholder:text-paper/20 focus:border-paper/35 w-32 border-b bg-transparent py-2 text-sm text-paper outline-none transition-colors disabled:opacity-40"
+              />
+              <p className="text-paper/30 mt-1 text-[10px]">Lower numbers appear earlier.</p>
+            </DrawerField>
+          </div>
+        </div>
 
         {error && <p className="text-[11px] text-red-400">{error}</p>}
 

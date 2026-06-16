@@ -16,6 +16,11 @@ const CreateBody = z.object({
   public_url: z.string().max(500).nullable().optional(),
   source_inventory_type: z.string().nullable().optional(),
   source_slug: z.string().max(200).nullable().optional(),
+  // Public publishing
+  is_public: z.boolean().optional(),
+  public_description: z.string().max(2000).nullable().optional(),
+  public_sort_order: z.number().int().optional(),
+  public_featured: z.boolean().optional(),
 });
 
 function slugify(input: string): string {
@@ -32,7 +37,7 @@ export async function GET() {
   const { data, error } = await supabase
     .from("assets")
     .select(
-      "id, name, service_type, status, description, slug, cover_image, gallery, public_url, source_inventory_type, source_slug, created_at",
+      "id, name, service_type, status, description, slug, cover_image, gallery, public_url, source_inventory_type, source_slug, created_at, is_public, public_description, public_sort_order, public_featured",
     )
     .order("source_inventory_type", { nullsFirst: false })
     .order("name");
@@ -88,6 +93,10 @@ export async function POST(req: Request) {
     public_url: clean(parsed.public_url),
     source_inventory_type: clean(parsed.source_inventory_type),
     source_slug: clean(parsed.source_slug),
+    is_public: parsed.is_public ?? false,
+    public_description: clean(parsed.public_description),
+    public_sort_order: parsed.public_sort_order ?? 0,
+    public_featured: parsed.public_featured ?? false,
   };
 
   const supabase = getSupabaseAdmin();

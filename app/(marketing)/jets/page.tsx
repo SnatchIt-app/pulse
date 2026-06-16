@@ -4,12 +4,21 @@ import Container from "@/components/shared/Container";
 import Section from "@/components/shared/Section";
 import MotionFade from "@/components/shared/MotionFade";
 import JetCard from "@/components/marketing/JetCard";
+import PublishedAssetCard from "@/components/marketing/PublishedAssetCard";
 import { MotionStagger, MotionStaggerItem } from "@/components/shared/MotionStagger";
 import { jets } from "@/data/inventory/jets";
+import {
+  dedupeAgainstFlatFile,
+  getPublishedAssetsByService,
+} from "@/lib/inventory/published-assets";
 
 export const metadata: Metadata = buildMetadata({ route: "/jets", path: "/jets" });
 
-export default function JetsPage() {
+export default async function JetsPage() {
+  const published = dedupeAgainstFlatFile(
+    await getPublishedAssetsByService("jet"),
+    jets.map((j) => j.slug),
+  );
   return (
     <>
       {/* Hero */}
@@ -37,6 +46,11 @@ export default function JetsPage() {
             {jets.map((jet) => (
               <MotionStaggerItem key={jet.slug}>
                 <JetCard jet={jet} />
+              </MotionStaggerItem>
+            ))}
+            {published.map((asset) => (
+              <MotionStaggerItem key={asset.id}>
+                <PublishedAssetCard asset={asset} />
               </MotionStaggerItem>
             ))}
           </MotionStagger>

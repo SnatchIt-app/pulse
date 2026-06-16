@@ -4,12 +4,21 @@ import Container from "@/components/shared/Container";
 import Section from "@/components/shared/Section";
 import MotionFade from "@/components/shared/MotionFade";
 import CarCard from "@/components/marketing/CarCard";
+import PublishedAssetCard from "@/components/marketing/PublishedAssetCard";
 import { MotionStagger, MotionStaggerItem } from "@/components/shared/MotionStagger";
 import { cars } from "@/data/inventory/cars";
+import {
+  dedupeAgainstFlatFile,
+  getPublishedAssetsByService,
+} from "@/lib/inventory/published-assets";
 
 export const metadata: Metadata = buildMetadata({ route: "/fleet", path: "/fleet" });
 
-export default function FleetPage() {
+export default async function FleetPage() {
+  const published = dedupeAgainstFlatFile(
+    await getPublishedAssetsByService("car"),
+    cars.map((c) => c.slug),
+  );
   return (
     <>
       {/* Hero — tight bottom so the grid arrives quickly */}
@@ -38,6 +47,11 @@ export default function FleetPage() {
             {cars.map((car) => (
               <MotionStaggerItem key={car.slug}>
                 <CarCard car={car} />
+              </MotionStaggerItem>
+            ))}
+            {published.map((asset) => (
+              <MotionStaggerItem key={asset.id}>
+                <PublishedAssetCard asset={asset} />
               </MotionStaggerItem>
             ))}
           </MotionStagger>

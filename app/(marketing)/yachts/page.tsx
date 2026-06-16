@@ -4,12 +4,21 @@ import Container from "@/components/shared/Container";
 import Section from "@/components/shared/Section";
 import MotionFade from "@/components/shared/MotionFade";
 import YachtCard from "@/components/marketing/YachtCard";
+import PublishedAssetCard from "@/components/marketing/PublishedAssetCard";
 import { MotionStagger, MotionStaggerItem } from "@/components/shared/MotionStagger";
 import { yachts } from "@/data/inventory/yachts";
+import {
+  dedupeAgainstFlatFile,
+  getPublishedAssetsByService,
+} from "@/lib/inventory/published-assets";
 
 export const metadata: Metadata = buildMetadata({ route: "/yachts", path: "/yachts" });
 
-export default function YachtsPage() {
+export default async function YachtsPage() {
+  const published = dedupeAgainstFlatFile(
+    await getPublishedAssetsByService("yacht"),
+    yachts.map((y) => y.slug),
+  );
   return (
     <>
       {/* Hero — tight bottom so the grid arrives quickly */}
@@ -40,6 +49,11 @@ export default function YachtsPage() {
             {yachts.map((yacht) => (
               <MotionStaggerItem key={yacht.slug}>
                 <YachtCard yacht={yacht} />
+              </MotionStaggerItem>
+            ))}
+            {published.map((asset) => (
+              <MotionStaggerItem key={asset.id}>
+                <PublishedAssetCard asset={asset} />
               </MotionStaggerItem>
             ))}
           </MotionStagger>

@@ -15,6 +15,11 @@ export type Asset = {
   source_inventory_type: string | null;
   source_slug: string | null;
   created_at: string;
+  // Phase: public publishing
+  is_public: boolean;
+  public_description: string | null;
+  public_sort_order: number;
+  public_featured: boolean;
 };
 
 export default async function AssetsPage() {
@@ -35,7 +40,7 @@ export default async function AssetsPage() {
   const { data: assets, error } = await supabase
     .from("assets")
     .select(
-      "id, name, service_type, status, description, slug, cover_image, gallery, public_url, source_inventory_type, source_slug, created_at",
+      "id, name, service_type, status, description, slug, cover_image, gallery, public_url, source_inventory_type, source_slug, created_at, is_public, public_description, public_sort_order, public_featured",
     )
     .order("source_inventory_type", { nullsFirst: false })
     .order("name");
@@ -61,6 +66,10 @@ export default async function AssetsPage() {
           initialAssets={(assets ?? []).map((a) => ({
             ...a,
             gallery: Array.isArray(a.gallery) ? (a.gallery as string[]) : [],
+            is_public: Boolean(a.is_public),
+            public_description: a.public_description ?? null,
+            public_sort_order: typeof a.public_sort_order === "number" ? a.public_sort_order : 0,
+            public_featured: Boolean(a.public_featured),
           }))}
         />
       )}

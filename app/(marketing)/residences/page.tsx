@@ -5,10 +5,15 @@ import Container from "@/components/shared/Container";
 import Section from "@/components/shared/Section";
 import MotionFade from "@/components/shared/MotionFade";
 import ResidenceCard from "@/components/marketing/ResidenceCard";
+import PublishedAssetCard from "@/components/marketing/PublishedAssetCard";
 import { MotionStagger, MotionStaggerItem } from "@/components/shared/MotionStagger";
 import FaqBlock from "@/components/marketing/FaqBlock";
 import { residences } from "@/data/inventory/residences";
 import { SERVICE_FAQS } from "@/data/faqs";
+import {
+  dedupeAgainstFlatFile,
+  getPublishedAssetsByService,
+} from "@/lib/inventory/published-assets";
 
 export const metadata: Metadata = buildMetadata({ route: "/residences", path: "/residences" });
 
@@ -22,7 +27,11 @@ const jsonLd = [
   buildFaqPageJsonLd(SERVICE_FAQS.residences),
 ];
 
-export default function ResidencesPage() {
+export default async function ResidencesPage() {
+  const published = dedupeAgainstFlatFile(
+    await getPublishedAssetsByService("residence"),
+    residences.map((r) => r.slug),
+  );
   return (
     <>
       <Section className="bg-paper pb-4 pt-28 md:pb-6 md:pt-32">
@@ -49,6 +58,11 @@ export default function ResidencesPage() {
             {residences.map((r) => (
               <MotionStaggerItem key={r.slug}>
                 <ResidenceCard residence={r} />
+              </MotionStaggerItem>
+            ))}
+            {published.map((asset) => (
+              <MotionStaggerItem key={asset.id}>
+                <PublishedAssetCard asset={asset} />
               </MotionStaggerItem>
             ))}
           </MotionStagger>
