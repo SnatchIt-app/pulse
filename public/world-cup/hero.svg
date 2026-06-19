@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="base" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1e1e22"/>
+      <stop offset="0.55" stop-color="#16161A"/>
+      <stop offset="1" stop-color="#0A0A0A"/>
+    </linearGradient>
+    <radialGradient id="floodlight" cx="0.5" cy="0.12" r="0.75">
+      <stop offset="0" stop-color="#B89968" stop-opacity="0.28"/>
+      <stop offset="0.4" stop-color="#B89968" stop-opacity="0.08"/>
+      <stop offset="1" stop-color="#B89968" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="beam" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ede7dc" stop-opacity="0.16"/>
+      <stop offset="1" stop-color="#ede7dc" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="vignette" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0A0A0A" stop-opacity="0"/>
+      <stop offset="1" stop-color="#0A0A0A" stop-opacity="0.65"/>
+    </linearGradient>
+  </defs>
+  <rect width="1600" height="900" fill="url(#base)"/>
+  <!-- stadium floodlight beams -->
+  <polygon points="240,-40 460,-40 700,640 120,640" fill="url(#beam)"/>
+  <polygon points="1140,-40 1360,-40 1480,640 900,640" fill="url(#beam)"/>
+  <polygon points="640,-40 940,-40 1020,720 560,720" fill="url(#beam)" opacity="0.7"/>
+  <rect width="1600" height="900" fill="url(#floodlight)"/>
+  <!-- pitch centre arc -->
+  <g fill="none" stroke="#B89968" stroke-opacity="0.22">
+    <ellipse cx="800" cy="980" rx="520" ry="150" stroke-width="1.5"/>
+    <ellipse cx="800" cy="980" rx="300" ry="86" stroke-width="1.5" stroke-opacity="0.16"/>
+    <line x1="120" y1="820" x2="1480" y2="820" stroke-width="1" stroke-opacity="0.14"/>
+  </g>
+  <rect width="1600" height="900" fill="url(#vignette)"/>
+</svg>

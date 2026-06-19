@@ -24,6 +24,7 @@ const STATIC: ReadonlyArray<{
   { path: "/nightlife", priority: 0.7, freq: "weekly" },
   { path: "/contact", priority: 0.7, freq: "monthly" },
   { path: "/experiences", priority: 0.75, freq: "weekly" },
+  { path: "/experiences/world-cup", priority: 0.8, freq: "weekly" },
   { path: "/jet-skis", priority: 0.6, freq: "weekly" },
   { path: "/about", priority: 0.6, freq: "monthly" },
   { path: "/legal/terms", priority: 0.3, freq: "monthly" },
