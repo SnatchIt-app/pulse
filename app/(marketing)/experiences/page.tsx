@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { buildMetadata } from "@/lib/seo";
 import { buildFaqPageJsonLd, buildServiceJsonLd } from "@/lib/schema";
@@ -125,6 +126,48 @@ export default function ExperiencesPage() {
                 Arrange an Experience
               </Link>
             </div>
+          </MotionFade>
+        </Container>
+      </Section>
+
+      {/* ── 1b. Featured: World Cup ─────────────────────────────────────────── */}
+      <Section className="bg-paper pb-4 pt-4 md:pb-6 md:pt-6">
+        <Container>
+          <MotionFade>
+            <Link
+              href="/experiences/world-cup"
+              className="group block overflow-hidden bg-ink text-paper transition-opacity duration-pulse ease-pulse hover:opacity-95"
+              aria-label="Explore Pulse World Cup 26 experiences"
+            >
+              <div className="grid grid-cols-1 md:grid-cols-2">
+                <div className="relative aspect-[16/10] w-full md:aspect-auto md:min-h-full">
+                  <Image
+                    src="/world-cup/hero.svg"
+                    alt="Stadium floodlights over a darkened pitch, rendered in Pulse black and gold."
+                    fill
+                    sizes="(min-width: 768px) 50vw, 100vw"
+                    className="object-cover opacity-80"
+                  />
+                  <div className="from-ink/30 to-ink/90 absolute inset-0 bg-gradient-to-r" />
+                </div>
+                <div className="flex flex-col justify-center p-8 sm:p-12 md:p-14">
+                  <p className="text-[10px] uppercase tracking-[0.28em] text-brass">
+                    New · World Cup 26™
+                  </p>
+                  <h2 className="mt-4 font-display text-3xl leading-[1.05] sm:text-4xl md:text-5xl">
+                    Curated World Cup experiences.
+                  </h2>
+                  <p className="text-paper/70 mt-5 max-w-md text-sm leading-relaxed">
+                    Matchday access sourcing, chauffeur, exotic cars, jets, residences, and the right
+                    tables — the full week, handled. Request access at least one week before any
+                    match.
+                  </p>
+                  <span className="mt-7 inline-flex items-center text-[11px] uppercase tracking-[0.22em] text-brass transition-opacity group-hover:opacity-80">
+                    Explore World Cup →
+                  </span>
+                </div>
+              </div>
+            </Link>
           </MotionFade>
         </Container>
       </Section>

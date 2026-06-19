@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0A0A0A"/>
+      <stop offset="0.6" stop-color="#16161A"/>
+      <stop offset="1" stop-color="#1e1e22"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.82" r="0.7">
+      <stop offset="0" stop-color="#B89968" stop-opacity="0.32"/>
+      <stop offset="0.5" stop-color="#B89968" stop-opacity="0.08"/>
+      <stop offset="1" stop-color="#B89968" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1600" height="1000" fill="url(#sky)"/>
+  <!-- stadium bowl silhouette -->
+  <path d="M0,720 Q800,560 1600,720 L1600,1000 L0,1000 Z" fill="#0A0A0A" fill-opacity="0.85"/>
+  <path d="M0,760 Q800,620 1600,760" fill="none" stroke="#B89968" stroke-opacity="0.2" stroke-width="1.5"/>
+  <!-- floodlight pylons -->
+  <g stroke="#ede7dc" stroke-opacity="0.18" stroke-width="2">
+    <line x1="300" y1="640" x2="300" y2="740"/>
+    <line x1="1300" y1="640" x2="1300" y2="740"/>
+  </g>
+  <g fill="#B89968" fill-opacity="0.5">
+    <circle cx="300" cy="632" r="5"/>
+    <circle cx="1300" cy="632" r="5"/>
+  </g>
+  <rect width="1600" height="1000" fill="url(#glow)"/>
+</svg>

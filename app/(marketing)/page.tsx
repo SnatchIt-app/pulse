@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { buildMetadata } from "@/lib/seo";
+import WorldCupBanner from "@/components/marketing/WorldCupBanner";
 import Hero from "@/components/marketing/Hero";
 import Marquee from "@/components/marketing/Marquee";
 import FeaturedFleet from "@/components/marketing/FeaturedFleet";
@@ -20,6 +21,7 @@ export const revalidate = 0;
 export default function HomePage() {
   return (
     <>
+      <WorldCupBanner />
       <Hero />
       <Marquee />
       <FeaturedFleet />

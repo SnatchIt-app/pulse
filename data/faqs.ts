@@ -114,6 +114,32 @@ export const SERVICE_FAQS = {
       a: "Submit a request for the residence you'd like; a Pulse specialist replies within 15 minutes.",
     },
   ],
+  "world-cup": [
+    {
+      q: "Is Pulse affiliated with FIFA or an official ticket seller?",
+      a: "No. Pulse is an independent luxury concierge provider and is not affiliated with FIFA. We arrange World Cup experience access and source matchday tickets through our network, subject to availability.",
+    },
+    {
+      q: "How far in advance should I request World Cup access?",
+      a: "Request access at least one week before any match. Marquee fixtures move quickly — the earlier you submit, the stronger the access and the more complete the surrounding experience.",
+    },
+    {
+      q: "Can Pulse source tickets to a specific match?",
+      a: "Pulse arranges ticket sourcing and matchday access on a best-efforts basis through trusted partners. Availability, category, and placement are confirmed per request and are never guaranteed in advance.",
+    },
+    {
+      q: "What else can Pulse arrange around the match?",
+      a: "Everything around the 90 minutes — chauffeur and black-car arrival, exotic car rental, private jet coordination, yacht and residence stays, plus restaurant and nightlife reservations across the host city.",
+    },
+    {
+      q: "Which cities does Pulse cover for the World Cup?",
+      a: "Pulse is Miami-based and coordinates matchday experiences across host cities on request. Share your match or city when you submit and a specialist will confirm what we can arrange.",
+    },
+    {
+      q: "How is a World Cup experience priced?",
+      a: "Every arrangement is quote-only and depends on the services included, dates, group size, and live availability. A specialist responds with a tailored proposal after you submit your request.",
+    },
+  ],
   experiences: [
     {
       q: "What is a Pulse experience?",
