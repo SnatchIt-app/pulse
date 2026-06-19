@@ -238,7 +238,9 @@ export default function WorldCupPage() {
         </div>
         <Container className="relative -mt-32 pb-24 md:-mt-48 md:pb-32">
           <MotionFade>
-            <p className="text-[11px] uppercase tracking-[0.24em] text-brass">Match week, elevated</p>
+            <p className="text-[11px] uppercase tracking-[0.24em] text-brass">
+              Match week, elevated
+            </p>
             <h2 className="mt-6 max-w-3xl font-display text-3xl leading-[1.1] sm:text-5xl md:text-6xl">
               Arrive like the match was built around you.
             </h2>
@@ -269,8 +271,8 @@ export default function WorldCupPage() {
                 Your match. Fully handled.
               </h2>
               <p className="text-ink/60 mt-6 max-w-md text-sm leading-relaxed">
-                Pulse is now offering curated FIFA World Cup 26™ experiences. Request access at least
-                one week before any match — a specialist responds within 15 minutes.
+                Pulse is now offering curated FIFA World Cup 26™ experiences. Request access at
+                least one week before any match — a specialist responds within 15 minutes.
               </p>
               <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:gap-4">
                 <Link

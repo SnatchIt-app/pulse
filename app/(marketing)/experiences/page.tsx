@@ -158,9 +158,9 @@ export default function ExperiencesPage() {
                     Curated World Cup experiences.
                   </h2>
                   <p className="text-paper/70 mt-5 max-w-md text-sm leading-relaxed">
-                    Matchday access sourcing, chauffeur, exotic cars, jets, residences, and the right
-                    tables — the full week, handled. Request access at least one week before any
-                    match.
+                    Matchday access sourcing, chauffeur, exotic cars, jets, residences, and the
+                    right tables — the full week, handled. Request access at least one week before
+                    any match.
                   </p>
                   <span className="mt-7 inline-flex items-center text-[11px] uppercase tracking-[0.22em] text-brass transition-opacity group-hover:opacity-80">
                     Explore World Cup →
