@@ -41,7 +41,7 @@ export default function PublishedAssetCard({ asset }: { asset: PublishedAsset })
     <Link
       href={requestHref}
       className="group block"
-      aria-label={`${asset.name} — request`}
+      aria-label={`${asset.name}, request`}
       data-testid="published-asset-card"
     >
       <InventoryCardMedia src={asset.cover_image} alt={asset.name} aspect={asset.service_type} />

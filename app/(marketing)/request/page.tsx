@@ -125,16 +125,16 @@ export default async function RequestPage({ searchParams }: { searchParams: Sear
 
           <p className="text-ink/55 mt-6 max-w-xl text-sm leading-relaxed sm:text-base">
             {hasVehicle
-              ? `A Pulse specialist will confirm availability for the ${assetTitle} and send a tailored quote within 15 minutes.`
+              ? `A Pulse specialist will confirm availability for the ${assetTitle} and send your quote within 15 minutes.`
               : hasYacht
-                ? `A Pulse specialist will confirm availability for the ${assetTitle} and send a tailored charter quote within 15 minutes.`
+                ? `A Pulse specialist will confirm availability for the ${assetTitle} and send your charter quote within 15 minutes.`
                 : hasJet
-                  ? `A Pulse specialist will confirm availability for the ${assetTitle} and send a tailored charter quote within 15 minutes.`
+                  ? `A Pulse specialist will confirm availability for the ${assetTitle} and send your charter quote within 15 minutes.`
                   : hasResidence
                     ? `A Pulse specialist will confirm availability for ${assetTitle} and arrange your stay within 15 minutes.`
                     : hasExperience
-                      ? `A Pulse specialist will respond within 15 minutes with a tailored arrangement for your ${experienceTitle ?? "experience"}.`
-                      : "A Pulse specialist responds within 15 minutes. Exotic cars, yachts, jets, residences — anything inside a Miami stay."}
+                      ? `A Pulse specialist will respond within 15 minutes with an arrangement for your ${experienceTitle ?? "experience"}.`
+                      : "A Pulse specialist responds within 15 minutes. Exotic cars, yachts, jets, residences, anything inside a Miami stay."}
           </p>
 
           <RequestForm

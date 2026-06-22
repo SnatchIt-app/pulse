@@ -20,7 +20,7 @@ export const SERVICE_CONTENT = {
     eyebrow: "Pulse Jets",
     heading: "Private jet charter from Miami.",
     opener:
-      "Pulse arranges private jet charters from Miami across the U.S., the Caribbean, and Latin America. Light, midsize, super-mid, and long-range aircraft on call — booked, briefed, and on the ramp inside hours.",
+      "Pulse arranges private jet charters from Miami across the U.S., the Caribbean, and Latin America. Light, midsize, super-mid, and long-range aircraft. Booked, briefed, and on the ramp inside hours.",
     included: [
       {
         title: "On-demand aircraft",
@@ -53,13 +53,13 @@ export const SERVICE_CONTENT = {
     eyebrow: "Pulse Yachts",
     heading: "Yacht charter in Miami.",
     opener:
-      "Pulse runs day, multi-day, and event charters from Miami's leading marinas. Curated fleet, vetted crews, watersports and chef-grade provisioning when you want them.",
+      "Pulse runs day, multi-day, and event charters from Miami's leading marinas. Vetted boats, vetted crews, watersports and chef-grade provisioning when you want them.",
     included: [
       {
         title: "Crew & fuel",
         body: "Captain and crew on board. Fuel included within an agreed range.",
       },
-      { title: "Watersports", body: "Tubes, toys, paddleboards, jet skis — added on request." },
+      { title: "Watersports", body: "Tubes, toys, paddleboards, and jet skis, added on request." },
       { title: "Marina pickup", body: "We pick the marina that fits your party." },
     ],
     experiences: [
@@ -72,7 +72,7 @@ export const SERVICE_CONTENT = {
     schema: {
       name: "Yacht Charter in Miami",
       description:
-        "Yacht charter and day experiences in Miami via Pulse — curated vessels, vetted crews.",
+        "Yacht charter and day experiences in Miami via Pulse. Vetted boats, vetted crews.",
     },
   },
   "jet-skis": {
@@ -80,7 +80,7 @@ export const SERVICE_CONTENT = {
     eyebrow: "Pulse Jet Skis",
     heading: "Jet ski rental in Miami.",
     opener:
-      "Pulse delivers jet skis across Miami, Miami Beach, and the major hotel marinas. Hourly, half-day, and full-day sessions with a quick handoff and a discreet team.",
+      "Pulse delivers jet skis across Miami, Miami Beach, and the major hotel marinas. Hourly, half-day, and full-day sessions with a quick handoff and a low-key team.",
     included: [
       { title: "Delivery", body: "To most Miami and Miami Beach docks." },
       { title: "Briefing & safety", body: "Quick onboarding by a Pulse team member." },
@@ -103,12 +103,12 @@ export const SERVICE_CONTENT = {
     eyebrow: "Pulse Chauffeur",
     heading: "Private chauffeur in Miami.",
     opener:
-      "Pulse runs a discreet private-chauffeur program across Miami. Executive sedans, extended SUVs, and Sprinter limos with vetted drivers — hourly, transfer, day-rate, or multi-day.",
+      "Pulse runs a private-chauffeur program across Miami. Executive sedans, extended SUVs, and Sprinter limos with vetted drivers. Hourly, transfer, day-rate, or multi-day.",
     included: [
       { title: "Vetted drivers", body: "Professional, discreet, and dressed to match the brief." },
       {
         title: "Right vehicle",
-        body: "Sedan, SUV, or Sprinter — chosen for party size and luggage.",
+        body: "Sedan, SUV, or Sprinter, chosen for party size and luggage.",
       },
       { title: "Itinerary support", body: "Coordinated with the rest of your Pulse stay." },
     ],
@@ -121,7 +121,7 @@ export const SERVICE_CONTENT = {
     heroAlt: "Black executive SUV parked at a Miami hotel motor lobby.",
     schema: {
       name: "Private Chauffeur Service in Miami",
-      description: "Discreet, professional chauffeur service across Miami via Pulse.",
+      description: "Private, professional chauffeur service across Miami via Pulse.",
     },
   },
   restaurants: {
@@ -129,9 +129,12 @@ export const SERVICE_CONTENT = {
     eyebrow: "Pulse Dining",
     heading: "VIP reservations in Miami.",
     opener:
-      "Pulse books the hardest tables in Miami via a concierge network built over years of relationships. South Beach, Brickell, Wynwood, the Design District — same-night to long lead.",
+      "Pulse books the hardest tables in Miami through a network built over years of relationships. South Beach, Brickell, Wynwood, the Design District, same-night to long lead.",
     included: [
-      { title: "Right table, right time", body: "Placement and timing matter — we handle both." },
+      {
+        title: "Right table, right time",
+        body: "Placement and timing both matter. We handle both.",
+      },
       {
         title: "Direct host channel",
         body: "Your reservation lands with a named host, not a queue.",
@@ -158,7 +161,7 @@ export const SERVICE_CONTENT = {
     eyebrow: "Pulse Nightlife",
     heading: "VIP club access in Miami.",
     opener:
-      "Pulse runs table service, bottle programs, and host introductions across Miami's top venues. South Beach, Wynwood, downtown — booked end-to-end, with chauffeur in and out.",
+      "Pulse runs table service, bottle programs, and host introductions across Miami's top venues. South Beach, Wynwood, downtown. Booked end-to-end, with chauffeur in and out.",
     included: [
       {
         title: "Tables & bottles",
@@ -169,7 +172,7 @@ export const SERVICE_CONTENT = {
     ],
     experiences: [
       { title: "LIV Saturday", body: "Marquee table programs." },
-      { title: "Wynwood late-night", body: "Curated multi-venue routing." },
+      { title: "Wynwood late-night", body: "Multi-venue routing across the district." },
       { title: "Yacht-to-club", body: "Bay sunset into club table service." },
     ],
     heroImage: HOMEPAGE_MEDIA.editorial.placeholder,

@@ -22,7 +22,7 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
   if (!car) return buildMetadata({ path: `/fleet/${slug}` });
   return buildMetadata({
     title: `${car.make} ${car.model} ${car.color_label} in Miami`,
-    description: `Rent the ${car.make} ${car.model} (${car.color_label}) in Miami with Pulse. Quote-only — contact a specialist to arrange.`,
+    description: `Rent the ${car.make} ${car.model} (${car.color_label}) in Miami with Pulse. Quote-only. Contact a specialist to arrange.`,
     path: `/fleet/${slug}`,
     ogImagePath: `/api/og/${slug}`,
   });
@@ -61,7 +61,7 @@ export default async function VehiclePage({ params }: { params: Promise<Params> 
         {heroImage ? (
           <Image
             src={heroImage}
-            alt={`${car.make} ${car.model} — ${car.color_label}`}
+            alt={`${car.make} ${car.model}, ${car.color_label}`}
             width={1600}
             height={1067}
             priority
@@ -113,7 +113,7 @@ export default async function VehiclePage({ params }: { params: Promise<Params> 
             {/* Inline quote note */}
             <p className="text-ink/45 mt-10 max-w-lg text-sm leading-relaxed">
               All vehicles are available by quote only. A Pulse specialist responds within 15
-              minutes with availability and a tailored rate.
+              minutes with availability and your rate.
             </p>
 
             {/* Primary CTA — inline for above-fold access */}

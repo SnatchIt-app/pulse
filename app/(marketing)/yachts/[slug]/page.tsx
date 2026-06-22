@@ -16,8 +16,8 @@ type Params = { slug: string };
 function getDisplayTitle(yacht: Yacht): string {
   if (yacht.name) {
     return yacht.length_ft
-      ? `${yacht.length_ft}' ${yacht.make} — ${yacht.name}`
-      : `${yacht.make} — ${yacht.name}`;
+      ? `${yacht.length_ft}' ${yacht.make} · ${yacht.name}`
+      : `${yacht.make} · ${yacht.name}`;
   }
   return yacht.model ? `${yacht.make} ${yacht.model}` : yacht.make;
 }
@@ -33,7 +33,7 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
   const title = getDisplayTitle(yacht);
   return buildMetadata({
     title: `${title} in Miami`,
-    description: `Charter the ${title} in Miami with Pulse. Quote-only — contact a specialist to arrange.`,
+    description: `Charter the ${title} in Miami with Pulse. Quote-only. Contact a specialist to arrange.`,
     path: `/yachts/${slug}`,
   });
 }
@@ -123,7 +123,7 @@ export default async function YachtPage({ params }: { params: Promise<Params> })
             {/* Inline quote note */}
             <p className="text-ink/45 mt-10 max-w-lg text-sm leading-relaxed">
               All charters are available by quote only. A Pulse specialist responds within 15
-              minutes with availability, crew details, and a tailored rate.
+              minutes with availability, crew details, and your rate.
             </p>
 
             {/* Primary CTA */}

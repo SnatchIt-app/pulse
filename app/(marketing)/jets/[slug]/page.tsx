@@ -22,7 +22,7 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
   if (!jet) return buildMetadata({ path: `/jets/${slug}` });
   return buildMetadata({
     title: `${jet.name} Charter from Miami`,
-    description: `Charter the ${jet.name} (${jet.category}, up to ${jet.capacity} passengers) from Miami with Pulse. Quote-only — contact a specialist to arrange.`,
+    description: `Charter the ${jet.name} (${jet.category}, up to ${jet.capacity} passengers) from Miami with Pulse. Quote-only. Contact a specialist to arrange.`,
     path: `/jets/${slug}`,
   });
 }
@@ -107,7 +107,7 @@ export default async function JetPage({ params }: { params: Promise<Params> }) {
             {/* Quote note */}
             <p className="text-ink/45 mt-10 max-w-lg text-sm leading-relaxed">
               All charters are available by quote only. A Pulse specialist responds within 15
-              minutes with availability and a tailored rate for your route and dates.
+              minutes with availability and a rate for your route and dates.
             </p>
 
             {/* Primary CTA */}

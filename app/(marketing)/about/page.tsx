@@ -11,11 +11,11 @@ export const metadata: Metadata = buildMetadata({ route: "/about", path: "/about
 const SERVICES = [
   {
     label: "Exotic Cars",
-    body: "Lamborghini, Rolls-Royce, McLaren, Bentley — the most sought-after vehicles in Miami, arranged by request. Delivered to your hotel, marina, or residence.",
+    body: "Lamborghini, Rolls-Royce, McLaren, Bentley: the most sought-after vehicles in Miami, arranged by request. Delivered to your hotel, marina, or residence.",
   },
   {
     label: "Private Jets",
-    body: "Charter flights for any itinerary, domestic or international. Light jets, midsize, heavy — configured around your schedule and party size.",
+    body: "Charter flights for any itinerary, domestic or international. Light jets, midsize, heavy, configured around your schedule and party size.",
   },
   {
     label: "Yacht Charters",
@@ -23,7 +23,7 @@ const SERVICES = [
   },
   {
     label: "Luxury Residences",
-    body: "A private inventory of curated homes across South Beach, the Design District, Buena Vista, and Miami's most coveted neighborhoods. Verified, vetted, and arranged by Pulse.",
+    body: "A private inventory of homes across South Beach, the Design District, Buena Vista, and Miami's most sought-after neighborhoods. Verified, vetted, and arranged by Pulse.",
   },
   {
     label: "Concierge",
@@ -53,12 +53,12 @@ export default function AboutPage() {
             <div className="max-w-2xl">
               <p className="text-ink/75 text-lg leading-relaxed sm:text-xl">
                 Pulse is a private concierge built for one city. We arrange exotic cars, private
-                jets, yacht charters, luxury residences, and bespoke experiences for clients who
+                jets, yacht charters, luxury residences, and custom experiences for clients who
                 expect more than off-the-shelf bookings.
               </p>
               <p className="text-ink/55 mt-6 text-base leading-relaxed">
                 Everything is by request. Submit what you need and a specialist responds within 15
-                minutes — availability confirmed, quote in hand, ready to move.
+                minutes. Availability confirmed, quote in hand, ready to move.
               </p>
             </div>
           </MotionFade>
@@ -100,12 +100,12 @@ export default function AboutPage() {
                   {
                     n: "01",
                     heading: "Submit a request",
-                    body: "Tell us what you need — vehicle, dates, locations, group size. Takes under two minutes.",
+                    body: "Tell us what you need: vehicle, dates, locations, group size. Takes under two minutes.",
                   },
                   {
                     n: "02",
                     heading: "Specialist responds",
-                    body: "A Pulse specialist confirms availability and sends a tailored quote within 15 minutes.",
+                    body: "A Pulse specialist confirms availability and sends your quote within 15 minutes.",
                   },
                   {
                     n: "03",

@@ -9,7 +9,7 @@ export const metadata: Metadata = buildMetadata({
   route: "/contact",
   path: "/contact",
   description:
-    "Reach the Pulse team — by phone, email, or request form. A specialist responds within 15 minutes.",
+    "Reach the Pulse team by phone, email, or request form. A specialist responds within 15 minutes.",
 });
 
 export default function ContactPage() {
@@ -26,9 +26,8 @@ export default function ContactPage() {
           </MotionFade>
           <MotionFade delay={0.06}>
             <p className="text-ink/65 mt-6 max-w-lg text-base leading-relaxed">
-              A specialist is available to arrange any request — cars, jets, yachts, residences, or
-              bespoke concierge. Every inquiry is handled directly, with a response inside 15
-              minutes.
+              A specialist is available to arrange any request: cars, jets, yachts, residences, or
+              concierge. Every inquiry is handled directly, with a response inside 15 minutes.
             </p>
           </MotionFade>
         </Container>
@@ -75,8 +74,8 @@ export default function ContactPage() {
                   Prefer a form?
                 </p>
                 <p className="text-ink/65 mt-4 max-w-sm text-sm leading-relaxed">
-                  Submit your request and a Pulse specialist will respond with options tailored to
-                  your dates, preferences, and group size. Cars, jets, yachts, residences —
+                  Submit your request and a Pulse specialist will respond with options built around
+                  your dates, preferences, and group size. Cars, jets, yachts, residences:
                   everything is arranged by inquiry.
                 </p>
                 <Link

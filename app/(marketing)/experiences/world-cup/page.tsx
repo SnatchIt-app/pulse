@@ -14,7 +14,7 @@ export const metadata: Metadata = buildMetadata({
   title: "World Cup Experiences",
   path: "/experiences/world-cup",
   description:
-    "Curated FIFA World Cup 26™ matchday experiences by Pulse, including ticket access requests, chauffeur, exotic cars, jets, residences, dining, nightlife, and concierge support.",
+    "FIFA World Cup 26™ matchday experiences by Pulse, including ticket access requests, chauffeur, exotic cars, jets, residences, dining, nightlife, and concierge support.",
   keywords: [
     "World Cup 26 experiences",
     "World Cup matchday concierge",
@@ -32,12 +32,12 @@ const ARRANGE = [
   {
     label: "Access",
     title: "Match tickets & access sourcing",
-    body: "Matchday tickets and access sourced through our network — best-efforts, subject to availability. Tell us the fixture and we&rsquo;ll confirm what&rsquo;s possible.",
+    body: "Matchday tickets and access sourced through our network on a best-efforts basis, subject to availability. Tell us the fixture and we&rsquo;ll confirm what&rsquo;s possible.",
   },
   {
     label: "Arrival",
     title: "Chauffeur",
-    body: "Discreet black-car arrival and departure on both ends — to the stadium, the hotel, and everywhere the week takes you.",
+    body: "Private black-car arrival and departure on both ends: the stadium, the hotel, and everywhere the week takes you.",
   },
   {
     label: "Drive",
@@ -52,7 +52,7 @@ const ARRANGE = [
   {
     label: "Stay",
     title: "Yacht & residence options",
-    body: "A private yacht for the afternoon or a curated residence for the week — placed where you want to be.",
+    body: "A private yacht for the afternoon or a private residence for the week, placed where you want to be.",
   },
   {
     label: "Table",
@@ -74,8 +74,8 @@ const STEPS = [
   },
   {
     step: "03",
-    title: "Pulse curates the experience",
-    body: "A specialist sources access and builds the surrounding week — cars, jets, stays, and tables.",
+    title: "Pulse builds the experience",
+    body: "A specialist sources access and builds the surrounding week: cars, jets, stays, and tables.",
   },
   {
     step: "04",
@@ -89,7 +89,7 @@ const jsonLd = [
   buildServiceJsonLd({
     name: "Pulse World Cup Experiences",
     description:
-      "Curated FIFA World Cup 26™ matchday experiences by Pulse — ticket access requests, chauffeur, exotic cars, private jets, yachts, residences, dining, nightlife, and concierge support. Independent concierge provider, not affiliated with FIFA.",
+      "FIFA World Cup 26™ matchday experiences by Pulse: ticket access requests, chauffeur, exotic cars, private jets, yachts, residences, dining, nightlife, and concierge support. Independent concierge provider, not affiliated with FIFA.",
     path: "/experiences/world-cup",
   }),
   buildFaqPageJsonLd(SERVICE_FAQS["world-cup"]),
@@ -120,8 +120,8 @@ export default function WorldCupPage() {
               The match is the moment. The week is ours.
             </h1>
             <p className="text-paper/80 mt-8 max-w-xl text-base sm:text-lg">
-              Pulse is now offering curated FIFA World Cup 26™ experiences. Request access at least
-              one week before any match.
+              Pulse is now arranging FIFA World Cup 26™ experiences. Request access at least one
+              week before any match.
             </p>
             <div className="mt-12 flex flex-col gap-3 sm:flex-row sm:gap-4">
               <Link
@@ -152,9 +152,9 @@ export default function WorldCupPage() {
               World Cup experience access
             </p>
             <p className="text-ink/80 mt-6 max-w-3xl font-display text-2xl leading-snug sm:text-3xl md:text-4xl">
-              A curated matchday experience is more than a ticket. Pulse arranges the access, the
-              arrival, and everything around the ninety minutes — sourced through our network and
-              subject to availability.
+              A matchday experience is more than a ticket. Pulse arranges the access, the arrival,
+              and everything around the ninety minutes, sourced through our network and subject to
+              availability.
             </p>
           </MotionFade>
         </Container>
@@ -238,15 +238,13 @@ export default function WorldCupPage() {
         </div>
         <Container className="relative -mt-32 pb-24 md:-mt-48 md:pb-32">
           <MotionFade>
-            <p className="text-[11px] uppercase tracking-[0.24em] text-brass">
-              Match week, elevated
-            </p>
+            <p className="text-[11px] uppercase tracking-[0.24em] text-brass">Match week</p>
             <h2 className="mt-6 max-w-3xl font-display text-3xl leading-[1.1] sm:text-5xl md:text-6xl">
               Arrive like the match was built around you.
             </h2>
             <p className="text-paper/70 mt-7 max-w-xl text-sm leading-relaxed sm:text-base">
               The host city fills, the calendar tightens, and the best of everything goes first.
-              Pulse holds the line — the residence on the right street, the table after the final
+              Pulse holds the line: the residence on the right street, the table after the final
               whistle, the car at the curb. You watch the football. We handle the city.
             </p>
           </MotionFade>
@@ -271,8 +269,8 @@ export default function WorldCupPage() {
                 Your match. Fully handled.
               </h2>
               <p className="text-ink/60 mt-6 max-w-md text-sm leading-relaxed">
-                Pulse is now offering curated FIFA World Cup 26™ experiences. Request access at
-                least one week before any match — a specialist responds within 15 minutes.
+                Pulse is now arranging FIFA World Cup 26™ experiences. Request access at least one
+                week before any match. A specialist responds within 15 minutes.
               </p>
               <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:gap-4">
                 <Link

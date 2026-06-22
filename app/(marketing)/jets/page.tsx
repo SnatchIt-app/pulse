@@ -71,7 +71,7 @@ export default async function JetsPage() {
       <Section className="bg-paper pb-4 pt-28 md:pb-6 md:pt-32">
         <Container>
           <MotionFade>
-            <p className="text-ink/55 text-[11px] uppercase tracking-[0.24em]">The Fleet — Jets</p>
+            <p className="text-ink/55 text-[11px] uppercase tracking-[0.24em]">The Fleet · Jets</p>
             <h1 className="mt-4 max-w-4xl font-display text-5xl leading-[0.98] sm:text-6xl md:text-7xl">
               Private jet charter from Miami.
             </h1>
@@ -79,7 +79,7 @@ export default async function JetsPage() {
           <MotionFade delay={0.08}>
             <p className="text-ink/65 mt-5 max-w-3xl text-sm leading-relaxed sm:text-base">
               Pulse arranges private jet charters from Miami across the U.S., the Caribbean, and
-              Latin America. Midsize to heavy cabin — booked, briefed, and on the ramp inside hours.
+              Latin America. Midsize to heavy cabin, booked, briefed, and on the ramp inside hours.
             </p>
           </MotionFade>
         </Container>

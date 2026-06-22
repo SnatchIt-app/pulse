@@ -43,7 +43,7 @@ export default function WorldCupBanner() {
             World Cup 26™
           </span>
           <span className="text-paper/85 text-[11px] leading-relaxed tracking-[0.02em] sm:text-xs">
-            Pulse is now offering curated FIFA World Cup 26™ experiences.{" "}
+            Pulse is now arranging FIFA World Cup 26™ experiences.{" "}
             <span className="text-paper/50">Request access at least 1 week before any match.</span>
           </span>
           <span className="hidden shrink-0 text-[10px] uppercase tracking-[0.22em] text-brass transition-opacity group-hover:opacity-70 sm:inline">

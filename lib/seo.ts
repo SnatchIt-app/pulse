@@ -23,9 +23,9 @@ export function buildMetadata({
 }: BuildMetadataInput): Metadata {
   const fallback = route ? KEYWORDS[route] : null;
   const rawTitle = title ?? fallback?.title ?? "Pulse";
-  // Control the title absolutely so the root "%s — Pulse" template never
+  // Control the title absolutely so the root "%s | Pulse" template never
   // double-applies the brand. Append brand once when not already present.
-  const resolvedTitle = rawTitle.includes("Pulse") ? rawTitle : `${rawTitle} — Pulse`;
+  const resolvedTitle = rawTitle.includes("Pulse") ? rawTitle : `${rawTitle} | Pulse`;
   const resolvedDescription = description ?? fallback?.description ?? "";
   const resolvedKeywords =
     keywords ?? (fallback ? [fallback.primary, ...fallback.secondary] : undefined);

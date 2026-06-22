@@ -4,7 +4,7 @@ import Container from "@/components/shared/Container";
 import Section from "@/components/shared/Section";
 
 export const metadata: Metadata = buildMetadata({
-  title: "Terms of Service — Pulse",
+  title: "Terms of Service | Pulse",
   description: "Terms governing use of the Pulse website and services arranged through Pulse.",
   path: "/legal/terms",
 });
@@ -37,8 +37,8 @@ export default function TermsPage() {
               <h2 className="font-display text-xl">2. Services</h2>
               <p className="text-ink/70 mt-4">
                 Pulse provides access to luxury vehicles, private jet charters, yacht charters,
-                luxury residences, and concierge services. Pulse acts as an arranger and concierge —
-                some services are fulfilled directly by Pulse, and others are fulfilled by vetted
+                luxury residences, and concierge services. Pulse acts as an arranger and concierge.
+                Some services are fulfilled directly by Pulse, and others are fulfilled by vetted
                 independent operators on your behalf.
               </p>
               <p className="text-ink/70 mt-4">
@@ -74,10 +74,10 @@ export default function TermsPage() {
               <h2 className="font-display text-xl">5. Partner operators</h2>
               <p className="text-ink/70 mt-4">
                 Jet charters, yacht charters, residences, restaurant reservations, and other
-                concierge services may be fulfilled by independent independent operators. Pulse
-                curates and vets these operators but does not own or directly operate all assets.
-                The terms and conditions of those operators govern the specific service arrangement,
-                and Pulse is not liable for the acts or omissions of independent operators.
+                concierge services may be fulfilled by independent operators. Pulse vets these
+                operators but does not own or directly operate all assets. The terms and conditions
+                of those operators govern the specific service arrangement, and Pulse is not liable
+                for the acts or omissions of independent operators.
               </p>
             </div>
 
@@ -111,8 +111,8 @@ export default function TermsPage() {
             <div>
               <h2 className="font-display text-xl">8. Intellectual property</h2>
               <p className="text-ink/70 mt-4">
-                All content on this site — including text, imagery, logos, and design — is owned by
-                or licensed to Pulse and may not be reproduced, distributed, or used without prior
+                All content on this site, including text, imagery, logos, and design, is owned by or
+                licensed to Pulse and may not be reproduced, distributed, or used without prior
                 written permission.
               </p>
             </div>

@@ -14,7 +14,7 @@ export const metadata: Metadata = buildMetadata({
   route: "/experiences",
   path: "/experiences",
   description:
-    "Pulse arranges multi-service luxury experiences in Miami — exotic cars, private jets, yachts, residences, dining, and concierge. Supercar weekends, yacht days, Art Basel, F1, and bespoke occasions.",
+    "Pulse arranges multi-service luxury experiences in Miami: exotic cars, private jets, yachts, residences, dining, and concierge. Supercar weekends, yacht days, Art Basel, F1, and private occasions.",
 });
 
 // ─── Data ─────────────────────────────────────────────────────────────────────
@@ -30,19 +30,19 @@ const EXPERIENCES = [
     slug: "yacht-day",
     title: "Yacht Day",
     services: "Yachts · Provisioning · Transport",
-    body: "A private yacht from Miami&rsquo;s finest marinas. Captain and crew. Open water, watersports, and catering — however you want the day to run.",
+    body: "A private yacht from Miami&rsquo;s finest marinas. Captain and crew. Open water, watersports, and catering, run however you want the day to go.",
   },
   {
     slug: "jet-residence-stay",
     title: "Jet + Residence Stay",
     services: "Jets · Residences · Chauffeur",
-    body: "Fly private into Miami, step into a curated luxury home, and have a vehicle waiting. Seamless from wheels-up to check-in.",
+    body: "Fly private into Miami, step into a private home, and have a vehicle waiting. Handled from wheels-up to check-in.",
   },
   {
     slug: "birthday-experience",
     title: "Birthday Experience",
     services: "Cars · Yachts · Nightlife · Dining",
-    body: "A fully arranged celebration — exotic car, yacht afternoon, restaurant reservation, and VIP nightlife access. The occasion handled, start to finish.",
+    body: "A fully arranged celebration: exotic car, yacht afternoon, restaurant reservation, and VIP nightlife access. The occasion handled, start to finish.",
   },
   {
     slug: "bachelor-bachelorette",
@@ -60,7 +60,7 @@ const EXPERIENCES = [
     slug: "f1-miami-experience",
     title: "F1 Miami",
     services: "Cars · Hospitality · Dining · Residences",
-    body: "An exotic car to arrive in. Curated dining before the race. A private residence steps from the action. Pulse builds the weekend around the circuit.",
+    body: "An exotic car to arrive in. The right tables before the race. A private residence steps from the action. Pulse builds the weekend around the circuit.",
   },
   {
     slug: "ultra-experience",
@@ -73,18 +73,18 @@ const EXPERIENCES = [
 const PROCESS = [
   {
     step: "01",
-    title: "Submit your vision",
-    body: "Share your dates, occasion, headcount, and any preferences. Pulse works from a blank canvas — no packages, no constraints.",
+    title: "Tell us the occasion",
+    body: "Share your dates, occasion, headcount, and any preferences. No packages, no templates. We start from your brief and build.",
   },
   {
     step: "02",
     title: "Your specialist responds",
-    body: "A Pulse specialist replies within 15 minutes with a tailored arrangement — services, logistics, and options to refine.",
+    body: "A Pulse specialist replies within 15 minutes with an arrangement built for you: services, logistics, and options to refine.",
   },
   {
     step: "03",
     title: "Everything arranged",
-    body: "One specialist. One quiet line. Cars, jets, yachts, residences, dining — all coordinated under a single point of contact.",
+    body: "One specialist. One quiet line. Cars, jets, yachts, residences, and dining, all coordinated under a single point of contact.",
   },
 ] as const;
 
@@ -93,7 +93,7 @@ const jsonLd = [
   buildServiceJsonLd({
     name: "Pulse Experiences",
     description:
-      "Multi-service luxury experiences in Miami — exotic cars, private jets, yacht charters, luxury residences, and concierge arranged as a single seamless package.",
+      "Multi-service luxury experiences in Miami: exotic cars, private jets, yacht charters, luxury residences, and concierge arranged as one booking.",
     path: "/experiences",
   }),
   buildFaqPageJsonLd(SERVICE_FAQS.experiences),
@@ -115,8 +115,8 @@ export default function ExperiencesPage() {
           </MotionFade>
           <MotionFade delay={0.07}>
             <p className="text-ink/65 mt-7 max-w-xl text-base leading-relaxed sm:text-lg">
-              Pulse arranges the entire picture — cars, jets, yachts, residences, dining, and
-              nightlife — as a single seamless experience. Submit the occasion. We handle the rest.
+              Pulse arranges the entire picture: cars, jets, yachts, residences, dining, and
+              nightlife, run as one booking. Submit the occasion. We handle the rest.
             </p>
             <div className="mt-10">
               <Link
@@ -155,11 +155,11 @@ export default function ExperiencesPage() {
                     New · World Cup 26™
                   </p>
                   <h2 className="mt-4 font-display text-3xl leading-[1.05] sm:text-4xl md:text-5xl">
-                    Curated World Cup experiences.
+                    World Cup experiences.
                   </h2>
                   <p className="text-paper/70 mt-5 max-w-md text-sm leading-relaxed">
                     Matchday access sourcing, chauffeur, exotic cars, jets, residences, and the
-                    right tables — the full week, handled. Request access at least one week before
+                    right tables. The full week, handled. Request access at least one week before
                     any match.
                   </p>
                   <span className="mt-7 inline-flex items-center text-[11px] uppercase tracking-[0.22em] text-brass transition-opacity group-hover:opacity-80">
@@ -177,8 +177,8 @@ export default function ExperiencesPage() {
         <Container>
           <MotionFade>
             <p className="text-ink/80 max-w-3xl font-display text-2xl leading-snug sm:text-3xl md:text-4xl">
-              Most luxury operators do one thing. Pulse does everything — as a single arrangement,
-              with one specialist, from your first message to your last night.
+              Most luxury operators do one thing. Pulse does everything, as one arrangement, with
+              one specialist, from your first message to your last night.
             </p>
           </MotionFade>
         </Container>
@@ -276,7 +276,7 @@ export default function ExperiencesPage() {
               </h2>
               <p className="text-ink/60 mt-6 max-w-md text-sm leading-relaxed">
                 Every Pulse experience is built from scratch. Submit your request and a specialist
-                responds within 15 minutes — direct, personal, and without delay.
+                responds within 15 minutes, direct and personal.
               </p>
               <Link
                 href="/request?service=concierge"

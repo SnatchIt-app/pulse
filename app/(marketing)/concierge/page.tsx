@@ -13,7 +13,7 @@ export const metadata: Metadata = buildMetadata({ route: "/concierge", path: "/c
 const jsonLd = [
   buildServiceJsonLd({
     name: "Pulse Concierge",
-    description: "Discreet, on-call luxury concierge in Miami.",
+    description: "Private, on-call luxury concierge in Miami.",
     path: "/concierge",
   }),
   buildFaqPageJsonLd(SERVICE_FAQS.concierge),
@@ -32,7 +32,7 @@ export default function ConciergePage() {
           </MotionFade>
         </Container>
       </Section>
-      <EntityOpener body="Pulse runs a discreet, on-call concierge across Miami. Cars, jets, yachts, residences, restaurants, nightlife, events, bespoke requests — one quiet line." />
+      <EntityOpener body="Pulse runs a private, on-call concierge across Miami. Cars, jets, yachts, residences, restaurants, nightlife, events, and special requests, all on one quiet line." />
       <FaqBlock items={SERVICE_FAQS.concierge} />
       <script
         type="application/ld+json"
