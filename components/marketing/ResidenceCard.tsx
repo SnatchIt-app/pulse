@@ -10,11 +10,11 @@ export default function ResidenceCard({ residence }: { residence: Residence }) {
     <Link
       href={`/residences/${residence.slug}`}
       className="group block"
-      aria-label={`${residence.title} — ${residence.neighborhood}`}
+      aria-label={`${residence.title}, ${residence.neighborhood}`}
     >
       <InventoryCardMedia
         src={coverImage}
-        alt={`${residence.title} — ${residence.neighborhood}`}
+        alt={`${residence.title}, ${residence.neighborhood}`}
         aspect="residence"
       />
       <div className="mt-4">

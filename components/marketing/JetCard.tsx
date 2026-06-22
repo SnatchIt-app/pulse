@@ -9,7 +9,7 @@ export default function JetCard({ jet }: { jet: Jet }) {
     <Link
       href={`/jets/${jet.slug}`}
       className="group block"
-      aria-label={`${jet.name} — ${jet.category}`}
+      aria-label={`${jet.name}, ${jet.category}`}
     >
       <InventoryCardMedia src={coverImage} alt={jet.name} aspect="jet" fallbackWatermark="Jet" />
       <div className="mt-4">

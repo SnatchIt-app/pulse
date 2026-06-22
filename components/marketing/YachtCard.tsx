@@ -5,8 +5,8 @@ import InventoryCardMedia from "./InventoryCardMedia";
 function getDisplayTitle(yacht: Yacht): string {
   if (yacht.name) {
     return yacht.length_ft
-      ? `${yacht.length_ft}' ${yacht.make} — ${yacht.name}`
-      : `${yacht.make} — ${yacht.name}`;
+      ? `${yacht.length_ft}' ${yacht.make} · ${yacht.name}`
+      : `${yacht.make} · ${yacht.name}`;
   }
   return yacht.model ? `${yacht.make} ${yacht.model}` : yacht.make;
 }

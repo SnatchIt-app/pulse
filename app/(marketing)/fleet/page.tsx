@@ -82,7 +82,7 @@ export default async function FleetPage() {
           </MotionFade>
           <MotionFade delay={0.08}>
             <p className="text-ink/65 mt-5 max-w-3xl text-sm leading-relaxed sm:text-base">
-              Pulse curates Miami&apos;s most sought-after exotic and luxury vehicles — Lamborghini,
+              Pulse keeps Miami&apos;s most sought-after exotic and luxury vehicles: Lamborghini,
               Rolls-Royce, McLaren, and Bentley. Every booking is by request. Contact a specialist
               to arrange.
             </p>

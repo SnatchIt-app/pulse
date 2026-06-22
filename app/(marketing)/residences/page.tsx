@@ -24,7 +24,7 @@ const jsonLd = [
   buildLodgingBusinessJsonLd(),
   buildServiceJsonLd({
     name: "Pulse Residences",
-    description: "Curated luxury homes and private stays in Miami.",
+    description: "Luxury homes and private stays in Miami.",
     path: "/residences",
   }),
   buildFaqPageJsonLd(SERVICE_FAQS.residences),
@@ -91,9 +91,9 @@ export default async function ResidencesPage() {
           </MotionFade>
           <MotionFade delay={0.08}>
             <p className="text-ink/65 mt-5 max-w-3xl text-sm leading-relaxed sm:text-base">
-              Pulse curates a private selection of luxury homes across Miami — South Beach, the
-              Design District, Buena Vista, and beyond. Every booking is by request. Contact a
-              specialist to arrange.
+              Pulse keeps a private selection of luxury homes across Miami: South Beach, the Design
+              District, Buena Vista, and beyond. Every booking is by request. Contact a specialist
+              to arrange.
             </p>
           </MotionFade>
         </Container>

@@ -28,16 +28,16 @@ export const KEYWORDS: Record<RouteKey, KeywordEntry> = {
   "/": {
     primary: "luxury mobility Miami",
     secondary: ["exotic car rental Miami", "luxury concierge Miami"],
-    title: "Pulse — Luxury Mobility & Concierge, Miami",
+    title: "Pulse | Luxury Mobility & Concierge, Miami",
     description:
-      "Pulse is a Miami luxury mobility and concierge company. Exotic cars, private jets, yachts, residences, chauffeur, and VIP access — on call.",
+      "Pulse is a Miami luxury mobility and concierge company. Exotic cars, private jets, yachts, residences, chauffeur, and VIP access, on call.",
   },
   "/fleet": {
     primary: "exotic car rental Miami",
     secondary: ["supercar rental Miami Beach", "luxury car rental Miami"],
     title: "Exotic & Supercar Fleet in Miami",
     description:
-      "Pulse's curated fleet of exotic and supercars for rental in Miami — Lamborghini, Ferrari, McLaren, Rolls-Royce, Bentley.",
+      "Pulse's fleet of exotic and supercars for rental in Miami: Lamborghini, Ferrari, McLaren, Rolls-Royce, Bentley.",
   },
   "/jets": {
     primary: "private jet charter Miami",
@@ -51,7 +51,7 @@ export const KEYWORDS: Record<RouteKey, KeywordEntry> = {
     secondary: ["yacht rental Miami Beach", "luxury yacht Miami"],
     title: "Yacht Charter in Miami",
     description:
-      "Yacht charter and day experiences in Miami. Curated fleet, captain and crew, on-water concierge.",
+      "Yacht charter and day experiences in Miami. Vetted boats, captain and crew, on-water concierge.",
   },
   "/jet-skis": {
     primary: "jet ski rental Miami",
@@ -63,7 +63,7 @@ export const KEYWORDS: Record<RouteKey, KeywordEntry> = {
     primary: "private chauffeur Miami",
     secondary: ["luxury chauffeur Miami", "black car service Miami"],
     title: "Private Chauffeur Service in Miami",
-    description: "Discreet, professional chauffeur service across Miami.",
+    description: "Private, professional chauffeur service across Miami.",
   },
   "/restaurants": {
     primary: "VIP restaurant reservations Miami",
@@ -81,8 +81,8 @@ export const KEYWORDS: Record<RouteKey, KeywordEntry> = {
   "/concierge": {
     primary: "luxury concierge Miami",
     secondary: ["VIP concierge Miami"],
-    title: "Pulse Concierge — Tell Us What You Want",
-    description: "Tell Pulse what you need. We'll handle it. Discreet, on-call concierge in Miami.",
+    title: "Pulse Concierge | Tell Us What You Want",
+    description: "Tell Pulse what you need. We'll handle it. Private, on-call concierge in Miami.",
   },
   "/residences": {
     primary: "luxury homes Miami",
@@ -92,9 +92,9 @@ export const KEYWORDS: Record<RouteKey, KeywordEntry> = {
       "Miami luxury stays",
       "mansion rental Miami",
     ],
-    title: "Pulse Residences — Curated Luxury Homes in Miami",
+    title: "Pulse Residences | Luxury Homes in Miami",
     description:
-      "Pulse Residences is a curated selection of luxury homes and private stays across Miami, Miami Beach, Brickell, and beyond.",
+      "Pulse Residences is a private selection of luxury homes and stays across Miami, Miami Beach, Brickell, and beyond.",
   },
   "/experiences": {
     primary: "luxury experiences Miami",
@@ -104,15 +104,15 @@ export const KEYWORDS: Record<RouteKey, KeywordEntry> = {
       "luxury weekend packages Miami",
       "yacht and supercar Miami",
     ],
-    title: "Curated Luxury Experiences in Miami — Pulse",
+    title: "Luxury Experiences in Miami | Pulse",
     description:
-      "Pulse arranges multi-service luxury experiences in Miami — supercar weekends, yacht days, private jet stays, Art Basel, F1, and bespoke occasions. Quote-only, handled by one specialist.",
+      "Pulse arranges multi-service luxury experiences in Miami: supercar weekends, yacht days, private jet stays, Art Basel, F1, and private occasions. Quote-only, handled by one specialist.",
   },
   "/about": {
     primary: "Pulse Miami",
     secondary: [],
     title: "About Pulse",
-    description: "Pulse — luxury mobility, residences, and concierge in Miami.",
+    description: "Pulse: luxury mobility, residences, and concierge in Miami.",
   },
   "/contact": {
     primary: "contact Pulse Miami",

@@ -11,11 +11,11 @@ export default function CarCard({ car }: { car: Car }) {
     <Link
       href={`/fleet/${car.slug}`}
       className="group block"
-      aria-label={`${car.make} ${car.model} — ${subtitle}`}
+      aria-label={`${car.make} ${car.model}, ${subtitle}`}
     >
       <InventoryCardMedia
         src={coverImage}
-        alt={`${car.make} ${car.model} — ${car.color_label}`}
+        alt={`${car.make} ${car.model}, ${car.color_label}`}
         aspect="car"
         fallbackWatermark={watermark}
       />

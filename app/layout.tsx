@@ -11,11 +11,11 @@ const isProd = process.env.NODE_ENV === "production";
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "Pulse — Luxury Mobility & Concierge, Miami",
-    template: "%s — Pulse",
+    default: "Pulse | Luxury Mobility & Concierge, Miami",
+    template: "%s | Pulse",
   },
   description:
-    "Pulse — luxury mobility, residences, and concierge in Miami. Exotic cars, jets, yachts, chauffeur, and VIP access. On call.",
+    "Pulse: luxury mobility, residences, and concierge in Miami. Exotic cars, jets, yachts, chauffeur, and VIP access. On call.",
   applicationName: "Pulse",
   openGraph: {
     siteName: "Pulse",

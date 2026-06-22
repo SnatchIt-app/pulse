@@ -21,7 +21,7 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
   const r = residences.find((x) => x.slug === slug);
   if (!r) return {};
   return buildMetadata({
-    title: `${r.title} — Pulse Residences`,
+    title: `${r.title} | Pulse Residences`,
     description: `${r.title} in ${r.neighborhood}: ${r.bedrooms} bedrooms, ${r.bathrooms} bathrooms, sleeps ${r.maxGuests}. Book with Pulse.`,
     path: `/residences/${r.slug}`,
   });
@@ -49,7 +49,7 @@ export default async function ResidencePage({ params }: { params: Promise<Params
         <div className="relative w-full overflow-hidden bg-bone pt-[4.5rem]">
           <Image
             src={coverImage}
-            alt={`${r.title} — ${r.neighborhood}`}
+            alt={`${r.title}, ${r.neighborhood}`}
             width={1600}
             height={1067}
             priority
@@ -100,7 +100,7 @@ export default async function ResidencePage({ params }: { params: Promise<Params
             <ul className="mt-5 grid grid-cols-1 gap-x-10 gap-y-2 sm:grid-cols-2 lg:grid-cols-3">
               {r.amenities.map((a) => (
                 <li key={a} className="text-ink/70 flex items-start gap-3 text-sm">
-                  <span className="text-ink/25 mt-0.5 shrink-0 text-[10px]">—</span>
+                  <span className="text-ink/25 mt-0.5 shrink-0 text-[10px]">·</span>
                   {a}
                 </li>
               ))}

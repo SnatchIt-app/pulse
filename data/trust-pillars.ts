@@ -9,8 +9,8 @@ export const TRUST_PILLARS: ReadonlyArray<TrustPillar> = [
   {
     key: "vetted",
     label: "Vetted",
-    heading: "A curated fleet, not a marketplace.",
-    body: "Every vehicle, vessel, and residence Pulse offers is vetted before it reaches a client. We don't list everything — we list what we'd put a friend in.",
+    heading: "A vetted fleet, not a marketplace.",
+    body: "Every vehicle, vessel, and residence Pulse offers is vetted before it reaches a client. We don't list everything. We list what we'd put a friend in.",
   },
   {
     key: "concierge",

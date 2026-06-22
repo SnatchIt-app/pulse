@@ -15,7 +15,7 @@ export default function ResidencesPreview() {
           <div>
             <p className="text-ink/55 text-[11px] uppercase tracking-[0.24em]">Pulse Residences</p>
             <h2 className="mt-3 max-w-2xl font-display text-3xl leading-[1.05] sm:text-4xl md:text-5xl">
-              Curated luxury homes, on the same line.
+              Luxury homes, on the same line.
             </h2>
           </div>
           <Link

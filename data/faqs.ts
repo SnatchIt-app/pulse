@@ -29,7 +29,7 @@ export const SERVICE_FAQS = {
     },
     {
       q: "What aircraft does Pulse charter?",
-      a: "Light to ultra-long-range — Citation, Phenom, Challenger, Global. The right aircraft depends on route, group size, and luggage.",
+      a: "Light to ultra-long-range: Citation, Phenom, Challenger, Global. The right aircraft depends on route, group size, and luggage.",
     },
     {
       q: "Can Pulse arrange ground transport on both ends?",
@@ -43,7 +43,7 @@ export const SERVICE_FAQS = {
     },
     {
       q: "Where do Pulse yacht charters depart from?",
-      a: "Charters depart from a marina chosen for your party — typically Miami Beach Marina, Sea Isle, or Sunset Harbour.",
+      a: "Charters depart from a marina chosen for your party, typically Miami Beach Marina, Sea Isle, or Sunset Harbour.",
     },
     {
       q: "Are crew, fuel, and provisioning included?",
@@ -67,7 +67,7 @@ export const SERVICE_FAQS = {
     },
     {
       q: "Is hourly chauffeur service available?",
-      a: "Yes — hourly, transfer, day-rate, and multi-day chauffeur arrangements are all supported.",
+      a: "Yes. Hourly, transfer, day-rate, and multi-day chauffeur arrangements are all supported.",
     },
   ],
   restaurants: [
@@ -83,7 +83,7 @@ export const SERVICE_FAQS = {
   nightlife: [
     {
       q: "Can Pulse arrange table and bottle service at Miami clubs?",
-      a: "Yes — table reservations, bottle minimums, and host introductions across the major venues.",
+      a: "Yes. Table reservations, bottle minimums, and host introductions across the major venues.",
     },
     {
       q: "Does Pulse handle guest list?",
@@ -93,7 +93,7 @@ export const SERVICE_FAQS = {
   concierge: [
     {
       q: "What can the Pulse concierge actually arrange?",
-      a: "Anything that fits a luxury Miami stay — cars, jets, yachts, residences, restaurants, nightlife, events, and bespoke requests.",
+      a: "Anything that fits a luxury Miami stay: cars, jets, yachts, residences, restaurants, nightlife, events, and special requests.",
     },
     {
       q: "What is Pulse's typical response time?",
@@ -103,7 +103,7 @@ export const SERVICE_FAQS = {
   residences: [
     {
       q: "What is Pulse Residences?",
-      a: "Pulse Residences is a curated selection of luxury homes and private stays across Miami.",
+      a: "Pulse Residences is a private selection of luxury homes and stays across Miami.",
     },
     {
       q: "Where are Pulse Residences located?",
@@ -121,7 +121,7 @@ export const SERVICE_FAQS = {
     },
     {
       q: "How far in advance should I request World Cup access?",
-      a: "Request access at least one week before any match. Marquee fixtures move quickly — the earlier you submit, the stronger the access and the more complete the surrounding experience.",
+      a: "Request access at least one week before any match. Marquee fixtures move quickly. The earlier you submit, the stronger the access and the more complete the surrounding experience.",
     },
     {
       q: "Can Pulse source tickets to a specific match?",
@@ -129,7 +129,7 @@ export const SERVICE_FAQS = {
     },
     {
       q: "What else can Pulse arrange around the match?",
-      a: "Everything around the 90 minutes — chauffeur and black-car arrival, exotic car rental, private jet coordination, yacht and residence stays, plus restaurant and nightlife reservations across the host city.",
+      a: "Everything around the 90 minutes: chauffeur and black-car arrival, exotic car rental, private jet coordination, yacht and residence stays, plus restaurant and nightlife reservations across the host city.",
     },
     {
       q: "Which cities does Pulse cover for the World Cup?",
@@ -137,17 +137,17 @@ export const SERVICE_FAQS = {
     },
     {
       q: "How is a World Cup experience priced?",
-      a: "Every arrangement is quote-only and depends on the services included, dates, group size, and live availability. A specialist responds with a tailored proposal after you submit your request.",
+      a: "Every arrangement is quote-only and depends on the services included, dates, group size, and live availability. A specialist responds with a proposal built for your request after you submit.",
     },
   ],
   experiences: [
     {
       q: "What is a Pulse experience?",
-      a: "A Pulse experience is a multi-service arrangement — exotic cars, private jets, yachts, residences, restaurants, and nightlife combined into a single seamless package, managed by one specialist from start to finish.",
+      a: "A Pulse experience is a multi-service arrangement: exotic cars, private jets, yachts, residences, restaurants, and nightlife run as one booking, managed by one specialist from start to finish.",
     },
     {
       q: "Can Pulse build a custom experience for a specific occasion?",
-      a: "Yes. F1, Art Basel, Ultra, birthdays, bachelor and bachelorette weekends — if there is an occasion, Pulse builds around it. Submit your request with dates and a specialist responds within 15 minutes.",
+      a: "Yes. F1, Art Basel, Ultra, birthdays, bachelor and bachelorette weekends. If there is an occasion, Pulse builds around it. Submit your request with dates and a specialist responds within 15 minutes.",
     },
     {
       q: "How much does a Pulse experience cost?",

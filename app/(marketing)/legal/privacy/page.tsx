@@ -4,7 +4,7 @@ import Container from "@/components/shared/Container";
 import Section from "@/components/shared/Section";
 
 export const metadata: Metadata = buildMetadata({
-  title: "Privacy Policy — Pulse",
+  title: "Privacy Policy | Pulse",
   description: "How Pulse collects, uses, and protects your personal information.",
   path: "/legal/privacy",
 });
@@ -61,7 +61,7 @@ export default function PrivacyPage() {
                   "Improve our services and website experience",
                 ].map((item) => (
                   <li key={item} className="flex gap-3">
-                    <span className="text-ink/30 mt-px">—</span>
+                    <span className="text-ink/30 mt-px">·</span>
                     <span>{item}</span>
                   </li>
                 ))}
@@ -77,7 +77,7 @@ export default function PrivacyPage() {
               <h2 className="font-display text-xl">4. Data sharing</h2>
               <p className="text-ink/70 mt-4">
                 We share your information only with the independent service operators required to
-                fulfill your specific request — such as charter operators, fleet partners, or
+                fulfill your specific request, such as charter operators, fleet partners, or
                 residence managers. We do not sell, rent, or otherwise disclose your personal data
                 to unrelated third parties.
               </p>

@@ -632,8 +632,7 @@ export default function RequestForm({
           A Pulse specialist will be in touch within 15 minutes.
         </p>
         <p className="text-ink/55 mt-5 max-w-sm text-sm leading-relaxed">
-          Keep your phone nearby. We&apos;ll confirm availability and send a tailored quote
-          directly.
+          Keep your phone nearby. We&apos;ll confirm availability and send your quote directly.
         </p>
       </div>
     );
@@ -723,7 +722,7 @@ export default function RequestForm({
           <Textarea
             {...register("notes")}
             rows={4}
-            placeholder="Anything else we should know — special requests, add-ons, preferences."
+            placeholder="Anything else we should know: special requests, add-ons, preferences."
           />
         </Field>
       </div>

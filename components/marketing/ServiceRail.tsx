@@ -8,7 +8,7 @@ const services: ReadonlyArray<{ label: string; href: string; hint: string }> = [
   { label: "Jets", href: "/jets", hint: "On-demand charter" },
   { label: "Yachts", href: "/yachts", hint: "Day & multi-day" },
   { label: "Jet Skis", href: "/jet-skis", hint: "Delivered" },
-  { label: "Chauffeur", href: "/chauffeur", hint: "Discreet driver program" },
+  { label: "Chauffeur", href: "/chauffeur", hint: "Private driver program" },
   { label: "Concierge", href: "/concierge", hint: "Anything else" },
 ];
 
