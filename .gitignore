@@ -9,3 +9,5 @@ build/
 .DS_Store
 coverage/
 next-env.d.ts
+# pnpm store probe artifacts
+_tmp_*

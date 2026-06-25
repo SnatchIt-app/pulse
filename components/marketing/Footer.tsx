@@ -21,6 +21,7 @@ const cols: ReadonlyArray<{
     heading: "Pulse",
     links: [
       { label: "About", href: "/about" },
+      { label: "Journal", href: "/journal" },
       { label: "Contact", href: "/contact" },
       { label: "Request", href: "/request" },
     ],

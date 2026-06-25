@@ -12,6 +12,7 @@ const links: ReadonlyArray<{ label: string; href: string }> = [
   { label: "Residences", href: "/residences" },
   { label: "Concierge", href: "/concierge" },
   { label: "Experiences", href: "/experiences" },
+  { label: "Journal", href: "/journal" },
   { label: "About", href: "/about" },
   { label: "Contact", href: "/contact" },
 ];

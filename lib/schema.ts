@@ -99,6 +99,34 @@ export function buildBreadcrumbJsonLd(crumbs: ReadonlyArray<{ name: string; path
   };
 }
 
+export function buildArticleJsonLd(input: {
+  title: string;
+  description: string;
+  path: string;
+  datePublished: string;
+  dateModified?: string;
+}) {
+  const url = `${PULSE.url}${input.path}`;
+  return {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: input.title,
+    description: input.description,
+    mainEntityOfPage: { "@type": "WebPage", "@id": url },
+    url,
+    datePublished: input.datePublished,
+    dateModified: input.dateModified ?? input.datePublished,
+    author: { "@type": "Organization", name: PULSE.name, url: PULSE.url },
+    publisher: {
+      "@type": "Organization",
+      name: PULSE.name,
+      url: PULSE.url,
+      logo: { "@type": "ImageObject", url: `${PULSE.url}/api/og` },
+    },
+    image: `${PULSE.url}/api/og`,
+  };
+}
+
 export type PublicVehicle = {
   slug: string;
   make: string;

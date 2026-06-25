@@ -4,6 +4,7 @@ import { cars } from "@/data/inventory/cars";
 import { jets } from "@/data/inventory/jets";
 import { yachts } from "@/data/inventory/yachts";
 import { residences } from "@/data/inventory/residences";
+import { ARTICLES } from "@/data/journal";
 
 type SitemapEntry = MetadataRoute.Sitemap[number];
 
@@ -27,6 +28,7 @@ const STATIC: ReadonlyArray<{
   { path: "/experiences/world-cup", priority: 0.8, freq: "weekly" },
   { path: "/jet-skis", priority: 0.6, freq: "weekly" },
   { path: "/about", priority: 0.6, freq: "monthly" },
+  { path: "/journal", priority: 0.7, freq: "weekly" },
   { path: "/legal/terms", priority: 0.3, freq: "monthly" },
   { path: "/legal/privacy", priority: 0.3, freq: "monthly" },
   // /experiences — full page, included above
@@ -70,5 +72,19 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.85,
   }));
 
-  return [...staticEntries, ...fleetEntries, ...jetEntries, ...yachtEntries, ...residenceEntries];
+  const journalEntries: MetadataRoute.Sitemap = ARTICLES.map((a) => ({
+    url: absoluteUrl(`/journal/${a.slug}`),
+    lastModified: new Date(a.dateModified ?? a.datePublished),
+    changeFrequency: "monthly",
+    priority: 0.7,
+  }));
+
+  return [
+    ...staticEntries,
+    ...fleetEntries,
+    ...jetEntries,
+    ...yachtEntries,
+    ...residenceEntries,
+    ...journalEntries,
+  ];
 }
