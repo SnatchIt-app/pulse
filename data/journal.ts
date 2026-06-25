@@ -37,6 +37,133 @@ export type JournalArticle = {
 
 export const ARTICLES: ReadonlyArray<JournalArticle> = [
   {
+    slug: "world-cup-2026-miami-travel-planning-guide",
+    title: "World Cup 2026 in Miami: A Travel Planning Guide for Match Week",
+    h1: "World Cup 2026 in Miami: A Travel Planning Guide for Match Week",
+    description:
+      "How to plan a World Cup 2026 trip to Miami: when the matches are, where to stay, getting to Hard Rock Stadium, flying in, match access, and building the rest of the week.",
+    category: "World Cup",
+    datePublished: "2026-06-25",
+    readMinutes: 8,
+    primaryKeyword: "World Cup 2026 Miami travel guide",
+    keywords: [
+      "World Cup 2026 Miami travel guide",
+      "World Cup Miami travel planning",
+      "how to plan World Cup 2026 Miami trip",
+      "Hard Rock Stadium World Cup transportation",
+      "World Cup Miami where to stay",
+    ],
+    excerpt:
+      "Miami is one of the host cities for the 2026 World Cup, and match week is unlike any normal weekend here. This is how to plan the trip so the football is the only thing you have to think about.",
+    intro: [
+      "Miami is one of the North American host cities for the 2026 World Cup, with matches played at Hard Rock Stadium up in Miami Gardens through the summer. For anyone flying in for a fixture, the football is the easy part. The hard part is everything around it: where to stay, how to get to a stadium that sits well outside the parts of Miami most visitors picture, and how to handle a city that is running at full capacity for weeks.",
+      "We plan these weeks for clients constantly, so this guide is built from how it actually works on the ground, not a brochure version. It covers the timing, the stay, the stadium run, flying in, match access, and how to fit the rest of Miami around the games without spending your trip stuck in logistics.",
+    ],
+    sections: [
+      {
+        heading: "Know where the matches actually are",
+        paragraphs: [
+          "Hard Rock Stadium is in Miami Gardens, in the north of Miami-Dade County. It is not in South Beach, not in Brickell, and not in the Design District, which is where most visitors imagine themselves spending the week. Depending on where you stay and what the traffic is doing, the stadium is anywhere from 25 minutes to well over an hour away on a match day.",
+          "That single fact drives most of the planning. The neighborhood you sleep in, the way you get to the ground, and how you time your day all flow from the gap between where the city is fun and where the football is played. Plan the stay and the transport together, not separately.",
+        ],
+      },
+      {
+        heading: "Where to stay for match week",
+        paragraphs: [
+          "There is no single right answer, only trade-offs. Miami Beach and South Beach put you on the water and near the nightlife, but they are the furthest from the stadium and the most congested on a match day. Brickell and Downtown sit more central, with a shorter run north and a denser cluster of restaurants. Aventura and the Sunny Isles stretch are the closest to Hard Rock, quieter, and the easy choice if the football is the whole reason you came.",
+          "For a group or a family staying several nights, a private residence often makes more sense than a block of hotel rooms. You get the space, a kitchen, and somewhere to regroup between matches. Pulse arranges private residences across these areas through vetted partners, placed to match how far you are willing to sit in a car on game day.",
+        ],
+        bullets: [
+          "South Beach and Miami Beach: best for nightlife and the water, furthest and busiest on match day.",
+          "Brickell and Downtown: central, strong dining, a shorter run to the stadium.",
+          "Aventura and Sunny Isles: closest to Hard Rock, calmer, best if the football is the priority.",
+        ],
+      },
+      {
+        heading: "Getting to Hard Rock Stadium on match day",
+        paragraphs: [
+          "This is where most trips succeed or fall apart. On a match day the roads around Miami Gardens tighten, parking near the stadium is limited and expensive, and the drive back into the city afterward moves slowly while tens of thousands of people leave at once. Driving yourself and parking a car you care about is rarely worth it.",
+          "A private chauffeur is the move almost everyone settles on. You get dropped at the stadium, the driver waits or returns, and you leave when you want without circling for parking or standing in a rideshare line with the whole crowd. For a group, one larger vehicle keeps everyone together on both legs. Sort the drop-off and pickup points when you book, because stadium access changes on event days and a driver who knows the routing saves you the headache.",
+        ],
+      },
+      {
+        heading: "Flying in: private or commercial",
+        paragraphs: [
+          "Miami International and Fort Lauderdale both handle the inbound crowds, and both get heavy during a tournament. If you are arriving for a single fixture on a tight schedule, or moving between host cities as the rounds progress, flying private is worth pricing out. It skips the main terminals, runs on your clock, and lands you closer to a fast transfer.",
+          "Pulse coordinates private jet travel through vetted operators, matched to the route, the group size, and the dates. Aircraft and slots are subject to availability and move quickly during a tournament, so if private flying is on the table, it is one of the first things to lock rather than the last.",
+        ],
+      },
+      {
+        heading: "Match tickets and access",
+        paragraphs: [
+          "Pulse is an independent concierge company and is not affiliated with FIFA. We do not sell official tickets and we do not imply access we cannot deliver. What we do is take match access requests and work them through our network on a best-efforts basis, subject to availability, and tell you honestly what is realistic for a given fixture before you build a trip around it.",
+          "The practical advice is to settle your match plan first and let the rest of the week follow it. Knowing which fixtures you are committed to, and on which dates, is what lets everything else fall into place without guessing.",
+        ],
+      },
+      {
+        heading: "Building the rest of the week around the football",
+        paragraphs: [
+          "A World Cup trip is rarely only the matches. There are days between fixtures, evenings after the final whistle, and people who came along for the city as much as the football. Miami gives you a lot to work with: a day on the water, dinner at the tables worth sitting at, a night out after a result goes your way, and a car worth driving on the days you are not at the stadium.",
+          "These pieces are easier to run as one plan than to chase separately once you have landed. A yacht for an afternoon, restaurant and nightlife reservations for the evenings, an exotic car for a free day, and the chauffeur tying it all together. When one team holds the whole itinerary, the handoffs between each part stop being your problem.",
+        ],
+      },
+      {
+        heading: "Book the moving parts early",
+        paragraphs: [
+          "Match week compresses demand for everything at once. The good residences, the chauffeurs who know the stadium routing, the private aircraft, and the popular cars all book out well ahead, and the closer you get to a fixture the thinner the options become. This is the opposite of a quiet week in Miami, where you can decide on the day.",
+          "The clients who have the smoothest tournaments are the ones who lock the fixed points first: where they sleep, how they get to the ground, and how they fly in. The flexible extras can be added later, but the backbone of the week should be settled as soon as your matches are.",
+        ],
+      },
+      {
+        heading: "How Pulse handles World Cup week in Miami",
+        paragraphs: [
+          "Pulse owns part of its exotic fleet directly and arranges chauffeur, jets, yachts, residences, dining, and nightlife through vetted partners, so a full match week can be run as one plan rather than a dozen separate bookings. You tell us your fixtures and your dates, and a specialist maps the stay, the stadium transfers, and anything you want around them.",
+          "Everything is quote-only and depends on your dates and live availability, and match access is handled as a request on a best-efforts basis. The earlier in the tournament you ask, the stronger the answer, because the calendar only tightens from here.",
+        ],
+      },
+    ],
+    faqs: [
+      {
+        q: "Where are the World Cup 2026 matches played in Miami?",
+        a: "Miami's matches are at Hard Rock Stadium in Miami Gardens, in the north of Miami-Dade County. It is well outside South Beach and Brickell, so depending on where you stay and the traffic, the stadium can be 25 minutes to over an hour away on a match day. Plan your stay and transport around that distance.",
+      },
+      {
+        q: "Where should I stay in Miami for the World Cup?",
+        a: "It depends on your priority. South Beach is best for the water and nightlife but furthest from the stadium and busiest on match days. Brickell and Downtown are more central with a shorter run north. Aventura and Sunny Isles are closest to Hard Rock and calmer. For groups and families, a private residence often beats a block of hotel rooms.",
+      },
+      {
+        q: "What is the best way to get to Hard Rock Stadium on match day?",
+        a: "A private chauffeur is what most visitors settle on. Stadium-area roads tighten on match days, parking is limited and expensive, and leaving with the crowd is slow. A driver drops you at the stadium and returns on your schedule, with no parking or rideshare line. Confirm drop-off and pickup points when you book, since stadium access changes on event days.",
+      },
+      {
+        q: "Can Pulse get me World Cup match tickets?",
+        a: "Pulse is independent and not affiliated with FIFA, and we do not sell official tickets. We take match access requests and work them through our network on a best-efforts basis, subject to availability, and we tell you honestly what is realistic for a given fixture before you build a trip around it.",
+      },
+      {
+        q: "How far in advance should I plan a World Cup trip to Miami?",
+        a: "As early as your fixtures are confirmed. Match week compresses demand for residences, chauffeurs, private aircraft, and cars all at once, and options thin out closer to each fixture. Lock the fixed points first, where you stay, how you get to the stadium, and how you fly in, then add the flexible extras later.",
+      },
+    ],
+    internalLinks: [
+      { label: "World Cup 26 experiences", href: "/experiences/world-cup" },
+      { label: "Private chauffeur service in Miami", href: "/chauffeur" },
+      { label: "Private jet coordination", href: "/jets" },
+      {
+        label: "What international visitors should know about renting an exotic car",
+        href: "/journal/international-visitors-renting-exotic-car-miami",
+      },
+      {
+        label: "Renting an exotic car during Miami event weekends",
+        href: "/journal/rent-exotic-car-miami-event-weekends",
+      },
+      { label: "Multi-service luxury experiences", href: "/experiences" },
+    ],
+    cta: {
+      heading: "Plan your match week before the calendar tightens.",
+      body: "Tell Pulse your fixtures and dates. A specialist maps the stay, the stadium transfers, and anything you want around the football, and works match access as a request, subject to availability. Quote-only, and a specialist responds within 15 minutes.",
+    },
+  },
+  {
     slug: "international-visitors-renting-exotic-car-miami",
     title: "What International Visitors Should Know Before Renting an Exotic Car in Miami",
     h1: "What International Visitors Should Know Before Renting an Exotic Car in Miami",
