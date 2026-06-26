@@ -11,3 +11,6 @@ coverage/
 next-env.d.ts
 # pnpm store probe artifacts
 _tmp_*
+# Pulse SEO automation: runtime logs, launchd output, and the cadence guard file
+logs/
+.last-run
